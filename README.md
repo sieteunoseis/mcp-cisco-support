@@ -34,22 +34,186 @@ npm run build
 npm start
 ```
 
-### With Claude Desktop
-Add to your Claude Desktop config:
+## Claude Desktop Integration
+
+### Prerequisites
+
+1. **Get Cisco API Credentials**:
+   - Visit [Cisco API Console](https://apiconsole.cisco.com/)
+   - Create an application and get your Client ID and Secret
+   - Ensure the application has access to the Bug API
+
+2. **Install Claude Desktop**:
+   - Download from [Claude.ai](https://claude.ai/download)
+   - Make sure you're using a recent version that supports MCP
+
+### Step-by-Step Setup
+
+1. **Locate Claude Desktop Config File**:
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+2. **Create or Edit the Config File**:
+   ```json
+   {
+     "mcpServers": {
+       "cisco-support": {
+         "command": "npx",
+         "args": ["mcp-cisco-support"],
+         "env": {
+           "CISCO_CLIENT_ID": "your_client_id_here",
+           "CISCO_CLIENT_SECRET": "your_client_secret_here"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Replace Your Credentials**:
+   - Replace `your_client_id_here` with your actual Cisco Client ID
+   - Replace `your_client_secret_here` with your actual Cisco Client Secret
+
+4. **Restart Claude Desktop**:
+   - Close Claude Desktop completely
+   - Reopen the application
+   - The MCP server will be automatically loaded
+
+### Verification
+
+After setup, you should be able to:
+
+1. **Ask Claude about Cisco bugs**:
+   ```
+   "Search for bugs related to memory leaks in Cisco switches"
+   ```
+
+2. **Get specific bug details**:
+   ```
+   "Get details for Cisco bug CSCab12345"
+   ```
+
+3. **Search by product**:
+   ```
+   "Find bugs affecting Cisco Catalyst 3560 switches"
+   ```
+
+### Example Usage in Claude Desktop
+
+Once configured, you can ask Claude questions like:
+
+- **Basic Bug Search**:
+  - "Search for recent bugs related to 'crash' in Cisco products"
+  - "Find open bugs with severity 1 or 2"
+  - "Show me bugs modified in the last 30 days"
+
+- **Product-Specific Searches**:
+  - "Find bugs for product ID WS-C3560-48PS-S"
+  - "Search for bugs in Cisco Catalyst 3560 Series affecting release 15.2(4)S"
+  - "Show bugs fixed in software release 15.2(4)S2"
+
+- **Bug Details**:
+  - "Get full details for bug CSCab12345"
+  - "Show me information about bugs CSCab12345,CSCcd67890"
+
+- **Advanced Filtering**:
+  - "Find resolved bugs with severity 3 modified after 2023-01-01"
+  - "Search for bugs in 'Cisco ASR 9000 Series' sorted by severity"
+
+Claude will use the appropriate MCP tools to fetch real-time data from Cisco's Bug API and provide comprehensive responses with the latest information.
+
+### Alternative Installation Methods
+
+#### Global Installation
+If you prefer to install globally instead of using npx:
+
+```bash
+npm install -g mcp-cisco-support
+```
+
+Then use this config:
 ```json
 {
   "mcpServers": {
     "cisco-support": {
-      "command": "npx",
-      "args": ["mcp-cisco-support"],
+      "command": "mcp-cisco-support",
       "env": {
-        "CISCO_CLIENT_ID": "your_client_id",
-        "CISCO_CLIENT_SECRET": "your_client_secret"
+        "CISCO_CLIENT_ID": "your_client_id_here",
+        "CISCO_CLIENT_SECRET": "your_client_secret_here"
       }
     }
   }
 }
 ```
+
+#### Local Installation
+For development or custom setups:
+
+```bash
+git clone https://github.com/sieteunoseis/mcp-cisco-support.git
+cd mcp-cisco-support
+npm install
+npm run build
+```
+
+Then use this config:
+```json
+{
+  "mcpServers": {
+    "cisco-support": {
+      "command": "node",
+      "args": ["/path/to/mcp-cisco-support/dist/index.js"],
+      "env": {
+        "CISCO_CLIENT_ID": "your_client_id_here",
+        "CISCO_CLIENT_SECRET": "your_client_secret_here"
+      }
+    }
+  }
+}
+```
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **"Command not found" errors**:
+   - Ensure Node.js 18+ is installed
+   - Try global installation: `npm install -g mcp-cisco-support`
+   - Verify the path in your config file
+
+2. **Authentication failures**:
+   - Double-check your Client ID and Secret
+   - Ensure your Cisco API app has Bug API access
+   - Check for typos in the config file
+
+3. **MCP server not loading**:
+   - Restart Claude Desktop completely
+   - Check the config file syntax with a JSON validator
+   - Look for Claude Desktop logs/error messages
+
+4. **Permission errors**:
+   - Ensure the config file is readable
+   - On macOS/Linux, check file permissions: `chmod 644 claude_desktop_config.json`
+
+#### Debugging
+
+1. **Test the server manually**:
+   ```bash
+   npx mcp-cisco-support
+   ```
+   This should start the server in stdio mode without errors.
+
+2. **Validate your config**:
+   Use a JSON validator to ensure your config file is properly formatted.
+
+3. **Check Claude Desktop logs**:
+   - Look for MCP-related error messages in Claude Desktop
+   - The app usually shows connection status for MCP servers
+
+#### Getting Help
+
+- **Issues**: [GitHub Issues](https://github.com/sieteunoseis/mcp-cisco-support/issues)
+- **Cisco API**: [Cisco Developer Documentation](https://developer.cisco.com/docs/support-apis/)
+- **MCP Protocol**: [Model Context Protocol](https://modelcontextprotocol.io/)
 
 ### Docker Deployment
 
