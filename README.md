@@ -55,11 +55,11 @@ Add to your Claude Desktop config:
 
 ```bash
 # Use pre-built image
-docker pull ghcr.io/owner/mcp-cisco-support:latest
+docker pull ghcr.io/sieteunoseis/mcp-cisco-support:latest
 docker run -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_id \
   -e CISCO_CLIENT_SECRET=your_secret \
-  ghcr.io/owner/mcp-cisco-support:latest --http
+  ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 
 # Or build locally
 docker-compose up -d

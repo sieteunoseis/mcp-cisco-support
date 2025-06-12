@@ -288,17 +288,17 @@ The server implements these Cisco Bug API v2.0 endpoints:
 
 ### GitHub Container Registry
 Automated Docker builds are available via GitHub Actions:
-- **Latest**: `ghcr.io/owner/mcp-cisco-support:latest`
-- **Tagged**: `ghcr.io/owner/mcp-cisco-support:v1.0.0`
-- **Branch**: `ghcr.io/owner/mcp-cisco-support:main-abc123`
+- **Latest**: `ghcr.io/sieteunoseis/mcp-cisco-support:latest`
+- **Tagged**: `ghcr.io/sieteunoseis/mcp-cisco-support:v1.0.0`
+- **Branch**: `ghcr.io/sieteunoseis/mcp-cisco-support:main-abc123`
 
 Pull and run the pre-built image:
 ```bash
-docker pull ghcr.io/owner/mcp-cisco-support:latest
+docker pull ghcr.io/sieteunoseis/mcp-cisco-support:latest
 docker run -d -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_id \
   -e CISCO_CLIENT_SECRET=your_secret \
-  ghcr.io/owner/mcp-cisco-support:latest --http
+  ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 ```
 
 ## CI/CD Workflows
