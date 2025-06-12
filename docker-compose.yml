@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mcp-cisco-support:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-cisco-support
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - CISCO_CLIENT_ID=${CISCO_CLIENT_ID}
+      - CISCO_CLIENT_SECRET=${CISCO_CLIENT_SECRET}
+    volumes:
+      - ./logs:/usr/src/app/logs
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - cisco-support-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+networks:
+  cisco-support-network:
+    driver: bridge

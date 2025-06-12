@@ -1,0 +1,101 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      # Documentation and markdown files
+      - '**/*.md'
+      - 'docs/**'
+      
+      # Images and screenshots
+      - 'screenshots/**'
+      - 'images/**'
+      
+      # Configuration files that don't affect the build
+      - 'nodemon.json'
+      - '.env.example'
+      - '.gitignore'
+      
+      # Test files (since we removed tests)
+      - 'test/**'
+      - 'tests/**'
+      - '**/*.test.ts'
+      - '**/*.test.js'
+      - 'jest.config.js'
+      
+      # GitHub-specific files that don't affect container build
+      - '.github/**'
+      - '!.github/workflows/docker-build.yml'
+      
+      # IDE and editor files
+      - '.vscode/**'
+      - '.idea/**'
+      - '*.code-workspace'
+
+  workflow_dispatch:
+    inputs:
+      tag_suffix:
+        description: 'Additional tag suffix (optional)'
+        required: false
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ github.event.inputs.tag_suffix }},enable=${{ github.event.inputs.tag_suffix != '' }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+      
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true

@@ -1,0 +1,55 @@
+name: Publish to NPM
+
+on:
+  release:
+    types: [published]
+  
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (npm publish --dry-run)'
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # needed for npm provenance
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build TypeScript
+        run: npm run build
+      
+      - name: Run type checking
+        run: npx tsc --noEmit
+      
+      - name: Update package version (release only)
+        if: github.event_name == 'release'
+        run: npm version --no-git-tag-version ${{ github.event.release.tag_name }}
+      
+      - name: Publish to NPM (dry run)
+        if: github.event.inputs.dry_run == 'true'
+        run: npm publish --dry-run --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Publish to NPM
+        if: github.event_name == 'release' || github.event.inputs.dry_run == 'false'
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
