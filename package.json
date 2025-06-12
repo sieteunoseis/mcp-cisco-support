@@ -4,8 +4,16 @@
   "description": "MCP server for Cisco Support APIs including Bug Search and future tools",
   "main": "dist/index.js",
   "bin": {
-    "mcp-cisco-support": "./dist/index.js"
+    "mcp-cisco-support": "dist/index.js"
   },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "CLAUDE.md",
+    ".env.example",
+    "Dockerfile",
+    "docker-compose.yml"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -22,8 +30,16 @@
     "server-sent-events",
     "tools"
   ],
-  "author": "",
+  "author": "sieteunoseis",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sieteunoseis/mcp-cisco-support.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sieteunoseis/mcp-cisco-support/issues"
+  },
+  "homepage": "https://github.com/sieteunoseis/mcp-cisco-support#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "cors": "^2.8.5",
