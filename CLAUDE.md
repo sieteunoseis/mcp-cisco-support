@@ -474,3 +474,95 @@ Key log messages to monitor:
 2. Client initialize request/response
 3. tools/list requests/responses
 4. No JSON parsing errors
+
+## Development Roadmap
+
+### Current API Implementation Status
+
+| API | Status | Tools | Description |
+|-----|--------|-------|-------------|
+| **Bug** | ✅ **Implemented** | 8 tools | Bug Search, Details, Product-specific searches |
+| **Case** | 🔄 **Planned** | 0 tools | Support case management and operations |
+| **EoX** | 🔄 **Planned** | 0 tools | End of Life/Sale information and notifications |
+| **Product** | 🔄 **Planned** | 0 tools | Product details, specifications, and information |
+| **Serial** | 🔄 **Planned** | 0 tools | Serial number to product information mapping |
+| **RMA** | 🔄 **Planned** | 0 tools | Return Merchandise Authorization processes |
+| **Software** | 🔄 **Planned** | 0 tools | Software suggestions and recommendations |
+| **ASD** | 🔄 **Planned** | 0 tools | Automated Software Distribution |
+
+### Next Implementation Priorities
+
+1. **Case Management API** - High priority for support workflows
+   - Create/update/search support cases
+   - Case status tracking and management
+   - Attachment handling for cases
+
+2. **EoX API** - Critical for lifecycle management
+   - End of Life announcements
+   - End of Sale notifications
+   - Product lifecycle information
+
+3. **Product Information API** - Essential for product research
+   - Product specifications and details
+   - Product family and series information
+   - Product documentation links
+
+4. **Serial Number API** - Important for asset tracking
+   - Serial to product mapping
+   - Warranty information lookup
+   - Contract and coverage details
+
+5. **Software Suggestion API** - Valuable for updates
+   - Software recommendations
+   - Update suggestions
+   - Compatibility information
+
+6. **RMA API** - Support for return processes
+   - RMA request creation
+   - Return status tracking
+   - Return authorization management
+
+7. **ASD API** - Automated distribution
+   - Software distribution automation
+   - Update deployment
+   - Distribution tracking
+
+### Architecture Benefits
+
+The configurable API system provides:
+
+- **Scalability**: Each API can be developed independently
+- **User Control**: Users enable only APIs they have access to
+- **Performance**: Smaller tool sets for faster initialization
+- **Security**: No exposure of unauthorized API endpoints
+- **Maintainability**: Clean separation by API functionality
+
+### Implementation Framework
+
+Each new API follows this pattern:
+
+1. **API Tools Definition**: Create tool array for the API
+2. **Schema Validation**: Define input schemas for all tools
+3. **API Integration**: Implement Cisco API calls and authentication
+4. **Response Formatting**: Add hyperlinks and structured output
+5. **Error Handling**: Comprehensive error management
+6. **Documentation**: Update README and examples
+7. **Testing**: Validate with real API credentials
+
+### Configuration Examples
+
+Users can configure exactly what they need:
+
+```bash
+# Development/Testing - Bug API only
+SUPPORT_API=bug
+
+# Support Engineer - Case management focus
+SUPPORT_API=bug,case,rma
+
+# Product Manager - Product lifecycle focus  
+SUPPORT_API=bug,eox,product,software
+
+# Administrator - Full access
+SUPPORT_API=all
+```
