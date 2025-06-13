@@ -56,22 +56,30 @@ const TOKEN_REFRESH_MARGIN = 30 * 60 * 1000; // 30 minutes in milliseconds
 // SSE clients management for HTTP mode
 const sseClients = new Map<string, Response>();
 
-// Logger implementation
+// Logger implementation - disabled in stdio mode to prevent interference with MCP protocol
+const isStdioMode = !process.argv.includes('--http');
+
 const logger: Logger = {
   info: (message: string, data?: any) => {
-    const timestamp = new Date().toISOString();
-    const logEntry = { timestamp, level: 'info', message, ...(data && { data }) };
-    console.log(JSON.stringify(logEntry));
+    if (!isStdioMode) {
+      const timestamp = new Date().toISOString();
+      const logEntry = { timestamp, level: 'info', message, ...(data && { data }) };
+      console.log(JSON.stringify(logEntry));
+    }
   },
   error: (message: string, data?: any) => {
-    const timestamp = new Date().toISOString();
-    const logEntry = { timestamp, level: 'error', message, ...(data && { data }) };
-    console.error(JSON.stringify(logEntry));
+    if (!isStdioMode) {
+      const timestamp = new Date().toISOString();
+      const logEntry = { timestamp, level: 'error', message, ...(data && { data }) };
+      console.error(JSON.stringify(logEntry));
+    }
   },
   warn: (message: string, data?: any) => {
-    const timestamp = new Date().toISOString();
-    const logEntry = { timestamp, level: 'warn', message, ...(data && { data }) };
-    console.warn(JSON.stringify(logEntry));
+    if (!isStdioMode) {
+      const timestamp = new Date().toISOString();
+      const logEntry = { timestamp, level: 'warn', message, ...(data && { data }) };
+      console.warn(JSON.stringify(logEntry));
+    }
   }
 };
 
