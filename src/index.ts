@@ -238,18 +238,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days (default), 3=Last 6 Months, 4=Last Year, 5=All. Default: 2. If no results, try 5 (All)',
-          enum: ['1', '2', '3', '4', '5']
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -276,17 +277,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Modified date filter'
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -317,17 +320,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Modified date filter'
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -358,17 +363,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Modified date filter'
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -399,17 +406,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Modified date filter'
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -440,17 +449,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Modified date filter'
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -481,17 +492,19 @@ const tools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Default: all statuses',
-          enum: ['O', 'F', 'T']
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
+          default: 'O,F,T'
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Default: all severities',
-          enum: ['1', '2', '3', '4', '5', '6']
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
+          default: '1,2,3,4,5,6'
         },
         modified_date: {
           type: 'string',
-          description: 'Modified date filter'
+          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
+          enum: ['1', '2', '3', '4', '5'],
+          default: '5'
         },
         sort_by: {
           type: 'string',
@@ -523,6 +536,9 @@ async function executeTool(name: string, args: ToolArgs): Promise<CiscoApiRespon
   // Set defaults
   const processedArgs = { ...args };
   if (!processedArgs.page_index) processedArgs.page_index = 1;
+  if (!processedArgs.modified_date) processedArgs.modified_date = '5';
+  if (!processedArgs.status) processedArgs.status = 'O,F,T';
+  if (!processedArgs.severity) processedArgs.severity = '1,2,3,4,5,6';
   
   // Build API parameters
   const apiParams: Record<string, any> = {
