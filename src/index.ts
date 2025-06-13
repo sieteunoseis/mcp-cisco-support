@@ -1028,7 +1028,7 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint with MCP JSON-RPC support
+  // SSE endpoint with MCP JSON-RPC support (Legacy SSE Transport for N8N compatibility)
   app.get('/sse', (req: Request, res: Response) => {
     const clientId = uuidv4();
     
@@ -1038,25 +1038,36 @@ function createHTTPServer(): express.Application {
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control'
+      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type'
     });
     
-    // Add client to the map
+    // Add client to the map with session info
     sseClients.set(clientId, res);
     
     logger.info('SSE client connected', { clientId, totalClients: sseClients.size });
     
-    // Send initial connection message
-    res.write(`event: connected\ndata: ${JSON.stringify({ 
-      clientId, 
-      timestamp: new Date().toISOString(),
-      message: 'Connected to Cisco Support MCP Server SSE stream'
-    })}\n\n`);
+    // Send initial server info as SSE event for MCP compatibility
+    const serverInfo = {
+      jsonrpc: '2.0',
+      method: 'notifications/initialized',
+      params: {
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: {}
+        },
+        serverInfo: {
+          name: 'cisco-support',
+          version: VERSION
+        }
+      }
+    };
+    
+    res.write(`event: message\ndata: ${JSON.stringify(serverInfo)}\n\n`);
     
     // Set up heartbeat
     const heartbeat = setInterval(() => {
       try {
-        res.write(`event: heartbeat\ndata: ${JSON.stringify({ 
+        res.write(`event: ping\ndata: ${JSON.stringify({ 
           timestamp: new Date().toISOString() 
         })}\n\n`);
       } catch (error) {
@@ -1080,21 +1091,23 @@ function createHTTPServer(): express.Application {
     });
   });
 
-  // SSE endpoint for JSON-RPC message handling (POST)
+  // SSE endpoint for JSON-RPC message handling (POST) - Legacy SSE Protocol
   app.post('/sse', express.json(), async (req: Request, res: Response) => {
     const message = req.body;
     
     logger.info('Received MCP message via POST /sse', { message });
     
     try {
+      let response;
+      
       if (message.method === 'ping') {
-        res.json({
+        response = {
           jsonrpc: '2.0',
           id: message.id,
           result: {}
-        });
+        };
       } else if (message.method === 'initialize') {
-        res.json({
+        response = {
           jsonrpc: '2.0',
           id: message.id,
           result: {
@@ -1107,16 +1120,16 @@ function createHTTPServer(): express.Application {
               version: VERSION
             }
           }
-        });
+        };
       } else if (message.method === 'tools/list') {
         const tools = getAvailableTools();
-        res.json({
+        response = {
           jsonrpc: '2.0',
           id: message.id,
           result: {
             tools: tools
           }
-        });
+        };
       } else if (message.method === 'tools/call') {
         const { name, arguments: args } = message.params;
         const requestId = uuidv4();
@@ -1137,7 +1150,7 @@ function createHTTPServer(): express.Application {
           timestamp: new Date().toISOString() 
         });
         
-        res.json({
+        response = {
           jsonrpc: '2.0',
           id: message.id,
           result: {
@@ -1148,9 +1161,9 @@ function createHTTPServer(): express.Application {
               }
             ]
           }
-        });
+        };
       } else {
-        res.json({
+        response = {
           jsonrpc: '2.0',
           id: message.id,
           error: {
@@ -1158,10 +1171,27 @@ function createHTTPServer(): express.Application {
             message: 'Method not found',
             data: { method: message.method }
           }
-        });
+        };
       }
+      
+      // Send response via both HTTP and SSE for compatibility
+      res.json(response);
+      
+      // Also broadcast as SSE message for connected clients
+      broadcastSSE('message', response);
+      
     } catch (error) {
       logger.error('Error handling MCP message via POST /sse', { error, message });
+      
+      const errorResponse = {
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        }
+      };
       
       // Broadcast error event for tool calls
       if (message.method === 'tools/call') {
@@ -1173,15 +1203,8 @@ function createHTTPServer(): express.Application {
         });
       }
       
-      res.status(500).json({
-        jsonrpc: '2.0',
-        id: message.id || null,
-        error: {
-          code: -32603,
-          message: 'Internal error',
-          data: error instanceof Error ? error.message : 'Unknown error'
-        }
-      });
+      res.status(500).json(errorResponse);
+      broadcastSSE('message', errorResponse);
     }
   });
 
