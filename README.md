@@ -118,6 +118,7 @@ Once configured, you can ask Claude questions like:
 - **Advanced Filtering**:
   - "Find resolved bugs with severity 3 modified after 2023-01-01"
   - "Search for bugs in 'Cisco ASR 9000 Series' sorted by severity"
+  - "Can you show me all the cisco bugs in the last 30 days for the product Cisco Unified Communications Manager (CallManager)?"
 
 Claude will use the appropriate MCP tools to fetch real-time data from Cisco's Bug API and provide comprehensive responses with the latest information.
 

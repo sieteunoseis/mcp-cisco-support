@@ -105,6 +105,25 @@ Add this configuration to your Claude Desktop settings file:
 }
 ```
 
+### Example Usage
+
+Once configured, you can ask Claude questions like:
+
+- **Basic Bug Search**:
+  - "Search for recent bugs related to 'crash' in Cisco products"
+  - "Find open bugs with severity 1 or 2"
+  - "Show me bugs modified in the last 30 days"
+
+- **Product-Specific Searches**:
+  - "Find bugs for product ID WS-C3560-48PS-S"
+  - "Search for bugs in Cisco Catalyst 3560 Series affecting release 15.2(4)S"
+  - "Show bugs fixed in software release 15.2(4)S2"
+
+- **Advanced Filtering**:
+  - "Find resolved bugs with severity 3 modified after 2023-01-01"
+  - "Search for bugs in 'Cisco ASR 9000 Series' sorted by severity"
+  - "Can you show me all the cisco bugs in the last 30 days for the product Cisco Unified Communications Manager (CallManager)?"
+
 ### Using with Other MCP Clients
 
 For stdio transport:
