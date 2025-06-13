@@ -208,6 +208,18 @@ Then use this config:
 3. **Check Claude Desktop logs**:
    - Look for MCP-related error messages in Claude Desktop
    - The app usually shows connection status for MCP servers
+   
+   **Monitor logs in real-time (macOS)**:
+   ```bash
+   # Follow logs in real-time
+   tail -n 20 -F ~/Library/Logs/Claude/mcp*.log
+   ```
+   
+   **On Windows**:
+   ```cmd
+   # Check logs directory
+   %APPDATA%\Claude\logs\
+   ```
 
 #### Getting Help
 

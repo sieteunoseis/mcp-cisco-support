@@ -393,3 +393,64 @@ Key API patterns:
 - `/bugs/product_series/{series}/affected_releases/{releases}` - Product series queries
 
 Start by setting up the basic Express server structure, then implement OAuth2 authentication, followed by the MCP tools and SSE functionality.
+
+## Troubleshooting
+
+### Claude Desktop Integration Issues
+
+#### Common Problems
+
+1. **JSON-RPC parsing errors in stdio mode**:
+   - Ensure logging is disabled in stdio mode to prevent interference
+   - Check that console output doesn't contain non-JSON-RPC messages
+
+2. **API parameter validation errors**:
+   - Don't send default status/severity parameters unless explicitly specified
+   - Let Cisco API use its own defaults for broader compatibility
+
+3. **Authentication failures**:
+   - Verify CISCO_CLIENT_ID and CISCO_CLIENT_SECRET in environment
+   - Ensure Cisco API application has proper permissions
+
+#### Debugging Tools
+
+**Monitor Claude Desktop logs in real-time**:
+
+```bash
+# macOS - Follow logs in real-time
+tail -n 20 -F ~/Library/Logs/Claude/mcp*.log
+
+# Look for specific error patterns
+grep -i error ~/Library/Logs/Claude/mcp*.log
+grep -i "cisco-support" ~/Library/Logs/Claude/mcp*.log
+```
+
+**Windows log location**:
+```cmd
+%APPDATA%\Claude\logs\
+```
+
+**Test server manually**:
+```bash
+# Test stdio mode
+npx mcp-cisco-support
+
+# Test HTTP mode  
+npx mcp-cisco-support --http
+curl http://localhost:3000/ping
+```
+
+#### Log Analysis
+
+Key log messages to monitor:
+- `"Message from client"` - Incoming MCP requests
+- `"Message from server"` - Outgoing MCP responses  
+- `"Tool call started"` - API calls beginning
+- `"error"` - Any error conditions
+- JSON-RPC validation errors indicate stdio contamination
+
+**Healthy connection logs should show**:
+1. Server initialization
+2. Client initialize request/response
+3. tools/list requests/responses
+4. No JSON parsing errors

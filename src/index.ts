@@ -524,6 +524,45 @@ const tools: Tool[] = [
   }
 ];
 
+// Format bug results with hyperlinks
+function formatBugResults(data: CiscoApiResponse): string {
+  if (!data.bugs || data.bugs.length === 0) {
+    return JSON.stringify(data, null, 2);
+  }
+
+  let formatted = `# Cisco Bug Search Results\n\n`;
+  
+  if (data.total_results) {
+    formatted += `**Total Results:** ${data.total_results}\n\n`;
+  }
+
+  data.bugs.forEach((bug, index) => {
+    const bugUrl = `https://bst.cisco.com/bugsearch/bug/${bug.bug_id}`;
+    
+    formatted += `## ${index + 1}. [${bug.bug_id}](${bugUrl})\n\n`;
+    formatted += `**Headline:** ${bug.headline}\n\n`;
+    formatted += `**Status:** ${bug.status}\n\n`;
+    formatted += `**Severity:** ${bug.severity}\n\n`;
+    formatted += `**Last Modified:** ${bug.last_modified_date}\n\n`;
+    
+    // Add additional fields if they exist
+    Object.keys(bug).forEach(key => {
+      if (!['bug_id', 'headline', 'status', 'severity', 'last_modified_date'].includes(key)) {
+        const value = bug[key];
+        if (value && value !== '' && value !== null && value !== undefined) {
+          const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          formatted += `**${fieldName}:** ${value}\n\n`;
+        }
+      }
+    });
+    
+    formatted += `**Bug URL:** ${bugUrl}\n\n`;
+    formatted += `---\n\n`;
+  });
+
+  return formatted;
+}
+
 // Execute tool function
 async function executeTool(name: string, args: ToolArgs): Promise<CiscoApiResponse> {
   const tool = tools.find(t => t.name === name);
@@ -644,7 +683,7 @@ function createMCPServer(): Server {
       
       const content: TextContent = {
         type: 'text',
-        text: JSON.stringify(result, null, 2)
+        text: formatBugResults(result)
       };
       
       return {
@@ -790,7 +829,7 @@ function createHTTPServer(): express.Application {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify(result, null, 2)
+                text: formatBugResults(result)
               }
             ]
           }
