@@ -896,6 +896,7 @@ function createHTTPServer(): express.Application {
       },
       endpoints: {
         mcp: '/mcp',
+        messages: '/messages',
         ping: '/ping',
         sse: '/sse',
         health: '/health'
@@ -1021,7 +1022,7 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint
+  // SSE endpoint with MCP JSON-RPC support
   app.get('/sse', (req: Request, res: Response) => {
     const clientId = uuidv4();
     
@@ -1071,6 +1072,111 @@ function createHTTPServer(): express.Application {
       sseClients.delete(clientId);
       logger.error('SSE client error', { clientId, error });
     });
+  });
+
+  // Messages endpoint for MCP JSON-RPC over HTTP
+  app.post('/messages', express.json(), async (req: Request, res: Response) => {
+    const message = req.body;
+    
+    logger.info('Received MCP message via /messages', { message });
+    
+    try {
+      if (message.method === 'ping') {
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {}
+        });
+      } else if (message.method === 'initialize') {
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {}
+            },
+            serverInfo: {
+              name: 'cisco-support',
+              version: '1.2.0'
+            }
+          }
+        });
+      } else if (message.method === 'tools/list') {
+        const tools = getAvailableTools();
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            tools: tools
+          }
+        });
+      } else if (message.method === 'tools/call') {
+        const { name, arguments: args } = message.params;
+        const requestId = uuidv4();
+        
+        logger.info('MCP tool call started via /messages', { name, args, requestId });
+        
+        // Broadcast start event for SSE clients
+        broadcastSSE('tool_start', { tool: name, args, requestId, timestamp: new Date().toISOString() });
+        
+        const result = await executeTool(name, args || {});
+        
+        // Broadcast completion event
+        broadcastSSE('tool_complete', { 
+          tool: name, 
+          args, 
+          requestId, 
+          result: result, 
+          timestamp: new Date().toISOString() 
+        });
+        
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: formatBugResults(result, { toolName: name, args: args || {} })
+              }
+            ]
+          }
+        });
+      } else {
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32601,
+            message: 'Method not found',
+            data: { method: message.method }
+          }
+        });
+      }
+    } catch (error) {
+      logger.error('Error handling MCP message via /messages', { error, message });
+      
+      // Broadcast error event for tool calls
+      if (message.method === 'tools/call') {
+        broadcastSSE('tool_error', { 
+          tool: message.params?.name, 
+          args: message.params?.arguments, 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      res.status(500).json({
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+    }
   });
 
   // Health check
