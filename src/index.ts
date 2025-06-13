@@ -525,12 +525,54 @@ const tools: Tool[] = [
 ];
 
 // Format bug results with hyperlinks
-function formatBugResults(data: CiscoApiResponse): string {
+function formatBugResults(data: CiscoApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
   if (!data.bugs || data.bugs.length === 0) {
     return JSON.stringify(data, null, 2);
   }
 
   let formatted = `# Cisco Bug Search Results\n\n`;
+  
+  // Add search context if available
+  if (searchContext) {
+    if (searchContext.toolName === 'search_bugs_by_keyword' && searchContext.args.keyword) {
+      formatted += `**Search Keywords:** "${searchContext.args.keyword}"\n\n`;
+    } else if (searchContext.toolName === 'search_bugs_by_product_id' && searchContext.args.base_pid) {
+      formatted += `**Product ID:** ${searchContext.args.base_pid}\n\n`;
+    } else if (searchContext.toolName === 'search_bugs_by_product_and_release') {
+      formatted += `**Product ID:** ${searchContext.args.base_pid}\n\n`;
+      formatted += `**Software Releases:** ${searchContext.args.software_releases}\n\n`;
+    } else if (searchContext.toolName === 'search_bugs_by_product_series_affected') {
+      formatted += `**Product Series:** ${searchContext.args.product_series}\n\n`;
+      formatted += `**Affected Releases:** ${searchContext.args.affected_releases}\n\n`;
+    } else if (searchContext.toolName === 'search_bugs_by_product_series_fixed') {
+      formatted += `**Product Series:** ${searchContext.args.product_series}\n\n`;
+      formatted += `**Fixed Releases:** ${searchContext.args.fixed_releases}\n\n`;
+    } else if (searchContext.toolName === 'search_bugs_by_product_name_affected') {
+      formatted += `**Product Name:** ${searchContext.args.product_name}\n\n`;
+      formatted += `**Affected Releases:** ${searchContext.args.affected_releases}\n\n`;
+    } else if (searchContext.toolName === 'search_bugs_by_product_name_fixed') {
+      formatted += `**Product Name:** ${searchContext.args.product_name}\n\n`;
+      formatted += `**Fixed Releases:** ${searchContext.args.fixed_releases}\n\n`;
+    }
+    
+    // Add filters if specified
+    if (searchContext.args.status && searchContext.args.status !== 'O,F,T') {
+      formatted += `**Status Filter:** ${searchContext.args.status}\n\n`;
+    }
+    if (searchContext.args.severity && searchContext.args.severity !== '1,2,3,4,5,6') {
+      formatted += `**Severity Filter:** ${searchContext.args.severity}\n\n`;
+    }
+    if (searchContext.args.modified_date && searchContext.args.modified_date !== '5') {
+      const dateMap: {[key: string]: string} = {
+        '1': 'Last Week',
+        '2': 'Last 30 Days', 
+        '3': 'Last 6 Months',
+        '4': 'Last Year',
+        '5': 'All'
+      };
+      formatted += `**Modified Date Filter:** ${dateMap[searchContext.args.modified_date] || searchContext.args.modified_date}\n\n`;
+    }
+  }
   
   if (data.total_results) {
     formatted += `**Total Results:** ${data.total_results}\n\n`;
@@ -683,7 +725,7 @@ function createMCPServer(): Server {
       
       const content: TextContent = {
         type: 'text',
-        text: formatBugResults(result)
+        text: formatBugResults(result, { toolName: name, args: args || {} })
       };
       
       return {
@@ -829,7 +871,7 @@ function createHTTPServer(): express.Application {
             content: [
               {
                 type: 'text',
-                text: formatBugResults(result)
+                text: formatBugResults(result, { toolName: name, args: args || {} })
               }
             ]
           }
