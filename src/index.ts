@@ -1080,6 +1080,111 @@ function createHTTPServer(): express.Application {
     });
   });
 
+  // SSE endpoint for JSON-RPC message handling (POST)
+  app.post('/sse', express.json(), async (req: Request, res: Response) => {
+    const message = req.body;
+    
+    logger.info('Received MCP message via POST /sse', { message });
+    
+    try {
+      if (message.method === 'ping') {
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {}
+        });
+      } else if (message.method === 'initialize') {
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {}
+            },
+            serverInfo: {
+              name: 'cisco-support',
+              version: VERSION
+            }
+          }
+        });
+      } else if (message.method === 'tools/list') {
+        const tools = getAvailableTools();
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            tools: tools
+          }
+        });
+      } else if (message.method === 'tools/call') {
+        const { name, arguments: args } = message.params;
+        const requestId = uuidv4();
+        
+        logger.info('MCP tool call started via POST /sse', { name, args, requestId });
+        
+        // Broadcast start event for SSE clients
+        broadcastSSE('tool_start', { tool: name, args, requestId, timestamp: new Date().toISOString() });
+        
+        const result = await executeTool(name, args || {});
+        
+        // Broadcast completion event
+        broadcastSSE('tool_complete', { 
+          tool: name, 
+          args, 
+          requestId, 
+          result: result, 
+          timestamp: new Date().toISOString() 
+        });
+        
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: formatBugResults(result, { toolName: name, args: args || {} })
+              }
+            ]
+          }
+        });
+      } else {
+        res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32601,
+            message: 'Method not found',
+            data: { method: message.method }
+          }
+        });
+      }
+    } catch (error) {
+      logger.error('Error handling MCP message via POST /sse', { error, message });
+      
+      // Broadcast error event for tool calls
+      if (message.method === 'tools/call') {
+        broadcastSSE('tool_error', { 
+          tool: message.params?.name, 
+          args: message.params?.arguments, 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      res.status(500).json({
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+    }
+  });
+
   // Messages endpoint for MCP JSON-RPC over HTTP
   app.post('/messages', express.json(), async (req: Request, res: Response) => {
     const message = req.body;
