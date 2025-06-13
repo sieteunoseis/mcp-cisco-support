@@ -545,17 +545,17 @@ async function executeTool(name: string, args: ToolArgs): Promise<CiscoApiRespon
   const processedArgs = { ...args };
   if (!processedArgs.page_index) processedArgs.page_index = 1;
   if (!processedArgs.modified_date) processedArgs.modified_date = '5';
-  if (!processedArgs.status) processedArgs.status = 'O,F,T';
-  if (!processedArgs.severity) processedArgs.severity = '1,2,3,4,5,6';
+  // Don't set default status - let API use its own defaults
+  // Don't set default severity - let API use its own defaults
   
   // Build API parameters
   const apiParams: Record<string, any> = {
     page_index: processedArgs.page_index
   };
   
-  // Add optional filters
-  if (processedArgs.status) apiParams.status = processedArgs.status;
-  if (processedArgs.severity) apiParams.severity = processedArgs.severity;
+  // Add optional filters - only if explicitly provided
+  if (processedArgs.status && processedArgs.status !== 'O,F,T') apiParams.status = processedArgs.status;
+  if (processedArgs.severity && processedArgs.severity !== '1,2,3,4,5,6') apiParams.severity = processedArgs.severity;
   if (processedArgs.modified_date) apiParams.modified_date = processedArgs.modified_date;
   if (processedArgs.sort_by) apiParams.sort_by = processedArgs.sort_by;
   
