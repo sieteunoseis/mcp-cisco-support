@@ -15,9 +15,15 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { v4 as uuidv4 } from 'uuid';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 // Load environment variables
 dotenv.config();
+
+// Get version from package.json
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
+const VERSION = packageJson.version;
 
 // Supported API configuration
 type SupportedAPI = 'asd' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software';
@@ -773,7 +779,7 @@ function createMCPServer(): Server {
   const server = new Server(
     {
       name: 'mcp-cisco-support',
-      version: '1.0.0',
+      version: VERSION,
     },
     {
       capabilities: {
@@ -877,7 +883,7 @@ function createHTTPServer(): express.Application {
 
     res.json({
       name: 'Cisco Support MCP Server',
-      version: '1.1.1',
+      version: VERSION,
       description: 'MCP server for Cisco Support APIs with configurable API support',
       transports: ['stdio', 'http'],
       supportedAPIs: SUPPORTED_APIS.map(api => ({
@@ -911,7 +917,7 @@ function createHTTPServer(): express.Application {
     res.json({
       status: 'pong',
       timestamp: new Date().toISOString(),
-      version: '1.0.0',
+      version: VERSION,
       server: 'mcp-cisco-support'
     });
   });
@@ -933,7 +939,7 @@ function createHTTPServer(): express.Application {
             },
             serverInfo: {
               name: 'mcp-cisco-support',
-              version: '1.0.0'
+              version: VERSION
             }
           }
         });
@@ -1098,7 +1104,7 @@ function createHTTPServer(): express.Application {
             },
             serverInfo: {
               name: 'cisco-support',
-              version: '1.2.0'
+              version: VERSION
             }
           }
         });
@@ -1188,7 +1194,7 @@ function createHTTPServer(): express.Application {
       res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        version: VERSION,
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         sseClients: sseClients.size,
@@ -1265,7 +1271,7 @@ async function main() {
     app.listen(PORT, () => {
       logger.info(`Cisco Support MCP Server started on port ${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0',
+        version: VERSION,
         mode: 'http'
       });
     });
