@@ -231,7 +231,7 @@ const tools: Tool[] = [
   },
   {
     name: 'search_bugs_by_keyword',
-    description: 'Search for bugs using keywords in descriptions and headlines',
+    description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -270,7 +270,7 @@ const tools: Tool[] = [
   },
   {
     name: 'search_bugs_by_product_id',
-    description: 'Search bugs by base product ID',
+    description: 'Search bugs by specific base product ID (e.g., WS-C3560-48PS-S). Use when you have an exact Cisco product ID. For general product searches by name, consider using keyword search instead.',
     inputSchema: {
       type: 'object',
       properties: {
