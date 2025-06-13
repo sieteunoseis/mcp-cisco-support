@@ -4,7 +4,8 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 
 ## Current Features
 
-- **Bug Search API**: 8 MCP tools for comprehensive Cisco bug searching
+- **Configurable API Support**: Enable only the Cisco Support APIs you have access to
+- **Bug Search API**: 8 MCP tools for comprehensive Cisco bug searching (currently implemented)
 - **Dual Transport**: stdio (local MCP clients) and HTTP (remote server)
 - **OAuth2 Authentication**: Automatic token management with Cisco API
 - **Real-time Updates**: Server-Sent Events for HTTP mode
@@ -13,12 +14,23 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 - **Docker Support**: Containerized deployment with health checks
 - **Comprehensive Logging**: Structured logging with timestamps
 
-## Planned Features
+## Supported Cisco APIs
 
-- **Case Management API**: Tools for Cisco support case operations
-- **Product Alerts API**: Access to product notifications and alerts  
-- **Field Notices API**: Retrieve field notices and advisories
-- **Additional Support Tools**: Expanding Cisco Support API coverage
+The server supports the following Cisco Support APIs (configurable via `SUPPORT_API` environment variable):
+
+- **ASD** (`asd`): Automated Software Distribution API *(planned)*
+- **Bug** (`bug`): Bug Search API *(implemented)*
+- **Case** (`case`): Case Management API *(planned)*
+- **EoX** (`eox`): End of Life/Sale Information API *(planned)*
+- **Product** (`product`): Product Information API *(planned)*
+- **Serial** (`serial`): Serial Number to Information API *(planned)*
+- **RMA** (`rma`): Service Order Return (RMA) API *(planned)*
+- **Software** (`software`): Software Suggestion API *(planned)*
+
+**Configuration Examples:**
+- `SUPPORT_API=bug` - Bug API only (default)
+- `SUPPORT_API=all` - All available APIs
+- `SUPPORT_API=bug,case,eox` - Multiple specific APIs
 
 ## Quick Start
 
@@ -62,12 +74,18 @@ npm start
          "args": ["mcp-cisco-support"],
          "env": {
            "CISCO_CLIENT_ID": "your_client_id_here",
-           "CISCO_CLIENT_SECRET": "your_client_secret_here"
+           "CISCO_CLIENT_SECRET": "your_client_secret_here",
+           "SUPPORT_API": "bug"
          }
        }
      }
    }
    ```
+   
+   **Optional**: Configure which APIs to enable with `SUPPORT_API`:
+   - `"bug"` - Bug API only (default)
+   - `"all"` - All available APIs
+   - `"bug,case,eox"` - Multiple specific APIs
 
 3. **Replace Your Credentials**:
    - Replace `your_client_id_here` with your actual Cisco Client ID
@@ -248,10 +266,19 @@ docker-compose up -d
 Create a `.env` file with your credentials:
 
 ```bash
+# Cisco API OAuth2 Configuration
 CISCO_CLIENT_ID=your_client_id_here
 CISCO_CLIENT_SECRET=your_client_secret_here
+
+# Server Configuration
 PORT=3000
 NODE_ENV=development
+
+# API Support Configuration
+# Comma-separated list of APIs to enable: asd,bug,case,eox,product,serial,rma,software
+# Use 'all' to enable all APIs, or 'bug' for Bug API only (default)
+# Note: Users must have appropriate Cisco API access for each enabled API
+SUPPORT_API=bug
 ```
 
 ## API Endpoints

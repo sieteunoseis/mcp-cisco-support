@@ -19,6 +19,25 @@ import { v4 as uuidv4 } from 'uuid';
 // Load environment variables
 dotenv.config();
 
+// Supported API configuration
+type SupportedAPI = 'asd' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software';
+
+const SUPPORTED_APIS: SupportedAPI[] = ['asd', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software'];
+
+// Get enabled APIs from environment
+function getEnabledAPIs(): SupportedAPI[] {
+  const supportApiEnv = process.env.SUPPORT_API || 'bug';
+  
+  if (supportApiEnv.toLowerCase() === 'all') {
+    return SUPPORTED_APIS;
+  }
+  
+  const requestedAPIs = supportApiEnv.toLowerCase().split(',').map(api => api.trim()) as SupportedAPI[];
+  return requestedAPIs.filter(api => SUPPORTED_APIS.includes(api));
+}
+
+const ENABLED_APIS = getEnabledAPIs();
+
 // Types
 interface TokenData {
   access_token: string;
@@ -213,8 +232,8 @@ async function makeCiscoApiCall(endpoint: string, params: Record<string, any> = 
   }
 }
 
-// MCP Tools definitions with proper JSON Schema format
-const tools: Tool[] = [
+// MCP Tools definitions with proper JSON Schema format - organized by API
+const bugApiTools: Tool[] = [
   {
     name: 'get_bug_details',
     description: 'Get details for up to 5 specific bug IDs',
@@ -524,6 +543,73 @@ const tools: Tool[] = [
   }
 ];
 
+// Placeholder tools for future APIs
+const asdApiTools: Tool[] = [
+  // Automated Software Distribution tools will be added here
+];
+
+const caseApiTools: Tool[] = [
+  // Case Management API tools will be added here
+];
+
+const eoxApiTools: Tool[] = [
+  // End of Life/Sale API tools will be added here
+];
+
+const productApiTools: Tool[] = [
+  // Product Information API tools will be added here
+];
+
+const serialApiTools: Tool[] = [
+  // Serial Number to Information API tools will be added here
+];
+
+const rmaApiTools: Tool[] = [
+  // Service Order Return (RMA) API tools will be added here
+];
+
+const softwareApiTools: Tool[] = [
+  // Software Suggestion API tools will be added here
+];
+
+// Map API names to their tool arrays
+const API_TOOLS_MAP: Record<SupportedAPI, Tool[]> = {
+  asd: asdApiTools,
+  bug: bugApiTools,
+  case: caseApiTools,
+  eox: eoxApiTools,
+  product: productApiTools,
+  serial: serialApiTools,
+  rma: rmaApiTools,
+  software: softwareApiTools
+};
+
+// Generate tools array based on enabled APIs
+function getAvailableTools(): Tool[] {
+  const availableTools: Tool[] = [];
+  
+  for (const api of ENABLED_APIS) {
+    const apiTools = API_TOOLS_MAP[api];
+    if (apiTools && apiTools.length > 0) {
+      availableTools.push(...apiTools);
+    }
+  }
+  
+  return availableTools;
+}
+
+// Get the current tools based on configuration
+const tools = getAvailableTools();
+
+// Log enabled APIs on startup
+if (!isStdioMode) {
+  logger.info('Cisco Support MCP Server API Configuration', {
+    enabledAPIs: ENABLED_APIS,
+    availableTools: tools.length,
+    supportApiEnv: process.env.SUPPORT_API || 'bug (default)'
+  });
+}
+
 // Format bug results with hyperlinks
 function formatBugResults(data: CiscoApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
   if (!data.bugs || data.bugs.length === 0) {
@@ -778,13 +864,36 @@ function createHTTPServer(): express.Application {
 
   // Server info
   app.get('/', (_req: Request, res: Response) => {
+    const apiDescriptions: Record<SupportedAPI, string> = {
+      asd: 'Automated Software Distribution',
+      bug: 'Bug Search and Details',
+      case: 'Case Management',
+      eox: 'End of Life/Sale Information',
+      product: 'Product Information',
+      serial: 'Serial Number to Information',
+      rma: 'Service Order Return (RMA)',
+      software: 'Software Suggestion'
+    };
+
     res.json({
       name: 'Cisco Support MCP Server',
-      version: '1.0.0',
-      description: 'MCP server for Cisco Support APIs including Bug Search and future tools',
+      version: '1.1.1',
+      description: 'MCP server for Cisco Support APIs with configurable API support',
       transports: ['stdio', 'http'],
-      currentTools: ['bug-search'],
-      plannedTools: ['case-management', 'product-alerts', 'field-notices'],
+      supportedAPIs: SUPPORTED_APIS.map(api => ({
+        name: api,
+        description: apiDescriptions[api],
+        enabled: ENABLED_APIS.includes(api)
+      })),
+      enabledAPIs: ENABLED_APIS,
+      availableTools: tools.length,
+      toolsByAPI: Object.fromEntries(
+        ENABLED_APIS.map(api => [api, API_TOOLS_MAP[api].length])
+      ),
+      configuration: {
+        supportApiEnv: process.env.SUPPORT_API || 'bug (default)',
+        instructions: 'Set SUPPORT_API=all or SUPPORT_API=bug,case,eox to configure available APIs'
+      },
       endpoints: {
         mcp: '/mcp',
         ping: '/ping',
