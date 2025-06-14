@@ -1028,9 +1028,9 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint with proper MCP protocol flow
+  // SSE endpoint for legacy MCP Inspector compatibility
   app.get('/sse', (req: Request, res: Response) => {
-    const sessionId = uuidv4();
+    const clientId = uuidv4();
     
     // Set SSE headers
     res.writeHead(200, {
@@ -1041,45 +1041,43 @@ function createHTTPServer(): express.Application {
       'Access-Control-Allow-Headers': 'Cache-Control, Content-Type, Last-Event-ID'
     });
     
-    // Store session
-    sseClients.set(sessionId, res);
+    // Store client
+    sseClients.set(clientId, res);
     
-    logger.info('SSE client connected', { sessionId, totalClients: sseClients.size });
+    logger.info('SSE client connected', { clientId, totalClients: sseClients.size });
     
-    // Send endpoint event with session info (MCP SSE protocol)
-    const endpointInfo = {
-      sessionId: sessionId,
-      endpoint: `/sse/session/${sessionId}`,
-      timestamp: new Date().toISOString()
-    };
-    
-    res.write(`event: endpoint\ndata: ${JSON.stringify(endpointInfo)}\n\n`);
+    // Send initial ready event for MCP Inspector compatibility
+    res.write(`event: ready\ndata: ${JSON.stringify({ 
+      clientId: clientId,
+      timestamp: new Date().toISOString(),
+      message: 'SSE connection established'
+    })}\n\n`);
     
     // Set up heartbeat
     const heartbeat = setInterval(() => {
       try {
         res.write(`event: ping\ndata: ${JSON.stringify({ 
           timestamp: new Date().toISOString(),
-          sessionId: sessionId
+          clientId: clientId
         })}\n\n`);
       } catch (error) {
         clearInterval(heartbeat);
-        sseClients.delete(sessionId);
-        logger.info('SSE client disconnected (heartbeat failed)', { sessionId });
+        sseClients.delete(clientId);
+        logger.info('SSE client disconnected (heartbeat failed)', { clientId });
       }
     }, 30000);
     
     // Handle client disconnect
     req.on('close', () => {
       clearInterval(heartbeat);
-      sseClients.delete(sessionId);
-      logger.info('SSE client disconnected', { sessionId, totalClients: sseClients.size });
+      sseClients.delete(clientId);
+      logger.info('SSE client disconnected', { clientId, totalClients: sseClients.size });
     });
     
     req.on('error', (error: Error) => {
       clearInterval(heartbeat);
-      sseClients.delete(sessionId);
-      logger.error('SSE client error', { sessionId, error });
+      sseClients.delete(clientId);
+      logger.error('SSE client error', { clientId, error });
     });
   });
 
@@ -1216,7 +1214,7 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // Legacy SSE endpoint for JSON-RPC message handling (POST) - Keep for backward compatibility
+  // SSE POST endpoint for MCP Inspector and N8N compatibility
   app.post('/sse', express.json(), async (req: Request, res: Response) => {
     const message = req.body;
     
