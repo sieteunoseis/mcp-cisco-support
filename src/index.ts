@@ -1028,11 +1028,11 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint for N8N MCP client compatibility
+  // SSE endpoint with proper MCP protocol (FastMCP style)
   app.get('/sse', (req: Request, res: Response) => {
-    const clientId = uuidv4();
+    const sessionId = uuidv4();
     
-    // Set SSE headers for maximum compatibility
+    // Set SSE headers
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -1042,45 +1042,36 @@ function createHTTPServer(): express.Application {
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     });
     
-    // Store client with connection info
-    sseClients.set(clientId, res);
+    // Store session
+    sseClients.set(sessionId, res);
     
-    logger.info('SSE client connected', { clientId, totalClients: sseClients.size });
+    logger.info('SSE client connected', { sessionId, totalClients: sseClients.size });
     
-    // Send connection confirmation without event type for broader compatibility
-    res.write(`data: ${JSON.stringify({ 
-      type: 'connection',
-      clientId: clientId,
-      timestamp: new Date().toISOString(),
-      status: 'connected'
-    })}\n\n`);
+    // Send endpoint event with message URL (FastMCP protocol)
+    res.write(`event: endpoint\ndata: ${JSON.stringify(`/sse/messages?session_id=${sessionId}`)}\n\n`);
     
     // Set up heartbeat
     const heartbeat = setInterval(() => {
       try {
-        res.write(`data: ${JSON.stringify({ 
-          type: 'ping',
-          timestamp: new Date().toISOString(),
-          clientId: clientId
-        })}\n\n`);
+        res.write(`event: ping\ndata: Server is alive!\n\n`);
       } catch (error) {
         clearInterval(heartbeat);
-        sseClients.delete(clientId);
-        logger.info('SSE client disconnected (heartbeat failed)', { clientId });
+        sseClients.delete(sessionId);
+        logger.info('SSE client disconnected (heartbeat failed)', { sessionId });
       }
     }, 30000);
     
     // Handle client disconnect
     req.on('close', () => {
       clearInterval(heartbeat);
-      sseClients.delete(clientId);
-      logger.info('SSE client disconnected', { clientId, totalClients: sseClients.size });
+      sseClients.delete(sessionId);
+      logger.info('SSE client disconnected', { sessionId, totalClients: sseClients.size });
     });
     
     req.on('error', (error: Error) => {
       clearInterval(heartbeat);
-      sseClients.delete(clientId);
-      logger.error('SSE client error', { clientId, error });
+      sseClients.delete(sessionId);
+      logger.error('SSE client error', { sessionId, error });
     });
   });
 
@@ -1217,8 +1208,113 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // CORS preflight handler for SSE endpoint
+  // SSE messages endpoint (FastMCP protocol)
+  app.post('/sse/messages', express.json(), async (req: Request, res: Response) => {
+    const sessionId = req.query.session_id as string;
+    const message = req.body;
+    
+    logger.info('Received MCP message via /sse/messages', { sessionId, message });
+    
+    // Verify session exists
+    if (!sessionId || !sseClients.has(sessionId)) {
+      return res.status(404).json({
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32001,
+          message: 'Session not found',
+          data: { sessionId }
+        }
+      });
+    }
+    
+    try {
+      let response;
+      
+      if (message.method === 'initialize') {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {}
+            },
+            serverInfo: {
+              name: 'cisco-support',
+              version: VERSION
+            }
+          }
+        };
+      } else if (message.method === 'tools/list') {
+        const tools = getAvailableTools();
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            tools: tools
+          }
+        };
+      } else if (message.method === 'tools/call') {
+        const { name, arguments: args } = message.params;
+        const requestId = uuidv4();
+        
+        logger.info('MCP tool call started via /sse/messages', { sessionId, name, args, requestId });
+        
+        const result = await executeTool(name, args || {});
+        
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: formatBugResults(result, { toolName: name, args: args || {} })
+              }
+            ]
+          }
+        };
+      } else {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32601,
+            message: 'Method not found',
+            data: { method: message.method }
+          }
+        };
+      }
+      
+      res.json(response);
+      
+    } catch (error) {
+      logger.error('Error handling MCP message via /sse/messages', { sessionId, error, message });
+      
+      const errorResponse = {
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        }
+      };
+      
+      res.status(500).json(errorResponse);
+    }
+  });
+
+  // CORS preflight handlers
   app.options('/sse', (req: Request, res: Response) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Last-Event-ID');
+    res.sendStatus(200);
+  });
+
+  app.options('/sse/messages', (req: Request, res: Response) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Last-Event-ID');
