@@ -1028,32 +1028,42 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint compatible with both MCP Inspector and N8N
+  // MCP-compliant SSE endpoint - single endpoint for both GET and POST per MCP spec
   app.get('/sse', (req: Request, res: Response) => {
     const sessionId = uuidv4();
     
-    // Set SSE headers
+    // Validate Origin header to prevent DNS rebinding attacks (per MCP spec)
+    const origin = req.headers.origin;
+    const host = req.headers.host;
+    if (origin && host && !origin.includes(host.split(':')[0])) {
+      logger.warn('Blocked request due to invalid origin', { origin, host });
+      return res.status(403).send('Invalid origin');
+    }
+    
+    // Set proper SSE headers per MCP specification
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type, Last-Event-ID, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization, Last-Event-ID',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     });
     
-    // Store session with long expiry for compatibility
+    // Store session for MCP compliance
     sseClients.set(sessionId, res);
     
-    logger.info('SSE client connected', { sessionId, totalClients: sseClients.size });
+    logger.info('MCP SSE client connected', { sessionId, totalClients: sseClients.size });
     
-    // Send endpoint event WITHOUT quotes for MCP Inspector compatibility  
-    res.write(`event: endpoint\ndata: /sse/messages\n\n`);
+    // Send initial message per MCP specification - no custom endpoint event
+    res.write(`event: message\ndata: ${JSON.stringify({
+      jsonrpc: '2.0',
+      id: null,
+      method: 'notifications/initialized',
+      params: { sessionId }
+    })}\n\n`);
     
-    // Also send session info for clients that need it
-    res.write(`event: session\ndata: ${JSON.stringify({ sessionId: sessionId })}\n\n`);
-    
-    // Set up heartbeat
+    // Set up heartbeat (optional per MCP spec)
     const heartbeat = setInterval(() => {
       try {
         res.write(`event: ping\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`);
@@ -1416,22 +1426,29 @@ function createHTTPServer(): express.Application {
     res.sendStatus(200);
   });
 
-  // SSE POST endpoint for MCP Inspector and N8N compatibility
+  // MCP-compliant SSE POST endpoint - same endpoint for messages per MCP spec
   app.post('/sse', express.json(), async (req: Request, res: Response) => {
     const message = req.body;
+    const acceptHeader = req.headers.accept || '';
     
     logger.info('Received MCP message via POST /sse', { message });
+    
+    // Validate Origin header per MCP security requirements
+    const origin = req.headers.origin;
+    const host = req.headers.host;
+    if (origin && host && !origin.includes(host.split(':')[0])) {
+      logger.warn('Blocked POST request due to invalid origin', { origin, host });
+      return res.status(403).json({
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: { code: -32002, message: 'Invalid origin' }
+      });
+    }
     
     try {
       let response;
       
-      if (message.method === 'ping') {
-        response = {
-          jsonrpc: '2.0',
-          id: message.id,
-          result: {}
-        };
-      } else if (message.method === 'initialize') {
+      if (message.method === 'initialize') {
         response = {
           jsonrpc: '2.0',
           id: message.id,
@@ -1449,6 +1466,12 @@ function createHTTPServer(): express.Application {
             }
           }
         };
+      } else if (message.method === 'ping') {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {}
+        };
       } else if (message.method === 'tools/list') {
         const tools = getAvailableTools();
         response = {
@@ -1462,21 +1485,9 @@ function createHTTPServer(): express.Application {
         const { name, arguments: args } = message.params;
         const requestId = uuidv4();
         
-        logger.info('MCP tool call started via POST /sse', { name, args, requestId });
-        
-        // Broadcast start event for SSE clients
-        broadcastSSE('tool_start', { tool: name, args, requestId, timestamp: new Date().toISOString() });
+        logger.info('MCP tool call started via SSE POST', { name, args, requestId });
         
         const result = await executeTool(name, args || {});
-        
-        // Broadcast completion event
-        broadcastSSE('tool_complete', { 
-          tool: name, 
-          args, 
-          requestId, 
-          result: result, 
-          timestamp: new Date().toISOString() 
-        });
         
         response = {
           jsonrpc: '2.0',
@@ -1502,25 +1513,34 @@ function createHTTPServer(): express.Application {
         };
       }
       
-      // Send response via HTTP
-      res.json(response);
+      // Per MCP spec: if client accepts text/event-stream, send SSE, otherwise JSON
+      if (acceptHeader.includes('text/event-stream')) {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*'
+        });
+        
+        // Send response as SSE event per MCP specification
+        res.write(`event: message\ndata: ${JSON.stringify(response)}\n\n`);
+        res.end();
+      } else {
+        // Send as regular JSON response
+        res.json(response);
+      }
       
-      // Also send as SSE data for connected clients (N8N compatibility)
+      // Also broadcast to any existing SSE connections
       sseClients.forEach((client) => {
         try {
-          client.write(`data: ${JSON.stringify({
-            type: 'response',
-            id: message.id,
-            response: response,
-            timestamp: new Date().toISOString()
-          })}\n\n`);
+          client.write(`event: message\ndata: ${JSON.stringify(response)}\n\n`);
         } catch (error) {
-          logger.error('Failed to send SSE response to client', { error });
+          logger.error('Failed to broadcast to SSE client', { error });
         }
       });
       
     } catch (error) {
-      logger.error('Error handling MCP message via POST /sse', { error, message });
+      logger.error('Error handling MCP message via SSE POST', { error, message });
       
       const errorResponse = {
         jsonrpc: '2.0',
@@ -1532,31 +1552,16 @@ function createHTTPServer(): express.Application {
         }
       };
       
-      // Broadcast error event for tool calls
-      if (message.method === 'tools/call') {
-        broadcastSSE('tool_error', { 
-          tool: message.params?.name, 
-          args: message.params?.arguments, 
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString()
+      if (acceptHeader.includes('text/event-stream')) {
+        res.writeHead(500, {
+          'Content-Type': 'text/event-stream',
+          'Access-Control-Allow-Origin': '*'
         });
+        res.write(`event: message\ndata: ${JSON.stringify(errorResponse)}\n\n`);
+        res.end();
+      } else {
+        res.status(500).json(errorResponse);
       }
-      
-      res.status(500).json(errorResponse);
-      
-      // Send error as SSE data for connected clients
-      sseClients.forEach((client) => {
-        try {
-          client.write(`data: ${JSON.stringify({
-            type: 'error',
-            id: message.id || null,
-            error: errorResponse.error,
-            timestamp: new Date().toISOString()
-          })}\n\n`);
-        } catch (error) {
-          logger.error('Failed to send SSE error to client', { error });
-        }
-      });
     }
   });
 
