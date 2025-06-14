@@ -1047,8 +1047,8 @@ function createHTTPServer(): express.Application {
     
     logger.info('SSE client connected', { sessionId, totalClients: sseClients.size });
     
-    // Send endpoint event in multiple formats for compatibility
-    res.write(`event: endpoint\ndata: "/sse/messages"\n\n`);
+    // Send endpoint event WITHOUT quotes for MCP Inspector compatibility  
+    res.write(`event: endpoint\ndata: /sse/messages\n\n`);
     
     // Also send session info for clients that need it
     res.write(`event: session\ndata: ${JSON.stringify({ sessionId: sessionId })}\n\n`);
