@@ -1108,7 +1108,10 @@ function createHTTPServer(): express.Application {
           result: {
             protocolVersion: '2025-03-26',
             capabilities: {
-              tools: {}
+              tools: {},
+              logging: {},
+              prompts: {},
+              resources: {}
             },
             serverInfo: {
               name: 'cisco-support',
@@ -1231,7 +1234,10 @@ function createHTTPServer(): express.Application {
           result: {
             protocolVersion: '2025-03-26',
             capabilities: {
-              tools: {}
+              tools: {},
+              logging: {},
+              prompts: {},
+              resources: {}
             },
             serverInfo: {
               name: 'cisco-support',
@@ -1317,7 +1323,10 @@ function createHTTPServer(): express.Application {
           result: {
             protocolVersion: '2025-03-26',
             capabilities: {
-              tools: {}
+              tools: {},
+              logging: {},
+              prompts: {},
+              resources: {}
             },
             serverInfo: {
               name: 'cisco-support',
@@ -1429,7 +1438,10 @@ function createHTTPServer(): express.Application {
           result: {
             protocolVersion: '2025-03-26',
             capabilities: {
-              tools: {}
+              tools: {},
+              logging: {},
+              prompts: {},
+              resources: {}
             },
             serverInfo: {
               name: 'cisco-support',
@@ -1568,7 +1580,10 @@ function createHTTPServer(): express.Application {
           result: {
             protocolVersion: '2025-03-26',
             capabilities: {
-              tools: {}
+              tools: {},
+              logging: {},
+              prompts: {},
+              resources: {}
             },
             serverInfo: {
               name: 'cisco-support',
