@@ -1028,9 +1028,9 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint with MCP JSON-RPC support (Legacy SSE Transport for N8N compatibility)
+  // SSE endpoint with proper MCP protocol flow
   app.get('/sse', (req: Request, res: Response) => {
-    const clientId = uuidv4();
+    const sessionId = uuidv4();
     
     // Set SSE headers
     res.writeHead(200, {
@@ -1038,60 +1038,185 @@ function createHTTPServer(): express.Application {
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type'
+      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type, Last-Event-ID'
     });
     
-    // Add client to the map with session info
-    sseClients.set(clientId, res);
+    // Store session
+    sseClients.set(sessionId, res);
     
-    logger.info('SSE client connected', { clientId, totalClients: sseClients.size });
+    logger.info('SSE client connected', { sessionId, totalClients: sseClients.size });
     
-    // Send initial server info as SSE event for MCP compatibility
-    const serverInfo = {
-      jsonrpc: '2.0',
-      method: 'notifications/initialized',
-      params: {
-        protocolVersion: '2024-11-05',
-        capabilities: {
-          tools: {}
-        },
-        serverInfo: {
-          name: 'cisco-support',
-          version: VERSION
-        }
-      }
+    // Send endpoint event with session info (MCP SSE protocol)
+    const endpointInfo = {
+      sessionId: sessionId,
+      endpoint: `/sse/session/${sessionId}`,
+      timestamp: new Date().toISOString()
     };
     
-    res.write(`event: message\ndata: ${JSON.stringify(serverInfo)}\n\n`);
+    res.write(`event: endpoint\ndata: ${JSON.stringify(endpointInfo)}\n\n`);
     
     // Set up heartbeat
     const heartbeat = setInterval(() => {
       try {
         res.write(`event: ping\ndata: ${JSON.stringify({ 
-          timestamp: new Date().toISOString() 
+          timestamp: new Date().toISOString(),
+          sessionId: sessionId
         })}\n\n`);
       } catch (error) {
         clearInterval(heartbeat);
-        sseClients.delete(clientId);
-        logger.info('SSE client disconnected (heartbeat failed)', { clientId });
+        sseClients.delete(sessionId);
+        logger.info('SSE client disconnected (heartbeat failed)', { sessionId });
       }
     }, 30000);
     
     // Handle client disconnect
     req.on('close', () => {
       clearInterval(heartbeat);
-      sseClients.delete(clientId);
-      logger.info('SSE client disconnected', { clientId, totalClients: sseClients.size });
+      sseClients.delete(sessionId);
+      logger.info('SSE client disconnected', { sessionId, totalClients: sseClients.size });
     });
     
     req.on('error', (error: Error) => {
       clearInterval(heartbeat);
-      sseClients.delete(clientId);
-      logger.error('SSE client error', { clientId, error });
+      sseClients.delete(sessionId);
+      logger.error('SSE client error', { sessionId, error });
     });
   });
 
-  // SSE endpoint for JSON-RPC message handling (POST) - Legacy SSE Protocol
+  // Session-specific message endpoint for SSE MCP protocol
+  app.post('/sse/session/:sessionId', express.json(), async (req: Request, res: Response) => {
+    const sessionId = req.params.sessionId;
+    const message = req.body;
+    
+    logger.info('Received MCP message for session', { sessionId, message });
+    
+    // Verify session exists
+    if (!sseClients.has(sessionId)) {
+      return res.status(404).json({
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32001,
+          message: 'Session not found',
+          data: { sessionId }
+        }
+      });
+    }
+    
+    try {
+      let response;
+      
+      if (message.method === 'initialize') {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {}
+            },
+            serverInfo: {
+              name: 'cisco-support',
+              version: VERSION
+            }
+          }
+        };
+      } else if (message.method === 'tools/list') {
+        const tools = getAvailableTools();
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            tools: tools
+          }
+        };
+      } else if (message.method === 'tools/call') {
+        const { name, arguments: args } = message.params;
+        const requestId = uuidv4();
+        
+        logger.info('MCP tool call started via session', { sessionId, name, args, requestId });
+        
+        // Broadcast start event to the specific session
+        const sseClient = sseClients.get(sessionId);
+        if (sseClient) {
+          sseClient.write(`event: tool_start\ndata: ${JSON.stringify({ 
+            tool: name, 
+            args, 
+            requestId, 
+            timestamp: new Date().toISOString() 
+          })}\n\n`);
+        }
+        
+        const result = await executeTool(name, args || {});
+        
+        // Broadcast completion event to the specific session
+        if (sseClient) {
+          sseClient.write(`event: tool_complete\ndata: ${JSON.stringify({ 
+            tool: name, 
+            args, 
+            requestId, 
+            result: result, 
+            timestamp: new Date().toISOString() 
+          })}\n\n`);
+        }
+        
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: formatBugResults(result, { toolName: name, args: args || {} })
+              }
+            ]
+          }
+        };
+      } else {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32601,
+            message: 'Method not found',
+            data: { method: message.method }
+          }
+        };
+      }
+      
+      // Send response
+      res.json(response);
+      
+      // Also send via SSE if client is connected
+      const sseClient = sseClients.get(sessionId);
+      if (sseClient) {
+        sseClient.write(`event: message\ndata: ${JSON.stringify(response)}\n\n`);
+      }
+      
+    } catch (error) {
+      logger.error('Error handling MCP message for session', { sessionId, error, message });
+      
+      const errorResponse = {
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        }
+      };
+      
+      res.status(500).json(errorResponse);
+      
+      // Send error via SSE if client is connected
+      const sseClient = sseClients.get(sessionId);
+      if (sseClient) {
+        sseClient.write(`event: error\ndata: ${JSON.stringify(errorResponse)}\n\n`);
+      }
+    }
+  });
+
+  // Legacy SSE endpoint for JSON-RPC message handling (POST) - Keep for backward compatibility
   app.post('/sse', express.json(), async (req: Request, res: Response) => {
     const message = req.body;
     
