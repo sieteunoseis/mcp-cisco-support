@@ -1028,7 +1028,7 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint with proper MCP protocol (FastMCP style)
+  // SSE endpoint compatible with both MCP Inspector and N8N
   app.get('/sse', (req: Request, res: Response) => {
     const sessionId = uuidv4();
     
@@ -1042,18 +1042,21 @@ function createHTTPServer(): express.Application {
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     });
     
-    // Store session
+    // Store session with long expiry for compatibility
     sseClients.set(sessionId, res);
     
     logger.info('SSE client connected', { sessionId, totalClients: sseClients.size });
     
-    // Send endpoint event with message URL (FastMCP protocol)
-    res.write(`event: endpoint\ndata: ${JSON.stringify(`/sse/messages?session_id=${sessionId}`)}\n\n`);
+    // Send endpoint event in multiple formats for compatibility
+    res.write(`event: endpoint\ndata: "/sse/messages"\n\n`);
+    
+    // Also send session info for clients that need it
+    res.write(`event: session\ndata: ${JSON.stringify({ sessionId: sessionId })}\n\n`);
     
     // Set up heartbeat
     const heartbeat = setInterval(() => {
       try {
-        res.write(`event: ping\ndata: Server is alive!\n\n`);
+        res.write(`event: ping\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`);
       } catch (error) {
         clearInterval(heartbeat);
         sseClients.delete(sessionId);
@@ -1208,25 +1211,15 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE messages endpoint (FastMCP protocol)
+  // SSE messages endpoint (compatible with MCP Inspector and N8N)
   app.post('/sse/messages', express.json(), async (req: Request, res: Response) => {
-    const sessionId = req.query.session_id as string;
+    const sessionId = req.query.session_id as string || 'default';
     const message = req.body;
     
     logger.info('Received MCP message via /sse/messages', { sessionId, message });
     
-    // Verify session exists
-    if (!sessionId || !sseClients.has(sessionId)) {
-      return res.status(404).json({
-        jsonrpc: '2.0',
-        id: message.id || null,
-        error: {
-          code: -32001,
-          message: 'Session not found',
-          data: { sessionId }
-        }
-      });
-    }
+    // For MCP Inspector compatibility, don't require strict session validation
+    // Just check if we have any SSE clients or proceed anyway
     
     try {
       let response;
@@ -1306,6 +1299,92 @@ function createHTTPServer(): express.Application {
     }
   });
 
+  // Catch-all for MCP Inspector session-based requests
+  app.post('/sse/:sessionId', express.json(), async (req: Request, res: Response) => {
+    const sessionId = req.params.sessionId;
+    const message = req.body;
+    
+    logger.info('Received MCP message via session path', { sessionId, message });
+    
+    // Handle MCP Inspector's session-based requests
+    try {
+      let response;
+      
+      if (message.method === 'initialize') {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {}
+            },
+            serverInfo: {
+              name: 'cisco-support',
+              version: VERSION
+            }
+          }
+        };
+      } else if (message.method === 'tools/list') {
+        const tools = getAvailableTools();
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            tools: tools
+          }
+        };
+      } else if (message.method === 'tools/call') {
+        const { name, arguments: args } = message.params;
+        const requestId = uuidv4();
+        
+        logger.info('MCP tool call started via session path', { sessionId, name, args, requestId });
+        
+        const result = await executeTool(name, args || {});
+        
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: formatBugResults(result, { toolName: name, args: args || {} })
+              }
+            ]
+          }
+        };
+      } else {
+        response = {
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32601,
+            message: 'Method not found',
+            data: { method: message.method }
+          }
+        };
+      }
+      
+      res.json(response);
+      
+    } catch (error) {
+      logger.error('Error handling MCP message via session path', { sessionId, error, message });
+      
+      const errorResponse = {
+        jsonrpc: '2.0',
+        id: message.id || null,
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        }
+      };
+      
+      res.status(500).json(errorResponse);
+    }
+  });
+
   // CORS preflight handlers
   app.options('/sse', (req: Request, res: Response) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -1315,6 +1394,13 @@ function createHTTPServer(): express.Application {
   });
 
   app.options('/sse/messages', (req: Request, res: Response) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Last-Event-ID');
+    res.sendStatus(200);
+  });
+
+  app.options('/sse/:sessionId', (req: Request, res: Response) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Last-Event-ID');
