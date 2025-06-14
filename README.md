@@ -285,10 +285,14 @@ SUPPORT_API=bug
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Server information |
-| `/mcp` | POST | Main MCP endpoint (tools/list, tools/call, initialize) |
-| `/sse` | GET | Server-Sent Events stream |
-| `/health` | GET | Health check |
+| `/` | GET | Server information and available endpoints |
+| `/mcp` | POST | Main MCP endpoint (JSON-RPC over HTTP) |
+| `/messages` | POST | Alternative MCP endpoint for N8N compatibility |
+| `/sse` | GET | SSE connection with session management |
+| `/sse` | POST | Legacy SSE message endpoint (deprecated) |
+| `/sse/session/{sessionId}` | POST | Session-specific MCP message endpoint |
+| `/ping` | GET | Simple ping endpoint for connectivity testing |
+| `/health` | GET | Health check with detailed status |
 
 ## MCP Tools
 
@@ -448,11 +452,65 @@ All search tools support these optional parameters:
 
 ## Server-Sent Events
 
-Connect to `/sse` for real-time updates:
+### MCP over SSE Protocol
 
+The server implements proper MCP (Model Context Protocol) over SSE with session management:
+
+#### 1. Connect to SSE Endpoint
 ```javascript
 const eventSource = new EventSource('http://localhost:3000/sse');
+```
 
+#### 2. Handle Endpoint Event
+On connection, the server sends an `endpoint` event with session information:
+
+```javascript
+eventSource.addEventListener('endpoint', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Session info:', data);
+  // Example: { sessionId: "abc123", endpoint: "/sse/session/abc123", timestamp: "..." }
+  
+  // Store the session endpoint for making requests
+  window.sessionEndpoint = data.endpoint;
+});
+```
+
+#### 3. Send MCP Messages
+Use the session-specific endpoint to send JSON-RPC messages:
+
+```javascript
+async function listTools() {
+  const response = await fetch(`http://localhost:3000${window.sessionEndpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'tools/list'
+    })
+  });
+  return response.json();
+}
+
+async function callTool(toolName, args) {
+  const response = await fetch(`http://localhost:3000${window.sessionEndpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 2,
+      method: 'tools/call',
+      params: { name: toolName, arguments: args }
+    })
+  });
+  return response.json();
+}
+```
+
+#### 4. Handle Real-time Events
+Listen for real-time updates during tool execution:
+
+```javascript
 eventSource.addEventListener('tool_start', (event) => {
   const data = JSON.parse(event.data);
   console.log('Tool execution started:', data);
@@ -467,14 +525,54 @@ eventSource.addEventListener('tool_error', (event) => {
   const data = JSON.parse(event.data);
   console.log('Tool execution failed:', data);
 });
+
+eventSource.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('MCP response:', data);
+});
+
+eventSource.addEventListener('ping', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Heartbeat:', data);
+});
 ```
+
+### Legacy SSE Support
+
+For backward compatibility, the server also supports direct POST to `/sse`:
+
+```javascript
+// Legacy approach (deprecated)
+const response = await fetch('http://localhost:3000/sse', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/list'
+  })
+});
+```
+
+### N8N Integration
+
+For N8N's MCP client tool, use the SSE endpoint:
+- **URL**: `http://localhost:3000/sse`
+- **Transport Type**: SSE
+- The server automatically handles session management and provides proper MCP protocol support.
 
 ## Usage Examples
 
 ### cURL Examples
 
 ```bash
-# List available tools
+# Test server connectivity
+curl http://localhost:3000/ping
+
+# Check health status
+curl http://localhost:3000/health
+
+# List available tools (main MCP endpoint)
 curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
   -d '{
@@ -482,6 +580,18 @@ curl -X POST http://localhost:3000/mcp \
     "id": "1",
     "method": "tools/list"
   }'
+
+# List available tools (alternative endpoint for N8N)
+curl -X POST http://localhost:3000/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "1",
+    "method": "tools/list"
+  }'
+
+# Test SSE connection (will show endpoint event)
+curl -N http://localhost:3000/sse
 
 # Search for bugs by keyword
 curl -X POST http://localhost:3000/mcp \
