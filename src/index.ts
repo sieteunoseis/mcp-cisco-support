@@ -936,6 +936,9 @@ function createHTTPServer(): express.Application {
             protocolVersion: '2025-03-26',
             capabilities: {
               tools: {},
+              logging: {},
+              prompts: {},
+              resources: {}
             },
             serverInfo: {
               name: 'mcp-cisco-support',
@@ -1055,12 +1058,21 @@ function createHTTPServer(): express.Application {
     
     logger.info('MCP SSE client connected', { sessionId, totalClients: sseClients.size });
     
-    // Send initial message per MCP specification - no custom endpoint event
-    res.write(`event: message\ndata: ${JSON.stringify({
+    // Send immediate tools list for client compatibility
+    const tools = getAvailableTools();
+    res.write(`data: ${JSON.stringify({
       jsonrpc: '2.0',
-      id: null,
-      method: 'notifications/initialized',
-      params: { sessionId }
+      id: 0,
+      result: {
+        tools: tools
+      }
+    })}\n\n`);
+    
+    // Also send connection info
+    res.write(`data: ${JSON.stringify({
+      type: 'connection',
+      sessionId: sessionId,
+      timestamp: new Date().toISOString()
     })}\n\n`);
     
     // Set up heartbeat (optional per MCP spec)
