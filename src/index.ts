@@ -1028,35 +1028,38 @@ function createHTTPServer(): express.Application {
     }
   });
 
-  // SSE endpoint for legacy MCP Inspector compatibility
+  // SSE endpoint for N8N MCP client compatibility
   app.get('/sse', (req: Request, res: Response) => {
     const clientId = uuidv4();
     
-    // Set SSE headers
+    // Set SSE headers for maximum compatibility
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type, Last-Event-ID'
+      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type, Last-Event-ID, Authorization',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     });
     
-    // Store client
+    // Store client with connection info
     sseClients.set(clientId, res);
     
     logger.info('SSE client connected', { clientId, totalClients: sseClients.size });
     
-    // Send initial ready event for MCP Inspector compatibility
-    res.write(`event: ready\ndata: ${JSON.stringify({ 
+    // Send connection confirmation without event type for broader compatibility
+    res.write(`data: ${JSON.stringify({ 
+      type: 'connection',
       clientId: clientId,
       timestamp: new Date().toISOString(),
-      message: 'SSE connection established'
+      status: 'connected'
     })}\n\n`);
     
     // Set up heartbeat
     const heartbeat = setInterval(() => {
       try {
-        res.write(`event: ping\ndata: ${JSON.stringify({ 
+        res.write(`data: ${JSON.stringify({ 
+          type: 'ping',
           timestamp: new Date().toISOString(),
           clientId: clientId
         })}\n\n`);
@@ -1214,6 +1217,14 @@ function createHTTPServer(): express.Application {
     }
   });
 
+  // CORS preflight handler for SSE endpoint
+  app.options('/sse', (req: Request, res: Response) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Last-Event-ID');
+    res.sendStatus(200);
+  });
+
   // SSE POST endpoint for MCP Inspector and N8N compatibility
   app.post('/sse', express.json(), async (req: Request, res: Response) => {
     const message = req.body;
@@ -1297,11 +1308,22 @@ function createHTTPServer(): express.Application {
         };
       }
       
-      // Send response via both HTTP and SSE for compatibility
+      // Send response via HTTP
       res.json(response);
       
-      // Also broadcast as SSE message for connected clients
-      broadcastSSE('message', response);
+      // Also send as SSE data for connected clients (N8N compatibility)
+      sseClients.forEach((client) => {
+        try {
+          client.write(`data: ${JSON.stringify({
+            type: 'response',
+            id: message.id,
+            response: response,
+            timestamp: new Date().toISOString()
+          })}\n\n`);
+        } catch (error) {
+          logger.error('Failed to send SSE response to client', { error });
+        }
+      });
       
     } catch (error) {
       logger.error('Error handling MCP message via POST /sse', { error, message });
@@ -1327,7 +1349,20 @@ function createHTTPServer(): express.Application {
       }
       
       res.status(500).json(errorResponse);
-      broadcastSSE('message', errorResponse);
+      
+      // Send error as SSE data for connected clients
+      sseClients.forEach((client) => {
+        try {
+          client.write(`data: ${JSON.stringify({
+            type: 'error',
+            id: message.id || null,
+            error: errorResponse.error,
+            timestamp: new Date().toISOString()
+          })}\n\n`);
+        } catch (error) {
+          logger.error('Failed to send SSE error to client', { error });
+        }
+      });
     }
   });
 
