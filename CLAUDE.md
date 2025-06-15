@@ -463,18 +463,22 @@ Start by setting up the basic Express server structure, then implement OAuth2 au
    - Ensure logging is disabled in stdio mode to prevent interference
    - Check that console output doesn't contain non-JSON-RPC messages
 
-2. **API parameter validation errors**:
+2. **Connection refused errors**:
+   - ✅ **FIXED in v1.3.0**: Added proper `/mcp` endpoint with StreamableHTTP transport
+   - Use `http://localhost:3000/mcp` for HTTP connections
+   - Server supports both legacy `/sse` and standard `/mcp` endpoints
+
+3. **API parameter validation errors**:
    - Don't send default status/severity parameters unless explicitly specified
    - Let Cisco API use its own defaults for broader compatibility
 
-3. **Authentication failures**:
+4. **Authentication failures**:
    - Verify CISCO_CLIENT_ID and CISCO_CLIENT_SECRET in environment
    - Ensure Cisco API application has proper permissions
 
 #### Debugging Tools
 
 **Monitor Claude Desktop logs in real-time**:
-
 ```bash
 # macOS - Follow logs in real-time
 tail -n 20 -F ~/Library/Logs/Claude/mcp*.log
@@ -484,20 +488,27 @@ grep -i error ~/Library/Logs/Claude/mcp*.log
 grep -i "cisco-support" ~/Library/Logs/Claude/mcp*.log
 ```
 
-**Windows log location**:
-```cmd
-%APPDATA%\Claude\logs\
-```
-
 **Test server manually**:
 ```bash
 # Test stdio mode
 npx mcp-cisco-support
 
-# Test HTTP mode  
+# Test HTTP mode with new /mcp endpoint
 npx mcp-cisco-support --http
-curl http://localhost:3000/ping
+curl http://localhost:3000/health
+curl -X POST http://localhost:3000/mcp -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}'
 ```
+
+#### MCP Endpoints (v1.3.0+)
+
+**Primary MCP Endpoint** (recommended):
+- `POST /mcp` - MCP JSON-RPC calls with session management
+- `GET /mcp` - SSE streams for ongoing sessions  
+- `DELETE /mcp` - Session termination
+
+**Legacy Endpoints** (backward compatibility):
+- `GET /sse` - Legacy SSE connection
+- `POST /messages` - Legacy SSE messages
 
 #### Log Analysis
 
@@ -505,12 +516,12 @@ Key log messages to monitor:
 - `"Message from client"` - Incoming MCP requests
 - `"Message from server"` - Outgoing MCP responses  
 - `"Tool call started"` - API calls beginning
+- `"Session initialized"` - New MCP sessions created
 - `"error"` - Any error conditions
-- JSON-RPC validation errors indicate stdio contamination
 
 **Healthy connection logs should show**:
 1. Server initialization
-2. Client initialize request/response
+2. Client initialize request/response with session ID
 3. tools/list requests/responses
 4. No JSON parsing errors
 
