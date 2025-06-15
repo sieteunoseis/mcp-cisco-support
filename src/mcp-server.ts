@@ -2,8 +2,12 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { 
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
   PingRequestSchema,
   Tool,
+  Prompt,
+  PromptMessage,
   TextContent
 } from '@modelcontextprotocol/sdk/types.js';
 import dotenv from 'dotenv';
@@ -578,6 +582,269 @@ export function getAvailableTools(): Tool[] {
   return availableTools;
 }
 
+// Cisco Support MCP Prompts
+const ciscoPrompts: Prompt[] = [
+  {
+    name: 'cisco-incident-investigation',
+    description: 'Investigate Cisco bugs related to specific incident symptoms and errors',
+    arguments: [
+      {
+        name: 'symptom',
+        description: 'The error message, symptom, or behavior observed during the incident',
+        required: true
+      },
+      {
+        name: 'product',
+        description: 'Cisco product experiencing the issue (e.g., "Cisco ASR 1000", "Catalyst 3560")',
+        required: true
+      },
+      {
+        name: 'severity',
+        description: 'Incident severity level (1=Critical, 2=High, 3=Medium)',
+        required: false
+      },
+      {
+        name: 'software_version',
+        description: 'Current software version if known (e.g., "15.2(4)S2")',
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'cisco-upgrade-planning',
+    description: 'Research known issues and bugs before upgrading Cisco software or hardware',
+    arguments: [
+      {
+        name: 'current_version',
+        description: 'Current software version (e.g., "15.2(4)S")',
+        required: true
+      },
+      {
+        name: 'target_version',
+        description: 'Target upgrade version (e.g., "15.2(4)S5")',
+        required: true
+      },
+      {
+        name: 'product',
+        description: 'Cisco product being upgraded (e.g., "Cisco ASR 9000 Series")',
+        required: true
+      },
+      {
+        name: 'environment',
+        description: 'Environment type (production, staging, lab)',
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'cisco-maintenance-prep',
+    description: 'Prepare for maintenance windows by identifying potential issues and bugs',
+    arguments: [
+      {
+        name: 'maintenance_type',
+        description: 'Type of maintenance (software upgrade, hardware replacement, configuration change)',
+        required: true
+      },
+      {
+        name: 'product',
+        description: 'Cisco product undergoing maintenance',
+        required: true
+      },
+      {
+        name: 'software_version',
+        description: 'Current or target software version',
+        required: false
+      },
+      {
+        name: 'timeline',
+        description: 'Maintenance window timeline (e.g., "next week", "emergency")',
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'cisco-security-advisory',
+    description: 'Research security-related bugs and vulnerabilities for Cisco products',
+    arguments: [
+      {
+        name: 'product',
+        description: 'Cisco product to check for security issues',
+        required: true
+      },
+      {
+        name: 'software_version',
+        description: 'Software version to check',
+        required: false
+      },
+      {
+        name: 'security_focus',
+        description: 'Specific security concern (CVE, vulnerability type, etc.)',
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'cisco-known-issues',
+    description: 'Check for known issues in specific Cisco software releases or products',
+    arguments: [
+      {
+        name: 'product',
+        description: 'Cisco product to check',
+        required: true
+      },
+      {
+        name: 'software_version',
+        description: 'Specific software version or range',
+        required: true
+      },
+      {
+        name: 'issue_type',
+        description: 'Type of issues to focus on (performance, stability, features)',
+        required: false
+      }
+    ]
+  }
+];
+
+// Get available prompts (for now, return all prompts regardless of API configuration)
+export function getAvailablePrompts(): Prompt[] {
+  return ciscoPrompts;
+}
+
+// Generate prompt content based on prompt name and arguments
+export function generatePrompt(name: string, args: Record<string, any>): PromptMessage[] {
+  switch (name) {
+    case 'cisco-incident-investigation':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me investigate this Cisco incident:
+
+**Incident Details:**
+- Symptom/Error: ${args.symptom}
+- Product: ${args.product}
+${args.severity ? `- Severity: Level ${args.severity}` : ''}
+${args.software_version ? `- Software Version: ${args.software_version}` : ''}
+
+**Investigation Plan:**
+1. Search for bugs matching the symptom keywords
+2. Check product-specific bugs ${args.software_version ? `for version ${args.software_version}` : ''}
+3. Focus on ${args.severity ? `severity ${args.severity} and higher` : 'high severity'} issues
+4. Look for workarounds and fixes
+
+Please start by searching for bugs related to "${args.symptom}" and then narrow down by product specifics.`
+          }
+        }
+      ];
+
+    case 'cisco-upgrade-planning':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me plan a Cisco software upgrade:
+
+**Upgrade Details:**
+- Current Version: ${args.current_version}
+- Target Version: ${args.target_version}
+- Product: ${args.product}
+${args.environment ? `- Environment: ${args.environment}` : ''}
+
+**Pre-Upgrade Analysis Needed:**
+1. Find bugs fixed between ${args.current_version} and ${args.target_version}
+2. Identify new bugs introduced in ${args.target_version}
+3. Check for upgrade-blocking issues
+4. Look for known upgrade procedures and considerations
+
+Please search for bugs related to both versions and provide an upgrade risk assessment.`
+          }
+        }
+      ];
+
+    case 'cisco-maintenance-prep':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me prepare for Cisco maintenance:
+
+**Maintenance Details:**
+- Type: ${args.maintenance_type}
+- Product: ${args.product}
+${args.software_version ? `- Software Version: ${args.software_version}` : ''}
+${args.timeline ? `- Timeline: ${args.timeline}` : ''}
+
+**Pre-Maintenance Checklist:**
+1. Search for bugs related to ${args.maintenance_type.toLowerCase()}
+2. Check for product-specific issues ${args.software_version ? `in version ${args.software_version}` : ''}
+3. Identify potential failure scenarios
+4. Find recommended procedures and precautions
+5. Look for rollback considerations
+
+Please help me identify risks and create a maintenance plan with appropriate safeguards.`
+          }
+        }
+      ];
+
+    case 'cisco-security-advisory':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me research security issues for Cisco products:
+
+**Security Assessment:**
+- Product: ${args.product}
+${args.software_version ? `- Version: ${args.software_version}` : ''}
+${args.security_focus ? `- Focus Area: ${args.security_focus}` : ''}
+
+**Security Analysis Needed:**
+1. Search for security-related bugs and vulnerabilities
+2. Focus on high-severity security issues
+3. Check for recent security advisories
+4. Look for patches and mitigation strategies
+${args.security_focus ? `5. Specific research on: ${args.security_focus}` : ''}
+
+Please search for security bugs using relevant keywords like "security", "vulnerability", "CVE", "DoS", "authentication", "authorization", etc.`
+          }
+        }
+      ];
+
+    case 'cisco-known-issues':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me research known issues in Cisco software:
+
+**Research Target:**
+- Product: ${args.product}
+- Software Version: ${args.software_version}
+${args.issue_type ? `- Issue Focus: ${args.issue_type}` : ''}
+
+**Known Issues Analysis:**
+1. Search for bugs in ${args.software_version}
+2. Focus on ${args.issue_type || 'all types of'} issues
+3. Check bug status (open vs. fixed)
+4. Look for workarounds and solutions
+5. Identify upgrade recommendations
+
+Please search comprehensively for bugs affecting this version and provide a summary of major known issues.`
+          }
+        }
+      ];
+
+    default:
+      throw new Error(`Unknown prompt: ${name}`);
+  }
+}
+
 // Format bug results with hyperlinks
 function formatBugResults(data: CiscoApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
   if (!data.bugs || data.bugs.length === 0) {
@@ -745,6 +1012,7 @@ export function createMCPServer(): Server {
     {
       capabilities: {
         tools: {},
+        prompts: {},
       },
     }
   );
@@ -800,6 +1068,38 @@ export function createMCPServer(): Server {
         content: [errorContent],
         isError: true,
       };
+    }
+  });
+
+  // List prompts handler
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    logger.info('List prompts request received');
+    return {
+      prompts: getAvailablePrompts(),
+    };
+  });
+
+  // Get prompt handler
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    
+    try {
+      logger.info('Get prompt request', { name, args });
+      
+      const messages = generatePrompt(name, args || {});
+      
+      logger.info('Prompt generated', { name, messageCount: messages.length });
+      
+      return {
+        messages,
+      };
+    } catch (error) {
+      logger.error('Prompt generation failed', { 
+        name, 
+        error: error instanceof Error ? error.message : error 
+      });
+      
+      throw error;
     }
   });
 
