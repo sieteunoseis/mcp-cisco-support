@@ -4,7 +4,6 @@
     "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,14 +15,14 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "typeRoots": ["./node_modules/@types"],
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "tests/**/*"
+    "dist"
   ]
 }
