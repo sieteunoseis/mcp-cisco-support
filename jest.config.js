@@ -5,7 +5,9 @@ module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/*.test.ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', {
+      useESM: false,
+    }],
   },
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -18,10 +20,4 @@ module.exports = {
   testTimeout: 30000, // 30 seconds for API calls
   moduleFileExtensions: ['ts', 'js', 'json'],
   verbose: true,
-  globals: {
-    'ts-jest': {
-      useESM: false,
-    },
-  },
-  setupFiles: ['<rootDir>/tests/setup.ts'],
 };

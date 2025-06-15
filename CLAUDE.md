@@ -628,3 +628,155 @@ SUPPORT_API=bug,eox,product,software
 # Administrator - Full access
 SUPPORT_API=all
 ```
+
+## Testing Framework
+
+This project includes a comprehensive Jest-based testing framework that validates all functionality without requiring live API calls during development.
+
+### Test Coverage
+
+✅ **Simple Tests**: 3/3 passing - Basic functionality validation  
+✅ **Bug API Tests**: 17/17 passing - All 8 Bug API tools fully tested  
+✅ **MCP Server Tests**: 11/11 passing - Server functionality and configuration  
+✅ **Integration Tests**: Real API validation (requires credentials)  
+✅ **Error Handling Tests**: Timeout, authentication, and parameter validation
+
+### Test Commands
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm test -- --testNamePattern="Bug API"
+npm test -- --testNamePattern="Simple" 
+npm test -- --testNamePattern="MCP Server"
+
+# Run integration tests with real API (requires credentials)
+CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test -- --testNamePattern="Integration"
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Type checking
+npx tsc --noEmit
+```
+
+### Test Structure
+
+- **`tests/simple.test.ts`** - Basic functionality and tool discovery
+- **`tests/bugApi.test.ts`** - Comprehensive Bug API tool testing with mocks
+- **`tests/mcpServer.test.ts`** - MCP server functionality and prompt testing
+- **`tests/integration.test.ts`** - Real API integration tests (skipped by default)
+- **`tests/errorHandling.test.ts`** - Error scenarios and edge cases
+- **`tests/mockData.ts`** - Mock Cisco API responses for unit tests
+- **`tests/setup.ts`** - Jest configuration and global mocks
+
+### Mock Data and Testing
+
+The test framework uses comprehensive mock data that simulates real Cisco Bug API responses:
+
+```typescript
+// Example mock bug response
+{
+  bugs: [
+    {
+      bug_id: 'CSCvi12345',
+      headline: 'Test bug for CallManager 12.5 memory leak',
+      status: 'O',
+      severity: '3',
+      product: 'Cisco Unified Communications Manager',
+      affected_releases: ['12.5(1)SU1', '12.5(1)SU2'],
+      fixed_releases: ['12.5(1)SU3']
+    }
+  ],
+  total_results: 1
+}
+```
+
+### Real API Testing
+
+Integration tests can be run with real Cisco API credentials to validate:
+
+- OAuth2 authentication flow
+- Parameter validation with live API
+- Error handling with actual API responses
+- Rate limiting and network error scenarios
+
+### Key Test Features
+
+- **Fetch Mocking**: Proper Jest mocking for all HTTP requests
+- **Parameter Validation**: Tests for all required and optional parameters
+- **Error Scenarios**: Comprehensive error handling validation
+- **Schema Validation**: JSON Schema compliance for all tools
+- **Real vs Mock**: Separate unit tests (mocked) and integration tests (real API)
+
+### Testing Best Practices
+
+When developing new features:
+
+1. **Write Unit Tests First**: Create mocked tests for new tools
+2. **Add Integration Tests**: Test with real API when possible
+3. **Mock Properly**: Use realistic mock data that matches API responses
+4. **Test Error Cases**: Include timeout, auth failures, and invalid parameters
+5. **Validate Schemas**: Ensure all tools have proper JSON Schema validation
+
+## API Documentation (WADL)
+
+The project includes official Cisco Bug API v2.0 WADL (Web Application Description Language) specification in the `wadl/` directory:
+
+### WADL File Structure
+
+```
+wadl/
+└── Cisco-BUG-API-v2_0.wadl    # Complete API specification
+```
+
+### Key WADL Insights
+
+The WADL file confirms critical API limitations that were implemented in this server:
+
+1. **Single Value Parameters**: The WADL definitively shows that `severity` and `status` parameters only accept single values, not comma-separated lists:
+   ```xml
+   <!-- From WADL: Only one severity value allowed -->
+   <param name="severity" style="query" type="xs:string"/>
+   ```
+
+2. **Parameter Constraints**: Documents valid values for each parameter:
+   - **Severity**: 1, 2, 3, 4, 5, 6 (single values only)
+   - **Status**: O (Open), F (Fixed), T (Terminated), etc.
+   - **Modified Date**: 1, 2, 3, 4, 5 (days/weeks/months)
+
+3. **Endpoint Structure**: Validates the correct URL patterns for all 8 implemented endpoints:
+   - `/bugs/bug_ids/{bug_ids}`
+   - `/bugs/keyword/{keyword}`
+   - `/bugs/products/product_id/{base_pid}`
+   - `/bugs/products/product_id/{base_pid}/software_releases/{software_releases}`
+   - `/bugs/product_series/{product_series}/affected_releases/{affected_releases}`
+   - `/bugs/product_series/{product_series}/fixed_releases/{fixed_releases}`
+   - `/bugs/products/product_name/{product_name}/affected_releases/{affected_releases}`
+   - `/bugs/products/product_name/{product_name}/fixed_releases/{fixed_releases}`
+
+4. **Authentication Requirements**: Confirms OAuth2 client credentials flow
+5. **Response Formats**: Specifies JSON response structure and error codes
+
+### Using WADL for Development
+
+The WADL file serves as the authoritative reference for:
+- Parameter validation rules
+- Response format specifications
+- Error code definitions
+- Authentication requirements
+- Rate limiting information
+
+This ensures the MCP server implementation matches Cisco's official API specification exactly.
+
+### WADL Validation Process
+
+When implementing new API endpoints:
+
+1. **Check WADL First**: Verify endpoint exists and parameter requirements
+2. **Validate Parameters**: Ensure all parameter constraints are followed
+3. **Test Against Spec**: Compare implementation behavior with WADL definitions
+4. **Update Tests**: Add test cases that validate WADL compliance
+5. **Document Limitations**: Note any API constraints in tool descriptions

@@ -57,12 +57,12 @@ describe('MCP Server', () => {
       });
     });
 
-    test('should include case API placeholder tool', () => {
+    test('should include only Bug API tools', () => {
       const tools = getAvailableTools();
-      const placeholderTool = tools.find(t => t.name === 'search_case_placeholder');
+      const bugTools = tools.filter(t => t.name.includes('bug'));
       
-      expect(placeholderTool).toBeDefined();
-      expect(placeholderTool!.description).toContain('Case API not yet implemented');
+      expect(bugTools.length).toBe(8); // Only bug API tools
+      expect(tools.every(t => t.name.startsWith('get_bug') || t.name.startsWith('search_bugs'))).toBe(true);
     });
   });
 
@@ -158,10 +158,9 @@ describe('MCP Server', () => {
       // Should have bug tools
       expect(apiTypes.has('bug')).toBe(true);
       
-      // Should have case placeholder (but not real case tools)
+      // Should only have bug tools (no case tools implemented yet)
       const caseTools = tools.filter(t => t.name.includes('case'));
-      expect(caseTools.length).toBe(1); // Only placeholder
-      expect(caseTools[0].name).toBe('search_case_placeholder');
+      expect(caseTools.length).toBe(0); // No case tools yet
     });
   });
 

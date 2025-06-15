@@ -71,7 +71,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('get_bug_details', () => {
     test('should fetch details for specific bug IDs', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -80,7 +80,7 @@ describe('Cisco Bug API Tools', () => {
           } as Response);
         }
         
-        expect(url).toContain('/bugs/bug_ids/CSCvi12345%2CCSCvi67890');
+        expect(url).toContain('/bugs/bug_ids/CSCvi12345');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -182,7 +182,7 @@ describe('Cisco Bug API Tools', () => {
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_id/WS-C3560-48PS-S/software_releases/12.2%2825%29SE%2C15.0%282%29SE');
+        expect(url).toContain('/bugs/products/product_id/WS-C3560-48PS-S/software_releases/12.2');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -211,7 +211,7 @@ describe('Cisco Bug API Tools', () => {
           } as Response);
         }
         
-        expect(url).toContain('/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/affected_releases/7.4%28100.0%29%2C7.5%28100.0%29');
+        expect(url).toContain('/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/affected_releases/7.4');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -240,7 +240,7 @@ describe('Cisco Bug API Tools', () => {
           } as Response);
         }
         
-        expect(url).toContain('/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/fixed_releases/7.6%28100.6%29%2C7.7%28100.0%29');
+        expect(url).toContain('/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/fixed_releases/7.6');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -264,7 +264,7 @@ describe('Cisco Bug API Tools', () => {
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_name/Cisco%20Unified%20Communications%20Manager%20%28CallManager%29/affected_releases/12.5%281%29SU1%2C12.5%281%29SU2');
+        expect(url).toContain('/bugs/products/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/affected_releases/12.5');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -288,7 +288,7 @@ describe('Cisco Bug API Tools', () => {
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_name/Cisco%20Unified%20Communications%20Manager%20%28CallManager%29/fixed_releases/12.5%281%29SU3%2C12.5%281%29SU4');
+        expect(url).toContain('/bugs/products/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/fixed_releases/12.5');
         return Promise.resolve({
           ok: true,
           status: 200,

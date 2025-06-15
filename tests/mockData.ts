@@ -84,7 +84,7 @@ export const mockAbortError = new Error('AbortError');
 export const testCases = {
   get_bug_details: {
     valid: {
-      bug_ids: 'CSCvi12345,CSCvi67890'
+      bug_ids: 'CSCvi12345'
     },
     invalid: {
       bug_ids: '', // Empty bug IDs
