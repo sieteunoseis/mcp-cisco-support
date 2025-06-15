@@ -262,6 +262,11 @@ The server implements these Cisco Bug API v2.0 endpoints:
 7. **search_bugs_by_product_name_affected** - Search by exact product name + affected releases
 8. **search_bugs_by_product_name_fixed** - Search by exact product name + fixed releases
 
+**IMPORTANT Parameter Limitations (v1.4.1+)**:
+- **Severity**: Only accepts single values (`"3"`) not comma-separated (`"1,2,3"`)
+- **Status**: Only accepts single values (`"O"`) not comma-separated (`"O,F"`)
+- For searches requiring multiple values, make separate API calls
+
 ## Server Endpoints
 
 - `GET /` - Server info and available endpoints
@@ -468,11 +473,18 @@ Start by setting up the basic Express server structure, then implement OAuth2 au
    - Use `http://localhost:3000/mcp` for HTTP connections
    - Server supports both legacy `/sse` and standard `/mcp` endpoints
 
-3. **API parameter validation errors**:
+3. **500 Internal Server Error - Parameter validation**:
+   - ✅ **FIXED in v1.4.1-1.4.2**: Cisco Bug API only accepts single parameter values
+   - **Severity**: Use `"3"` not `"1,2,3"` - make separate searches for each severity level
+   - **Status**: Use `"O"` not `"O,F"` - search each status individually
+   - **For "severity 3 or higher"**: Search severity 1, then 2, then 3 separately
+   - Use the `cisco-high-severity-search` prompt for guided multi-severity searches
+
+4. **API parameter validation errors**:
    - Don't send default status/severity parameters unless explicitly specified
    - Let Cisco API use its own defaults for broader compatibility
 
-4. **Authentication failures**:
+5. **Authentication failures**:
    - Verify CISCO_CLIENT_ID and CISCO_CLIENT_SECRET in environment
    - Ensure Cisco API application has proper permissions
 
