@@ -6,6 +6,7 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 
 - **Configurable API Support**: Enable only the Cisco Support APIs you have access to
 - **Bug Search API**: 8 MCP tools for comprehensive Cisco bug searching (currently implemented)
+- **MCP Prompts**: 5 specialized workflow prompts for guided Cisco support scenarios
 - **Dual Transport**: stdio (local MCP clients) and HTTP (remote server)
 - **OAuth2 Authentication**: Automatic token management with Cisco API
 - **Real-time Updates**: Server-Sent Events for HTTP mode
@@ -140,6 +141,106 @@ Once configured, you can ask Claude questions like:
   - "Find bugs for Cisco Unified Communications Manager affecting releases 14.0 and 15.0" (uses product series search)
 
 Claude will use the appropriate MCP tools to fetch real-time data from Cisco's Bug API and provide comprehensive responses with the latest information.
+
+## MCP Prompts (v1.4.0+)
+
+The server includes 5 specialized **MCP prompts** that provide guided workflows for common Cisco support scenarios. These prompts generate structured investigation plans that help you use the bug search tools more effectively.
+
+### Available Prompts
+
+#### 1. **cisco-incident-investigation**
+*Investigate Cisco bugs related to specific incident symptoms and errors*
+
+**Required Arguments:**
+- `symptom` - The error message, symptom, or behavior observed
+- `product` - Cisco product experiencing the issue
+
+**Optional Arguments:**
+- `severity` - Incident severity level (1=Critical, 2=High, 3=Medium)
+- `software_version` - Current software version if known
+
+**Example Usage:**
+```
+Use the cisco-incident-investigation prompt with symptom "device crashes randomly", product "Cisco ASR 1000", and severity "1"
+```
+
+#### 2. **cisco-upgrade-planning**
+*Research known issues and bugs before upgrading Cisco software or hardware*
+
+**Required Arguments:**
+- `current_version` - Current software version (e.g., "15.2(4)S")
+- `target_version` - Target upgrade version (e.g., "15.2(4)S5")
+- `product` - Cisco product being upgraded
+
+**Optional Arguments:**
+- `environment` - Environment type (production, staging, lab)
+
+**Example Usage:**
+```
+Use the cisco-upgrade-planning prompt for upgrading from version "15.2(4)S" to "15.2(4)S5" on "Cisco ASR 9000" in "production"
+```
+
+#### 3. **cisco-maintenance-prep**
+*Prepare for maintenance windows by identifying potential issues and bugs*
+
+**Required Arguments:**
+- `maintenance_type` - Type of maintenance (software upgrade, hardware replacement, configuration change)
+- `product` - Cisco product undergoing maintenance
+
+**Optional Arguments:**
+- `software_version` - Current or target software version
+- `timeline` - Maintenance window timeline
+
+**Example Usage:**
+```
+Use the cisco-maintenance-prep prompt for "software upgrade" maintenance on "Cisco Catalyst 9000" with timeline "next week"
+```
+
+#### 4. **cisco-security-advisory**
+*Research security-related bugs and vulnerabilities for Cisco products*
+
+**Required Arguments:**
+- `product` - Cisco product to check for security issues
+
+**Optional Arguments:**
+- `software_version` - Software version to check
+- `security_focus` - Specific security concern (CVE, vulnerability type, etc.)
+
+**Example Usage:**
+```
+Use the cisco-security-advisory prompt for product "Cisco IOS XE" with security_focus "authentication bypass"
+```
+
+#### 5. **cisco-known-issues**
+*Check for known issues in specific Cisco software releases or products*
+
+**Required Arguments:**
+- `product` - Cisco product to check
+- `software_version` - Specific software version or range
+
+**Optional Arguments:**
+- `issue_type` - Type of issues to focus on (performance, stability, features)
+
+**Example Usage:**
+```
+Use the cisco-known-issues prompt for product "Cisco ASR 1000" version "16.12.04" with issue_type "performance"
+```
+
+### How Prompts Work
+
+1. **Prompt Selection**: Choose the appropriate prompt for your scenario
+2. **Argument Input**: Provide required and optional arguments
+3. **Guided Workflow**: Receive a structured investigation plan
+4. **Tool Execution**: Follow the plan to systematically search for bugs
+5. **Expert Analysis**: Get recommendations based on findings
+
+### Benefits of Using Prompts
+
+- **Structured Approach**: Follow expert-designed workflows for consistent results
+- **Best Practices**: Incorporate years of Cisco support experience
+- **Faster Resolution**: Reduce investigation time with targeted searches
+- **Knowledge Transfer**: Learn effective troubleshooting methodologies
+- **Comprehensive Coverage**: Ensure all relevant angles are investigated
 
 ### Alternative Installation Methods
 
