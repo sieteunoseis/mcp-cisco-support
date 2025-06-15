@@ -120,6 +120,9 @@ async function authenticateWithCisco(): Promise<string> {
   try {
     logger.info('Requesting OAuth2 token from Cisco');
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for auth
+    
     const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
@@ -127,8 +130,11 @@ async function authenticateWithCisco(): Promise<string> {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       },
-      body: 'grant_type=client_credentials'
+      body: 'grant_type=client_credentials',
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -153,6 +159,17 @@ async function authenticateWithCisco(): Promise<string> {
 
     return accessToken;
   } catch (error) {
+    // Handle specific timeout errors
+    if (error instanceof Error) {
+      if (error.name === 'AbortError' || error.message.includes('timeout')) {
+        logger.error('OAuth2 authentication timed out', { timeout: '30s' });
+        throw new Error(`OAuth2 authentication timed out after 30 seconds. Cisco's authentication service may be experiencing issues.`);
+      } else if (error.message.includes('Headers Timeout') || error.message.includes('UND_ERR_HEADERS_TIMEOUT')) {
+        logger.error('OAuth2 headers timeout');
+        throw new Error(`OAuth2 authentication connection timed out. Cisco's authentication service may be temporarily unavailable.`);
+      }
+    }
+    
     logger.error('OAuth2 authentication failed', error);
     throw error;
   }
@@ -190,27 +207,39 @@ async function makeCiscoApiCall(endpoint: string, params: Record<string, any> = 
   try {
     logger.info('Making Cisco API call', { endpoint, params });
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
         'User-Agent': 'mcp-cisco-support/1.0'
-      }
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (response.status === 401) {
       logger.warn('Received 401, token may be expired, refreshing...');
       // Token expired, refresh and retry once
       const newToken = await authenticateWithCisco();
+      const retryController = new AbortController();
+      const retryTimeoutId = setTimeout(() => retryController.abort(), 60000); // 60 second timeout
+      
       const retryResponse = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${newToken}`,
           'Accept': 'application/json',
           'User-Agent': 'mcp-cisco-support/1.0'
-        }
+        },
+        signal: retryController.signal
       });
+      
+      clearTimeout(retryTimeoutId);
       
       if (!retryResponse.ok) {
         const errorText = await retryResponse.text();
@@ -231,6 +260,17 @@ async function makeCiscoApiCall(endpoint: string, params: Record<string, any> = 
     
     return data;
   } catch (error) {
+    // Handle specific timeout errors
+    if (error instanceof Error) {
+      if (error.name === 'AbortError' || error.message.includes('timeout')) {
+        logger.error('Cisco API call timed out', { endpoint, params, timeout: '60s' });
+        throw new Error(`Cisco API call timed out after 60 seconds. The API may be experiencing high load. Please try again later.`);
+      } else if (error.message.includes('Headers Timeout') || error.message.includes('UND_ERR_HEADERS_TIMEOUT')) {
+        logger.error('Cisco API headers timeout', { endpoint, params });
+        throw new Error(`Cisco API connection timed out while waiting for response headers. The service may be temporarily unavailable.`);
+      }
+    }
+    
     logger.error('Cisco API call failed', { endpoint, error: error instanceof Error ? error.message : error });
     throw error;
   }
