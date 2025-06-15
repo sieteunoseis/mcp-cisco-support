@@ -11,7 +11,8 @@ const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 
 const VERSION = packageJson.version;
 
 // Determine mode from command line arguments
-const isStdioMode = !process.argv.includes('--http');
+const isHttpMode = process.argv.includes('--http') || process.argv.includes('--sse');
+const isStdioMode = !isHttpMode;
 
 // Configure logging based on mode
 setLogging(!isStdioMode);
@@ -22,7 +23,7 @@ setLogging(!isStdioMode);
 // Main function
 async function main() {
   const args = process.argv.slice(2);
-  const isHTTP = args.includes('--http');
+  const isHTTP = args.includes('--http') || args.includes('--sse');
   
   if (isHTTP) {
     // Run as SSE HTTP server

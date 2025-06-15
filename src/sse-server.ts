@@ -39,10 +39,23 @@ export function createSSEServer(mcpServer: Server) {
         totalTransports: transportMap.size
       });
       
-      // Handle transport cleanup when connection closes
+      // Set up cleanup handlers before connecting
+      transport.onclose = () => {
+        logger.info('SSE connection closed', { sessionId: transport.sessionId });
+        transportMap.delete(transport.sessionId);
+      };
+
+      transport.onerror = (error) => {
+        logger.error('SSE transport error', { 
+          sessionId: transport.sessionId,
+          error: error.message 
+        });
+      };
+
+      // Handle cleanup when connection closes
       req.on('close', () => {
         transportMap.delete(transport.sessionId);
-        logger.info('SSE transport cleaned up', { 
+        logger.info('SSE request closed', { 
           sessionId: transport.sessionId,
           totalTransports: transportMap.size
         });
@@ -69,7 +82,7 @@ export function createSSEServer(mcpServer: Server) {
   });
 
   // Messages endpoint - handles MCP JSON-RPC messages
-  app.post("/messages", (req, res) => {
+  app.post("/messages", async (req, res) => {
     const sessionId = req.query.sessionId as string;
     
     if (!sessionId) {
@@ -84,17 +97,19 @@ export function createSSEServer(mcpServer: Server) {
 
     if (transport) {
       try {
-        // Let the transport handle the message
-        transport.handlePostMessage(req, res);
+        // Let the transport handle the message - must await and pass req.body
+        await transport.handlePostMessage(req, res, req.body);
       } catch (error) {
         logger.error('Failed to handle message', { 
           sessionId, 
           error: error instanceof Error ? error.message : error 
         });
-        res.status(500).json({ 
-          error: 'Failed to handle message',
-          message: error instanceof Error ? error.message : 'Unknown error'
-        });
+        if (!res.headersSent) {
+          res.status(500).json({ 
+            error: 'Failed to handle message',
+            message: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
       }
     } else {
       logger.error('Transport not found for session', { sessionId });
@@ -106,7 +121,7 @@ export function createSSEServer(mcpServer: Server) {
   });
 
   // Health check endpoint
-  app.get('/health', (req, res) => {
+  app.get('/health', (_req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -116,7 +131,7 @@ export function createSSEServer(mcpServer: Server) {
   });
 
   // Server info endpoint
-  app.get('/', (req, res) => {
+  app.get('/', (_req, res) => {
     res.json({
       name: 'Cisco Support MCP SSE Server',
       description: 'MCP Server-Sent Events transport for Cisco Support APIs',
@@ -131,7 +146,7 @@ export function createSSEServer(mcpServer: Server) {
   });
 
   // Error handling middleware
-  app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((error: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error('Unhandled SSE server error', { 
       error: error.message,
       path: req.path,
