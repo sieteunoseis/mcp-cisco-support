@@ -254,7 +254,7 @@ const bugApiTools: Tool[] = [
   },
   {
     name: 'search_bugs_by_keyword',
-    description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable.',
+    description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: Cisco API only accepts ONE severity and ONE status value per search - for "severity 3 or higher" you must make separate searches for each severity level (1, 2, 3).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -269,12 +269,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -308,12 +308,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -351,12 +351,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -394,12 +394,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -437,12 +437,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -480,12 +480,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -523,12 +523,12 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
           enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
           enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
@@ -599,6 +599,27 @@ export function getAvailableTools(): Tool[] {
 
 // Cisco Support MCP Prompts
 const ciscoPrompts: Prompt[] = [
+  {
+    name: 'cisco-high-severity-search',
+    description: 'Search for high-severity bugs (severity 3 or higher) for specific products - handles API limitation requiring separate searches',
+    arguments: [
+      {
+        name: 'product_keyword',
+        description: 'Product name or keyword to search for (e.g., "Cisco Unified Communications Manager", "CallManager")',
+        required: true
+      },
+      {
+        name: 'version',
+        description: 'Product version if applicable (e.g., "12.5", "15.2(4)S")',
+        required: false
+      },
+      {
+        name: 'max_severity',
+        description: 'Highest severity to include (1=highest, 6=lowest). Will search from 1 down to this number.',
+        required: false
+      }
+    ]
+  },
   {
     name: 'cisco-incident-investigation',
     description: 'Investigate Cisco bugs related to specific incident symptoms and errors',
@@ -729,6 +750,32 @@ export function getAvailablePrompts(): Prompt[] {
 // Generate prompt content based on prompt name and arguments
 export function generatePrompt(name: string, args: Record<string, any>): PromptMessage[] {
   switch (name) {
+    case 'cisco-high-severity-search':
+      const maxSev = args.max_severity ? parseInt(args.max_severity) : 3;
+      const versionText = args.version ? ` version ${args.version}` : '';
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Search for high-severity bugs for ${args.product_keyword}${versionText}:
+
+**Search Requirements:**
+- Product: ${args.product_keyword}${versionText}
+- Severity: ${maxSev} or higher (1 = highest severity)
+- Status: Open bugs only
+
+**Important:** The Cisco Bug API only accepts ONE severity level per search. You must search each severity individually:
+
+1. First search: severity="1", status="O", keyword="${args.product_keyword}${versionText}"
+2. Second search: severity="2", status="O", keyword="${args.product_keyword}${versionText}"
+${maxSev >= 3 ? `3. Third search: severity="3", status="O", keyword="${args.product_keyword}${versionText}"` : ''}
+
+Please execute these searches sequentially and combine the results. Do NOT use comma-separated values like "1,2,3" for severity as this will cause a 500 error.`
+          }
+        }
+      ];
+
     case 'cisco-incident-investigation':
       return [
         {
