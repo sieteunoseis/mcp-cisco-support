@@ -242,6 +242,18 @@ Use the cisco-known-issues prompt for product "Cisco ASR 1000" version "16.12.04
 - **Knowledge Transfer**: Learn effective troubleshooting methodologies
 - **Comprehensive Coverage**: Ensure all relevant angles are investigated
 
+## Screenshots
+
+### Claude Desktop Integration
+![Claude Desktop Integration](screenshots/claude-desktop.png)
+
+*Claude Desktop successfully connected to the Cisco Support MCP server, demonstrating the bug search functionality with real-time responses from Cisco's Bug API.*
+
+### MCP Inspector
+![MCP Inspector Integration](screenshots/mcp-inspector-screenshot.png)
+
+*MCP Inspector v0.14.0+ showing the available tools and server connectivity testing capabilities.*
+
 ### Alternative Installation Methods
 
 #### Global Installation
@@ -259,7 +271,8 @@ Then use this config:
       "command": "mcp-cisco-support",
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
-        "CISCO_CLIENT_SECRET": "your_client_secret_here"
+        "CISCO_CLIENT_SECRET": "your_client_secret_here",
+        "SUPPORT_API": "bug"
       }
     }
   }
@@ -285,7 +298,8 @@ Then use this config:
       "args": ["/path/to/mcp-cisco-support/dist/index.js"],
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
-        "CISCO_CLIENT_SECRET": "your_client_secret_here"
+        "CISCO_CLIENT_SECRET": "your_client_secret_here",
+        "SUPPORT_API": "bug"
       }
     }
   }
@@ -356,6 +370,7 @@ docker pull ghcr.io/sieteunoseis/mcp-cisco-support:latest
 docker run -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_id \
   -e CISCO_CLIENT_SECRET=your_secret \
+  -e SUPPORT_API=bug \
   ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 
 # Or build locally

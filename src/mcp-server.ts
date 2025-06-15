@@ -269,13 +269,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -308,13 +308,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -351,13 +351,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -394,13 +394,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -437,13 +437,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -480,13 +480,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -523,13 +523,13 @@ const bugApiTools: Tool[] = [
         },
         status: {
           type: 'string',
-          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated, or comma-separated combination (e.g., "O,F"). Default: all statuses (O,F,T)',
-          default: 'O,F,T'
+          description: 'Bug status filter. Values: O=Open, F=Fixed, T=Terminated. Only one value allowed. Default: all statuses',
+          enum: ['O', 'F', 'T']
         },
         severity: {
           type: 'string',
-          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6, or comma-separated combination (e.g., "1,2,3"). Default: all severities (1,2,3,4,5,6)',
-          default: '1,2,3,4,5,6'
+          description: 'Bug severity filter. Values: 1=Severity 1, 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6. Only one value allowed. Default: all severities',
+          enum: ['1', '2', '3', '4', '5', '6']
         },
         modified_date: {
           type: 'string',
@@ -547,9 +547,24 @@ const bugApiTools: Tool[] = [
   }
 ];
 
-// Placeholder tools for future APIs
+// Placeholder tools for future APIs with helpful error messages
 const asdApiTools: Tool[] = [];
-const caseApiTools: Tool[] = [];
+const caseApiTools: Tool[] = [
+  {
+    name: 'search_case_placeholder',
+    description: '⚠️ Case API not yet implemented. Please use Bug API tools instead to search for related issues.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          description: 'This is a placeholder - Case API is not yet implemented'
+        }
+      },
+      required: []
+    }
+  }
+];
 const eoxApiTools: Tool[] = [];
 const productApiTools: Tool[] = [];
 const serialApiTools: Tool[] = [];
@@ -847,6 +862,34 @@ Please search comprehensively for bugs affecting this version and provide a summ
 
 // Format bug results with hyperlinks
 function formatBugResults(data: CiscoApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
+  // Handle special error responses (like Case API placeholder)
+  if (data && typeof data === 'object' && 'error' in data && 'message' in data) {
+    let formatted = `# ⚠️ ${data.error}\n\n`;
+    formatted += `**${data.message}**\n\n`;
+    
+    if (data.alternatives && Array.isArray(data.alternatives)) {
+      formatted += `## Alternative Approaches:\n\n`;
+      data.alternatives.forEach((alt: string, index: number) => {
+        formatted += `${index + 1}. ${alt}\n`;
+      });
+      formatted += `\n`;
+    }
+    
+    if (data.example) {
+      formatted += `## Example:\n${data.example}\n\n`;
+    }
+    
+    if (data.available_apis) {
+      formatted += `**Currently Available APIs:** ${data.available_apis.join(', ')}\n\n`;
+    }
+    
+    if (data.planned_apis) {
+      formatted += `**Planned APIs:** ${data.planned_apis.join(', ')}\n\n`;
+    }
+    
+    return formatted;
+  }
+  
   if (!data.bugs || data.bugs.length === 0) {
     return JSON.stringify(data, null, 2);
   }
@@ -877,11 +920,16 @@ function formatBugResults(data: CiscoApiResponse, searchContext?: { toolName: st
     }
     
     // Add filters if specified
-    if (searchContext.args.status && searchContext.args.status !== 'O,F,T') {
-      formatted += `**Status Filter:** ${searchContext.args.status}\n\n`;
+    if (searchContext.args.status) {
+      const statusMap: {[key: string]: string} = {
+        'O': 'Open',
+        'F': 'Fixed', 
+        'T': 'Terminated'
+      };
+      formatted += `**Status Filter:** ${statusMap[searchContext.args.status] || searchContext.args.status}\n\n`;
     }
-    if (searchContext.args.severity && searchContext.args.severity !== '1,2,3,4,5,6') {
-      formatted += `**Severity Filter:** ${searchContext.args.severity}\n\n`;
+    if (searchContext.args.severity) {
+      formatted += `**Severity Filter:** Severity ${searchContext.args.severity}\n\n`;
     }
     if (searchContext.args.modified_date && searchContext.args.modified_date !== '5') {
       const dateMap: {[key: string]: string} = {
@@ -955,8 +1003,8 @@ export async function executeTool(name: string, args: ToolArgs): Promise<CiscoAp
   };
   
   // Add optional filters - only if explicitly provided
-  if (processedArgs.status && processedArgs.status !== 'O,F,T') apiParams.status = processedArgs.status;
-  if (processedArgs.severity && processedArgs.severity !== '1,2,3,4,5,6') apiParams.severity = processedArgs.severity;
+  if (processedArgs.status) apiParams.status = processedArgs.status;
+  if (processedArgs.severity) apiParams.severity = processedArgs.severity;
   if (processedArgs.modified_date) apiParams.modified_date = processedArgs.modified_date;
   if (processedArgs.sort_by) apiParams.sort_by = processedArgs.sort_by;
   
@@ -994,6 +1042,21 @@ export async function executeTool(name: string, args: ToolArgs): Promise<CiscoAp
     case 'search_bugs_by_product_name_fixed':
       endpoint = `/bugs/products/product_name/${encodeURIComponent(processedArgs.product_name)}/fixed_releases/${encodeURIComponent(processedArgs.fixed_releases)}`;
       break;
+      
+    case 'search_case_placeholder':
+      // Return helpful error message for Case API
+      return {
+        error: 'Case API Not Implemented',
+        message: 'The Cisco Case Management API is not yet implemented in this MCP server. Currently, only the Bug Search API is available.',
+        alternatives: [
+          'Use search_bugs_by_keyword to find bugs related to your case topic',
+          'Use search_bugs_by_product_id if you have a specific product ID',
+          'Use search_bugs_by_product_series_affected for product series searches'
+        ],
+        example: 'Try: "Search for bugs related to \'Unified Communications Manager\' with keyword search"',
+        available_apis: ['bug'],
+        planned_apis: ['case', 'eox', 'product', 'serial', 'rma', 'software', 'asd']
+      } as any;
       
     default:
       throw new Error(`Tool implementation not found: ${name}`);
@@ -1059,9 +1122,21 @@ export function createMCPServer(): Server {
         error: error instanceof Error ? error.message : error 
       });
       
+      // Provide helpful error messages for common issues
+      let errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errorMessage.includes('Unknown tool')) {
+        errorMessage += '\n\nℹ️ Currently available tools:\n' + 
+          getAvailableTools().map(t => `• ${t.name}: ${t.description}`).join('\n');
+      }
+      
+      if (errorMessage.includes('Tool implementation not found')) {
+        errorMessage += '\n\nℹ️ This tool may require an API that is not yet implemented. Currently only the Bug API is available.';
+      }
+      
       const errorContent: TextContent = {
         type: 'text',
-        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        text: `Error: ${errorMessage}`
       };
       
       return {
