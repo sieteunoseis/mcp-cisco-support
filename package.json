@@ -12,7 +12,8 @@
     "CLAUDE.md",
     ".env.example",
     "Dockerfile",
-    "docker-compose.yml"
+    "docker-compose.yml",
+    "wadl/**/*"
   ],
   "scripts": {
     "build": "tsc",

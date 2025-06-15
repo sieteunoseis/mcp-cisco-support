@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="Cisco BUG API v2.0"/>
+  <resources base="https://api.cisco.com">
+    <resource path="bug" id="bug">
+      <doc xml:lang="en" title="bug"/>
+      <resource path="{version}" id="{version}">
+        <doc xml:lang="en" title="{version}"/>
+        <param name="version" default="v2.0" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="version Parameter">version of the API. e.g. v2.0</doc>
+        </param>
+        <resource path="bugs" id="bugs">
+          <doc xml:lang="en" title="bugs"/>
+          <resource path="bug_ids/{bug_ids}" id="Bug details by bug_ids">
+            <doc xml:lang="en" title="Bug details by bug_ids"/>
+            <param name="bug_ids" default="CSCsr80503" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="bug_ids Parameter">Identifier of the bug or bugs for which to return detailed information. A maximum of five (5) bug IDs can be submitted separated by a comma. e.g. CSCsr80503</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="200">
+                <representation mediaType="application/json;charset=UTF-8" element="csc:Response" xmlns:csc="https://api.cisco.com/bug/v2.0/bugs/bug_ids/CSCdr72939"/>
+              </response>
+              <response status="">
+                <representation mediaType="application/x-www-form-urlencoded"/>
+              </response>
+              <response status="400 403">
+                <representation mediaType="application/json;charset=UTF-8" element="csc:Fault" xmlns:csc="https://api.cisco.com/bug/v1.0/bugs/bug_ids/CSCtz46866"/>
+              </response>
+              <response status="403">
+                <representation mediaType="text/xml" element="h1"/>
+              </response>
+            </method>
+          </resource>
+          <resource path="keyword/{keyword}" id="Bugs by keyword (search)">
+            <doc xml:lang="en" title="Bugs by keyword (search)"/>
+            <param name="keyword" default="cisco" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="keyword Parameter">Keyword or keywords for which to return details on associated bugs. Multiple words can be submitted. (50 chars max)</doc>
+            </param>
+            <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of ten (10) records per page are returned. Default is 1</doc>
+            </param>
+            <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="status Parameter">Status of bugs to view O = Open, F = Fixed, T = Terminated ONLY one letter allowed (default is all statuses)</doc>
+              <option value="O"/>
+              <option value="F"/>
+              <option value="T"/>
+              <option value=""/>
+            </param>
+            <param name="modified_date" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="modified_date Parameter">1 = last week, 2 = last 30 days (Default), 3 = last 6 months, 4 = Last Year, 5 = ALL  (only one value allowed) Default is 2 (last 30 days)</doc>
+              <option value="1"/>
+              <option value="2"/>
+              <option value="3"/>
+              <option value="4"/>
+              <option value="5"/>
+            </param>
+            <param name="severity" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="severity Parameter">Only view bugs that match this severity level (only one value allowed) Default is ALL severities</doc>
+              <option value="1"/>
+              <option value="2"/>
+              <option value="3"/>
+              <option value="4"/>
+              <option value="5"/>
+              <option value="6"/>
+            </param>
+            <param name="sort_by" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="sort_by Parameter">Parameter on which to sort the results. (only one allowed) Default is sort by modified_date</doc>
+              <option value="status"/>
+              <option value="modified_date"/>
+              <option value="severity"/>
+              <option value="support_case_count"/>
+              <option value="modified_date_earliest"/>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="200">
+                <representation mediaType="application/json;charset=UTF-8" element="cis:Response" xmlns:cis="https://api.cisco.com/bug/v2.0/bugs/keyword/cisco"/>
+              </response>
+              <response status="400 403">
+                <representation mediaType="application/json;charset=UTF-8" element="cis:Fault" xmlns:cis="https://api.cisco.com/bug/v1.0/bugs/keyword/cisco"/>
+              </response>
+            </method>
+          </resource>
+          <resource path="products" id="products">
+            <doc xml:lang="en" title="products"/>
+            <resource path="product_id/{base_pid}" id="Bugs by Base Product id">
+              <doc xml:lang="en" title="Bugs by Base Product id"/>
+              <param name="base_pid" default="WS-C3560-48PS-S" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="base_pid Parameter">Identifier of the base product for which to return details on associated bugs. Only one base product ID can be submitted.</doc>
+              </param>
+              <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of ten (10) records per page are returned. Default is 1</doc>
+              </param>
+              <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="status Parameter">Status of bugs to view O = Open, F = Fixed, T = Terminated ONLY one letter allowed (default is all statuses)</doc>
+                <option value="O"/>
+                <option value="F"/>
+                <option value="T"/>
+              </param>
+              <param name="modified_date" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="modified_date Parameter">1 = last week, 2 = last 30 days (Default), 3 = last 6 months, 4 = Last Year, 5 = ALL  (only one value allowed) Default is 2 (last 30 days)</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+              </param>
+              <param name="severity" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="severity Parameter">Only view bugs that match this severity level (only one value allowed) Default is ALL severities</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value="6"/>
+              </param>
+              <param name="sort_by" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="sort_by Parameter">Parameter on which to sort the results. (only one allowed) Default is sort by modified_date</doc>
+                <option value="status"/>
+                <option value="modified_date"/>
+                <option value="severity"/>
+                <option value="support_case_count"/>
+                <option value="modified_date_earliest"/>
+              </param>
+              <resource path="software_releases/{software_releases}" id="Bugs by Base Product id and software releases">
+                <doc xml:lang="en" title="Bugs by Base Product id and software releases"/>
+                <param name="software_releases" default="12.2(25)SE" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <doc xml:lang="en" title="software_releases Parameter">Version number or numbers of the software release for which to return details on associated bugs. Multiple values must be separated by a comma; for example, version=2.1.19,15.8.3. A maximum of 75 values can be entered. e.g. 12.2(25)SE</doc>
+                </param>
+                <method name="GET" id="GET">
+                  <doc xml:lang="en" title="GET"/>
+                  <request/>
+                  <response status="200">
+                    <representation mediaType="application/json;charset=UTF-8" element="se:Response" xmlns:se="https://api.cisco.com/bug/v2.0/bugs/products/product_id/WS-C3560-48PS-S/software_releases/12.2%2825%29SE"/>
+                  </response>
+                  <response status="403">
+                    <representation mediaType="application/json;charset=UTF-8" element="se:Fault" xmlns:se="https://api.cisco.com/bug/v1.0/bugs/products/product_id/WS-C3560-48PS-S/software_releases/12.2%2825%29SE"/>
+                  </response>
+                </method>
+              </resource>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="ws:Response" xmlns:ws="https://api.cisco.com/bug/v2.0/bugs/products/product_id/WS-C3560-48PS-S"/>
+                </response>
+                <response status="403">
+                  <representation mediaType="application/json;charset=UTF-8" element="ws:Fault" xmlns:ws="https://api.cisco.com/bug/v1.0/bugs/products/product_id/WS-C3560-48PS-S"/>
+                  <representation mediaType="text/xml" element="h1"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+          <resource path="product_series/{product_series}" id="Product Series">
+            <doc xml:lang="en" title="Product Series"/>
+            <param name="product_series" default="Cisco 5500 Series Wireless Controllers" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="product_series Parameter">Product series specified in the request. (string 100 char max) e.g. Cisco 5500 Series Wireless Controllers</doc>
+            </param>
+            <resource path="affected_releases/{affected_releases}" id="Bugs by Product Series &amp; Affected Releases">
+              <doc xml:lang="en" title="Bugs by Product Series &amp; Affected Releases"/>
+              <param name="affected_releases" default="7.4(100.0)" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="affected_releases Parameter">Version number or numbers of the affected software release for which to return details on associated bugs. Multiple values must be separated by a comma; for example, version=2.1.19,15.8.3. A maximum of 75 values can be submitted. i.e. 7.4(100.0)</doc>
+              </param>
+              <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of ten (10) records per page are returned. Default is 1</doc>
+              </param>
+              <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="status Parameter">Status of bugs to view O = Open, F = Fixed, T = Terminated ONLY one letter allowed (default is all statuses)</doc>
+                <option value="O"/>
+                <option value="F"/>
+                <option value="T"/>
+                <option value=""/>
+              </param>
+              <param name="modified_date" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="modified_date Parameter">1 = last week, 2 = last 30 days (Default), 3 = last 6 months, 4 = Last Year, 5 = ALL  (only one value allowed) Default is 2 (last 30 days)</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value=""/>
+              </param>
+              <param name="severity" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="severity Parameter">Only view bugs that match this severity level (only one value allowed) Default is ALL severities</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value="6"/>
+                <option value=""/>
+              </param>
+              <param name="sort_by" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="sort_by Parameter">Parameter on which to sort the results. (only one allowed) Default is sort by modified_date</doc>
+                <option value="status"/>
+                <option value="modified_date"/>
+                <option value="severity"/>
+                <option value="support_case_count"/>
+                <option value="modified_date_earliest"/>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="403">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Fault" xmlns:ns="https://api.cisco.com/bug/v2.0/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/affected_releases/7.4%28100.0%29"/>
+                  <representation mediaType="text/xml" element="h1"/>
+                </response>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Response" xmlns:ns="https://api.cisco.com/bug/v2.0/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/affected_releases/7.4%28100.0%29"/>
+                </response>
+              </method>
+            </resource>
+            <resource path="fixed_in_releases/{fixed_in_releases}" id="Bugs by Product Series &amp; Fixed_in_releases">
+              <doc xml:lang="en" title="Bugs by Product Series &amp; Fixed_in_releases"/>
+              <param name="fixed_in_releases" default="7.6(100.6)" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="fixed_in_releases Parameter">Version number or numbers of the fixed-in software release for which to return details on associated bugs. Multiple values must be separated by a comma; for example, version=2.1.19,15.8.3. A maximum of 75 values can be submitted. i.e. 7.6(100.6)</doc>
+              </param>
+              <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of ten (10) records per page are returned. Default is 1</doc>
+              </param>
+              <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="status Parameter">Status of bugs to view O = Open, F = Fixed, T = Terminated ONLY one letter allowed (default is all statuses)</doc>
+                <option value="O"/>
+                <option value="F"/>
+                <option value="T"/>
+                <option value=""/>
+              </param>
+              <param name="modified_date" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="modified_date Parameter">1 = last week, 2 = last 30 days (Default), 3 = last 6 months, 4 = Last Year, 5 = ALL  (only one value allowed) Default is 2 (last 30 days)</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value=""/>
+              </param>
+              <param name="severity" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="severity Parameter">Only view bugs that match this severity level (only one value allowed) Default is ALL severities</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value="6"/>
+                <option value=""/>
+              </param>
+              <param name="sort_by" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="sort_by Parameter">Parameter on which to sort the results. (only one allowed) Default is sort by modified_date</doc>
+                <option value="status"/>
+                <option value="modified_date"/>
+                <option value="severity"/>
+                <option value="support_case_count"/>
+                <option value="modified_date_earliest"/>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="403">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Fault" xmlns:ns="https://api.cisco.com/bug/v2.0/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/fixed_in_releases/7.6%28100.6%29"/>
+                </response>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Response" xmlns:ns="https://api.cisco.com/bug/v2.0/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/fixed_in_releases/7.6%28100.6%29"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+          <resource path="product_name/{product_name}" id="Product Name">
+            <doc xml:lang="en" title="Product Name"/>
+            <param name="product_name" default="Cisco Unified Communications Manager (CallManager)" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="product_name Parameter">Product name specified in the request. (string 100 char max) e.g. Cisco Unified Communications Manager (CallManager)</doc>
+            </param>
+            <resource path="affected_releases/{pn_affected_releases}" id="Bugs by Product Name &amp; Affected Releases">
+              <doc xml:lang="en" title="Bugs by Product Name &amp; Affected Releases"/>
+              <param name="pn_affected_releases" default="4.1(2)" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="pn_affected_releases Parameter">Version number or numbers of the affected software release for which to return details on associated bugs. Multiple values must be separated by a comma; for example, version=2.1.19,15.8.3. A maximum of 75 values can be submitted. i.e. 4.1(2)</doc>
+              </param>
+              <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of ten (10) records per page are returned. Default is 1</doc>
+              </param>
+              <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="status Parameter">Status of bugs to view O = Open, F = Fixed, T = Terminated ONLY one letter allowed (default is all statuses)</doc>
+                <option value="O"/>
+                <option value="F"/>
+                <option value="T"/>
+                <option value=""/>
+              </param>
+              <param name="modified_date" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="modified_date Parameter">1 = last week, 2 = last 30 days (Default), 3 = last 6 months, 4 = Last Year, 5 = ALL  (only one value allowed) Default is 2 (last 30 days)</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value=""/>
+              </param>
+              <param name="severity" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="severity Parameter">Only view bugs that match this severity level (only one value allowed) Default is ALL severities</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value="6"/>
+                <option value=""/>
+              </param>
+              <param name="sort_by" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="sort_by Parameter">Parameter on which to sort the results. (only one allowed) Default is sort by modified_date</doc>
+                <option value="status"/>
+                <option value="modified_date"/>
+                <option value="severity"/>
+                <option value="support_case_count"/>
+                <option value="modified_date_earliest"/>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="403">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Fault" xmlns:ns="https://api.cisco.com/bug/v1.0/bugs/product_name/Cisco%202504%20Wireless%20Controller/affected_releases/8.3"/>
+                  <representation mediaType="text/xml" element="h1"/>
+                </response>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Response" xmlns:ns="https://api.cisco.com/bug/v2.0/bugs/product_name/Cisco%202504%20Wireless%20Controller/affected_releases/8.3"/>
+                </response>
+              </method>
+            </resource>
+            <resource path="fixed_in_releases/{pn_fixed_in_releases}" id="Bugs by Product Name &amp; Fixed_in_releases">
+              <doc xml:lang="en" title="Bugs by Product Name &amp; Fixed_in_releases"/>
+              <param name="pn_fixed_in_releases" default="4.1(2)" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="pn_fixed_in_releases Parameter">Version number or numbers of the fixed-in software release for which to return details on associated bugs. Multiple values must be separated by a comma; for example, version=2.1.19,15.8.3. A maximum of 75 values can be submitted. i.e. 4.1(2)</doc>
+              </param>
+              <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of ten (10) records per page are returned. Default is 1</doc>
+              </param>
+              <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="status Parameter">Status of bugs to view O = Open, F = Fixed, T = Terminated ONLY one letter allowed (default is all statuses)</doc>
+                <option value="O"/>
+                <option value="F"/>
+                <option value="T"/>
+                <option value=""/>
+              </param>
+              <param name="modified_date" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="modified_date Parameter">1 = last week, 2 = last 30 days (Default), 3 = last 6 months, 4 = Last Year, 5 = ALL  (only one value allowed) Default is 2 (last 30 days)</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value=""/>
+              </param>
+              <param name="severity" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="severity Parameter">Only view bugs that match this severity level (only one value allowed) Default is ALL severities</doc>
+                <option value="1"/>
+                <option value="2"/>
+                <option value="3"/>
+                <option value="4"/>
+                <option value="5"/>
+                <option value="6"/>
+                <option value=""/>
+              </param>
+              <param name="sort_by" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="sort_by Parameter">Parameter on which to sort the results. (only one allowed) Default is sort by modified_date</doc>
+                <option value="status"/>
+                <option value="modified_date"/>
+                <option value="severity"/>
+                <option value="support_case_count"/>
+                <option value="modified_date_earliest"/>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="403">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Fault" xmlns:ns="https://api.cisco.com/bug/v1.0/bugs/product_name/Cisco%202504%20Wireless%20Controller/fixed_in_releases/8.3"/>
+                </response>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="ns:Response" xmlns:ns="https://api.cisco.com/bug/v2.0/bugs/product_name/Cisco%202504%20Wireless%20Controller/fixed_in_releases/8.3"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+        </resource>
+      </resource>
+    </resource>
+  </resources>
+</application>
