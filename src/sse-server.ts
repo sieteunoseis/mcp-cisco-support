@@ -1,5 +1,8 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import { randomUUID } from 'node:crypto';
 import express from "express";
 import cors from 'cors';
 import helmet from 'helmet';
@@ -17,6 +20,7 @@ export function createSSEServer(mcpServer: Server) {
   app.use(express.urlencoded({ extended: true }));
 
   const transportMap = new Map<string, SSEServerTransport>();
+  const streamableTransports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
   // SSE endpoint - establishes SSE connection and connects to MCP server
   app.get("/sse", async (req, res) => {
@@ -81,6 +85,120 @@ export function createSSEServer(mcpServer: Server) {
     }
   });
 
+  // MCP JSON-RPC endpoint - handles direct MCP calls using StreamableHTTP
+  app.post("/mcp", async (req, res) => {
+    try {
+      logger.info('Direct MCP call received', { method: req.body?.method });
+      
+      // Check for existing session ID
+      const sessionId = req.headers['mcp-session-id'] as string;
+      let transport: StreamableHTTPServerTransport;
+      
+      if (sessionId && streamableTransports[sessionId]) {
+        // Reuse existing transport
+        transport = streamableTransports[sessionId];
+        logger.info('Reusing existing transport', { sessionId });
+      } else if (!sessionId && isInitializeRequest(req.body)) {
+        // New initialization request
+        transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: () => randomUUID(),
+          onsessioninitialized: (sessionId: string) => {
+            logger.info('Session initialized', { sessionId });
+            streamableTransports[sessionId] = transport;
+          }
+        });
+        
+        // Set up cleanup handler
+        transport.onclose = () => {
+          const sid = transport.sessionId;
+          if (sid && streamableTransports[sid]) {
+            logger.info('Transport closed, cleaning up', { sessionId: sid });
+            delete streamableTransports[sid];
+          }
+        };
+        
+        // Connect the transport to the MCP server
+        await mcpServer.connect(transport);
+        await transport.handleRequest(req, res, req.body);
+        return; // Already handled
+      } else {
+        // Invalid request - no session ID or not initialization request
+        logger.error('Invalid MCP request', { sessionId, isInit: isInitializeRequest(req.body) });
+        res.status(400).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32000,
+            message: 'Bad Request: No valid session ID provided',
+          },
+          id: null,
+        });
+        return;
+      }
+      
+      // Handle the request with existing transport
+      await transport.handleRequest(req, res, req.body);
+      
+    } catch (error) {
+      logger.error('Failed to handle MCP call', { error });
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'Internal server error',
+          },
+          id: null,
+        });
+      }
+    }
+  });
+
+  // MCP GET endpoint - handles SSE streams for StreamableHTTP
+  app.get("/mcp", async (req, res) => {
+    try {
+      const sessionId = req.headers['mcp-session-id'] as string;
+      
+      if (!sessionId || !streamableTransports[sessionId]) {
+        logger.error('Invalid session ID for GET request', { sessionId });
+        res.status(400).send('Invalid or missing session ID');
+        return;
+      }
+      
+      logger.info('SSE stream request', { sessionId });
+      const transport = streamableTransports[sessionId];
+      await transport.handleRequest(req, res);
+      
+    } catch (error) {
+      logger.error('Failed to handle SSE stream', { error });
+      if (!res.headersSent) {
+        res.status(500).send('Error establishing SSE stream');
+      }
+    }
+  });
+
+  // MCP DELETE endpoint - handles session termination
+  app.delete("/mcp", async (req, res) => {
+    try {
+      const sessionId = req.headers['mcp-session-id'] as string;
+      
+      if (!sessionId || !streamableTransports[sessionId]) {
+        logger.error('Invalid session ID for DELETE request', { sessionId });
+        res.status(400).send('Invalid or missing session ID');
+        return;
+      }
+      
+      logger.info('Session termination request', { sessionId });
+      const transport = streamableTransports[sessionId];
+      await transport.handleRequest(req, res);
+      
+    } catch (error) {
+      logger.error('Failed to handle session termination', { error });
+      if (!res.headersSent) {
+        res.status(500).send('Error processing session termination');
+      }
+    }
+  });
+
   // Messages endpoint - handles MCP JSON-RPC messages
   app.post("/messages", async (req, res) => {
     const sessionId = req.query.sessionId as string;
@@ -136,11 +254,12 @@ export function createSSEServer(mcpServer: Server) {
       name: 'Cisco Support MCP SSE Server',
       description: 'MCP Server-Sent Events transport for Cisco Support APIs',
       endpoints: {
-        sse: '/sse (GET) - Establish SSE connection',
-        messages: '/messages (POST) - Send MCP messages',
+        mcp: '/mcp (POST/GET/DELETE) - MCP StreamableHTTP endpoint',
+        sse: '/sse (GET) - Legacy SSE connection',
+        messages: '/messages (POST) - Legacy SSE messages',
         health: '/health (GET) - Health check'
       },
-      activeTransports: transportMap.size,
+      activeTransports: transportMap.size + Object.keys(streamableTransports).length,
       timestamp: new Date().toISOString()
     });
   });
@@ -164,7 +283,7 @@ export function createSSEServer(mcpServer: Server) {
     res.status(404).json({
       error: 'Endpoint not found',
       path: req.path,
-      availableEndpoints: ['/sse', '/messages', '/health', '/'],
+      availableEndpoints: ['/mcp (POST/GET/DELETE)', '/sse', '/messages', '/health', '/'],
       timestamp: new Date().toISOString()
     });
   });
