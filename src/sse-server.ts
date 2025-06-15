@@ -23,17 +23,7 @@ export function createSSEServer(mcpServer: Server) {
     try {
       logger.info('SSE connection request received');
       
-      // Set SSE headers
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      });
-      
-      // Create SSE transport with proper endpoint
+      // Create SSE transport with proper endpoint - it will set the headers
       const transport = new SSEServerTransport("/messages", res);
       
       // Store transport for message handling

@@ -217,6 +217,12 @@ curl http://localhost:3000/ping
 curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"ping"}'
+
+# GitHub Actions monitoring
+npm run actions:status    # Check latest build status
+npm run actions:list      # List recent workflow runs
+npm run actions:watch     # Watch current run in real-time
+npm run actions:logs      # View logs of latest run
 ```
 
 ## Environment Variables
@@ -349,6 +355,39 @@ To enable the workflows, configure these repository secrets:
 Both workflows can be triggered manually:
 - **Docker Build**: With optional custom tag suffix
 - **NPM Publish**: With dry-run option for testing
+
+### Monitoring GitHub Actions
+
+Use these npm scripts to monitor workflow runs:
+
+```bash
+# Quick status check
+npm run actions:status
+
+# List recent workflow runs
+npm run actions:list
+
+# Watch current run in real-time
+npm run actions:watch
+
+# View logs of latest run
+npm run actions:logs
+```
+
+**Direct GitHub CLI commands:**
+```bash
+# Check specific run by ID
+gh run view <run-id>
+
+# View logs of specific run
+gh run view <run-id> --log
+
+# Re-run a failed workflow
+gh run rerun <run-id>
+
+# Cancel a running workflow
+gh run cancel <run-id>
+```
 
 ## Implementation Guidelines
 
