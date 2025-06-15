@@ -5,10 +5,12 @@ import {
   mockTimeoutError,
   mockAbortError 
 } from './mockData';
+import { mockFetch } from './setup';
 
-const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+// Skip this entire test suite if mockFetch is unavailable (integration test mode)
+const isIntegrationMode = !mockFetch;
 
-describe('Error Handling and Validation', () => {
+(isIntegrationMode ? describe.skip : describe)('Error Handling and Validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -20,7 +22,7 @@ describe('Error Handling and Validation', () => {
 
     test('should validate severity parameter enum values', async () => {
       // Mock successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -47,7 +49,7 @@ describe('Error Handling and Validation', () => {
 
     test('should validate status parameter enum values', async () => {
       // Mock successful OAuth  
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -73,7 +75,7 @@ describe('Error Handling and Validation', () => {
 
     test('should validate modified_date parameter enum values', async () => {
       // Mock successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -100,7 +102,7 @@ describe('Error Handling and Validation', () => {
 
   describe('OAuth2 Error Handling', () => {
     test('should handle OAuth2 authentication failures', async () => {
-      mockFetch.mockImplementationOnce(() => 
+      mockFetch!.mockImplementationOnce(() => 
         Promise.resolve({
           ok: false,
           status: 401,
@@ -114,14 +116,14 @@ describe('Error Handling and Validation', () => {
     });
 
     test('should handle OAuth2 timeout errors', async () => {
-      mockFetch.mockImplementationOnce(() => Promise.reject(mockTimeoutError));
+      mockFetch!.mockImplementationOnce(() => Promise.reject(mockTimeoutError));
 
       await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
         .rejects.toThrow('OAuth2 authentication connection timed out');
     });
 
     test('should handle OAuth2 abort errors', async () => {
-      mockFetch.mockImplementationOnce(() => Promise.reject(mockAbortError));
+      mockFetch!.mockImplementationOnce(() => Promise.reject(mockAbortError));
 
       await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
         .rejects.toThrow('OAuth2 authentication timed out after 30 seconds');
@@ -131,7 +133,7 @@ describe('Error Handling and Validation', () => {
   describe('API Error Handling', () => {
     test('should handle 500 Internal Server Error from Cisco API', async () => {
       // Successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -155,7 +157,7 @@ describe('Error Handling and Validation', () => {
 
     test('should handle API timeout errors', async () => {
       // Successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -174,7 +176,7 @@ describe('Error Handling and Validation', () => {
 
     test('should handle API abort errors', async () => {
       // Successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -193,7 +195,7 @@ describe('Error Handling and Validation', () => {
 
     test('should handle 401 errors and retry with new token', async () => {
       let callCount = 0;
-      mockFetch.mockImplementation((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -230,7 +232,7 @@ describe('Error Handling and Validation', () => {
   describe('Edge Cases', () => {
     test('should handle empty API responses', async () => {
       // Successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -253,7 +255,7 @@ describe('Error Handling and Validation', () => {
 
     test('should handle malformed JSON responses', async () => {
       // Successful OAuth
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -274,7 +276,7 @@ describe('Error Handling and Validation', () => {
     });
 
     test('should handle network connectivity issues', async () => {
-      mockFetch.mockImplementationOnce(() => 
+      mockFetch!.mockImplementationOnce(() => 
         Promise.reject(new Error('fetch failed'))
       );
 

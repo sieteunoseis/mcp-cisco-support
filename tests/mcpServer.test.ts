@@ -1,15 +1,17 @@
 import { createMCPServer, getAvailableTools, getAvailablePrompts, generatePrompt } from '../src/mcp-server';
 import { CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequestSchema, PingRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { mockOAuthResponse, mockBugResponse } from './mockData';
+import { mockFetch } from './setup';
 
-const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+// Skip this entire test suite if mockFetch is unavailable (integration test mode)
+const isIntegrationMode = !mockFetch;
 
-describe('MCP Server', () => {
+(isIntegrationMode ? describe.skip : describe)('MCP Server', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
     // Default successful responses
-    mockFetch.mockImplementation((url, init) => {
+    mockFetch!.mockImplementation((url, init) => {
       if (typeof url === 'string' && url.includes('oauth2')) {
         return Promise.resolve({
           ok: true,
@@ -167,7 +169,7 @@ describe('MCP Server', () => {
   describe('Error Handling in Handlers', () => {
     test('should handle tool execution errors gracefully', async () => {
       // Mock a fetch failure
-      mockFetch.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+      mockFetch!.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
       
       // The actual server would handle this error and return an error response
       // Here we test the underlying function

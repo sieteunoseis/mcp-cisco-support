@@ -9,16 +9,17 @@ import {
   mockAbortError,
   testCases 
 } from './mockData';
+import { mockFetch } from './setup';
 
-// Mock fetch globally
-const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+// Skip this entire test suite if mockFetch is unavailable (integration test mode)
+const isIntegrationMode = !mockFetch;
 
-describe('Cisco Bug API Tools', () => {
+(isIntegrationMode ? describe.skip : describe)('Cisco Bug API Tools', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
     // Default successful OAuth response
-    mockFetch.mockImplementation((url, init) => {
+    mockFetch!.mockImplementation((url, init) => {
       if (typeof url === 'string' && url.includes('oauth2')) {
         return Promise.resolve({
           ok: true,
@@ -71,7 +72,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('get_bug_details', () => {
     test('should fetch details for specific bug IDs', async () => {
-      mockFetch.mockImplementation((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -105,7 +106,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_keyword', () => {
     test('should search bugs by keyword with all parameters', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -145,7 +146,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_product_id', () => {
     test('should search bugs by product ID', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -173,7 +174,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_product_and_release', () => {
     test('should search bugs by product ID and software releases', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -202,7 +203,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_product_series_affected', () => {
     test('should search bugs by product series and affected releases', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -231,7 +232,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_product_series_fixed', () => {
     test('should search bugs by product series and fixed releases', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -255,7 +256,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_product_name_affected', () => {
     test('should search bugs by product name and affected releases', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -279,7 +280,7 @@ describe('Cisco Bug API Tools', () => {
 
   describe('search_bugs_by_product_name_fixed', () => {
     test('should search bugs by product name and fixed releases', async () => {
-      mockFetch.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementationOnce((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
