@@ -23,6 +23,16 @@ export function createSSEServer(mcpServer: Server) {
     try {
       logger.info('SSE connection request received');
       
+      // Set SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      });
+      
       // Create SSE transport with proper endpoint
       const transport = new SSEServerTransport("/messages", res);
       
@@ -48,17 +58,28 @@ export function createSSEServer(mcpServer: Server) {
         });
       });
       
+      // Handle errors on response stream
+      res.on('error', (error) => {
+        logger.error('SSE response stream error', { 
+          sessionId: transport.sessionId,
+          error: error.message 
+        });
+        transportMap.delete(transport.sessionId);
+      });
+      
     } catch (error) {
       logger.error('Failed to establish SSE connection', { error });
-      res.status(500).json({ 
-        error: 'Failed to establish SSE connection',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Failed to establish SSE connection',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     }
   });
 
   // Messages endpoint - handles MCP JSON-RPC messages
-  app.post("/messages", express.json(), (req, res) => {
+  app.post("/messages", (req, res) => {
     const sessionId = req.query.sessionId as string;
     
     if (!sessionId) {
