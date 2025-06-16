@@ -126,9 +126,9 @@ Once configured, you can ask Claude questions like:
   - "Show me bugs modified in the last 30 days"
 
 - **Product-Specific Searches**:
-  - "Find bugs for product ID WS-C3560-48PS-S"
-  - "Search for bugs in Cisco Catalyst 3560 Series affecting release 15.2(4)S"
-  - "Show bugs fixed in software release 15.2(4)S2"
+  - "Find bugs for product ID C9200-24P"
+  - "Search for bugs in Cisco Catalyst 9200 Series affecting release 17.5.1"
+  - "Show bugs fixed in software release 17.5.2"
 
 - **Bug Details**:
   - "Get full details for bug CSCab12345"
@@ -460,7 +460,7 @@ Search bugs by base product ID.
   "params": {
     "name": "search_bugs_by_product_id",
     "arguments": {
-      "base_pid": "WS-C3560-48PS-S"
+      "base_pid": "C9200-24P"
     }
   }
 }
@@ -477,8 +477,8 @@ Search bugs by product ID and software releases.
   "params": {
     "name": "search_bugs_by_product_and_release",
     "arguments": {
-      "base_pid": "WS-C3560-48PS-S",
-      "software_releases": "15.2(4)S,15.2(4)S1"
+      "base_pid": "C9200-24P",
+      "software_releases": "17.5.1,17.5.2"
     }
   }
 }
@@ -495,8 +495,8 @@ Search bugs by product series and affected releases.
   "params": {
     "name": "search_bugs_by_product_series_affected",
     "arguments": {
-      "product_series": "Cisco Catalyst 3560 Series Switches",
-      "affected_releases": "15.2(4)S"
+      "product_series": "Cisco Catalyst 9200 Series Switches",
+      "affected_releases": "17.5.1"
     }
   }
 }
@@ -513,8 +513,8 @@ Search bugs by product series and fixed releases.
   "params": {
     "name": "search_bugs_by_product_series_fixed",
     "arguments": {
-      "product_series": "Cisco Catalyst 3560 Series Switches",
-      "fixed_releases": "15.2(4)S2"
+      "product_series": "Cisco Catalyst 9200 Series Switches",
+      "fixed_releases": "17.5.2"
     }
   }
 }
@@ -532,7 +532,7 @@ Search bugs by exact product name and affected releases.
     "name": "search_bugs_by_product_name_affected",
     "arguments": {
       "product_name": "Cisco Catalyst 3560-48PS Switch",
-      "affected_releases": "15.2(4)S"
+      "affected_releases": "17.5.1"
     }
   }
 }
@@ -550,7 +550,7 @@ Search bugs by exact product name and fixed releases.
     "name": "search_bugs_by_product_name_fixed",
     "arguments": {
       "product_name": "Cisco Catalyst 3560-48PS Switch",
-      "fixed_releases": "15.2(4)S2"
+      "fixed_releases": "17.5.2"
     }
   }
 }
@@ -1059,6 +1059,94 @@ CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test -- --testNamePa
 
 # Run tests with coverage
 npm test -- --coverage
+```
+
+### Individual Tool Testing
+
+The project includes multiple ways to test individual MCP tools for development and debugging:
+
+#### 1. Standalone Tool Test Runner
+
+Test any tool with both mock and real API modes:
+
+```bash
+# Test with mock data (default)
+npm run test:tool search_bugs_by_keyword
+node test-tool.js search_bugs_by_keyword mock
+
+# Test with real Cisco API
+CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret node test-tool.js search_bugs_by_keyword real
+
+# Test other tools
+node test-tool.js get_bug_details
+node test-tool.js search_bugs_by_product_id real
+```
+
+**Available Tools:**
+- `get_bug_details`
+- `search_bugs_by_keyword`
+- `search_bugs_by_product_id`
+- `search_bugs_by_product_and_release`
+- `search_bugs_by_product_series_affected`
+- `search_bugs_by_product_series_fixed`
+- `search_bugs_by_product_name_affected`
+- `search_bugs_by_product_name_fixed`
+
+#### 2. Jest-based Tool Testing
+
+Run Jest tests for specific tools:
+
+```bash
+# Test a specific tool with Jest
+npm run test:jest-tool search_bugs_by_keyword
+node scripts/test-specific-tool.js get_bug_details
+
+# This converts tool names to Jest test patterns
+# search_bugs_by_keyword becomes "search.*bugs.*by.*keyword"
+```
+
+#### 3. Tool Test Output
+
+The standalone tool tester provides detailed output:
+
+```bash
+🔧 Testing Tool: search_bugs_by_keyword
+📝 Description: Search bugs by keyword with filters
+🎯 Mode: 🧪 Mock Mode
+📋 Arguments: {
+  "keyword": "CallManager",
+  "severity": "3",
+  "status": "O"
+}
+
+⏳ Executing tool...
+
+✅ Success! (15ms)
+📊 Result: {
+  "bugs": [
+    {
+      "bug_id": "CSCvi12345",
+      "headline": "Test bug for CallManager 12.5 memory leak",
+      "status": "O",
+      "severity": "3"
+    }
+  ],
+  "total_results": 1
+}
+
+📈 Summary:
+  • Found 1 bugs
+  • First bug: CSCvi12345 - Test bug for CallManager 12.5 memory leak...
+```
+
+#### 4. Tool Testing npm Scripts
+
+```bash
+# Available npm scripts for tool testing
+npm run test:tool              # Build and run tool tester
+npm run test:jest-tool         # Jest-based tool testing
+npm run test:integration       # Real API integration tests
+npm run test:coverage          # Test coverage report
 ```
 
 ### Test Structure

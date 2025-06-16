@@ -115,9 +115,9 @@ Once configured, you can ask Claude questions like:
   - "Show me bugs modified in the last 30 days"
 
 - **Product-Specific Searches**:
-  - "Find bugs for product ID WS-C3560-48PS-S"
-  - "Search for bugs in Cisco Catalyst 3560 Series affecting release 15.2(4)S"
-  - "Show bugs fixed in software release 15.2(4)S2"
+  - "Find bugs for product ID C9200-24P"
+  - "Search for bugs in Cisco Catalyst 9200 Series affecting release 17.5.1"
+  - "Show bugs fixed in software release 17.5.2"
 
 - **Advanced Filtering**:
   - "Find resolved bugs with severity 3 modified after 2023-01-01"
@@ -255,7 +255,7 @@ The server implements these Cisco Bug API v2.0 endpoints:
 
 1. **get_bug_details** - Get details for up to 5 specific bug IDs
 2. **search_bugs_by_keyword** - Search by keywords in descriptions/headlines  
-3. **search_bugs_by_product_id** - Search by base product ID (e.g., "WS-C3560-48PS-S")
+3. **search_bugs_by_product_id** - Search by base product ID (e.g., "C9200-24P")
 4. **search_bugs_by_product_and_release** - Search by product ID + software releases
 5. **search_bugs_by_product_series_affected** - Search by product series + affected releases
 6. **search_bugs_by_product_series_fixed** - Search by product series + fixed releases

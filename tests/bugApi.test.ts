@@ -155,7 +155,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_id/WS-C3560-48PS-S');
+        expect(url).toContain('/bugs/products/product_id/C9200-24P');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -183,7 +183,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_id/WS-C3560-48PS-S/software_releases/12.2');
+        expect(url).toContain('/bugs/products/product_id/C9200-24P/software_releases/17.5.1');
         return Promise.resolve({
           ok: true,
           status: 200,

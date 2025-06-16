@@ -108,7 +108,7 @@ export const testCases = {
   },
   search_bugs_by_product_id: {
     valid: {
-      base_pid: 'WS-C3560-48PS-S',
+      base_pid: 'C9200-24P',
       severity: '2',
       status: 'F'
     },
@@ -119,8 +119,8 @@ export const testCases = {
   },
   search_bugs_by_product_and_release: {
     valid: {
-      base_pid: 'WS-C3560-48PS-S',
-      software_releases: '12.2(25)SE,15.0(2)SE'
+      base_pid: 'C9200-24P',
+      software_releases: '17.5.1,17.5.2'
     },
     invalid: {
       base_pid: '',
@@ -129,8 +129,8 @@ export const testCases = {
   },
   search_bugs_by_product_series_affected: {
     valid: {
-      product_series: 'Cisco 5500 Series Wireless Controllers',
-      affected_releases: '7.4(100.0),7.5(100.0)'
+      product_series: 'Cisco Catalyst 9200 Series',
+      affected_releases: '17.5.1'
     },
     invalid: {
       product_series: '',
@@ -139,8 +139,8 @@ export const testCases = {
   },
   search_bugs_by_product_series_fixed: {
     valid: {
-      product_series: 'Cisco 5500 Series Wireless Controllers',
-      fixed_releases: '7.6(100.6),7.7(100.0)'
+      product_series: 'Cisco Catalyst 9200 Series',
+      fixed_releases: '17.5.2'
     },
     invalid: {
       product_series: '',
