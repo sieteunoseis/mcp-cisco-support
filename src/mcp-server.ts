@@ -333,7 +333,7 @@ const bugApiTools: Tool[] = [
   },
   {
     name: 'search_bugs_by_product_id',
-    description: 'Search bugs by specific base product ID (e.g., WS-C3560-48PS-S). Use when you have an exact Cisco product ID. For general product searches by name, consider using keyword search instead.',
+    description: 'Search bugs by specific base product ID (e.g., C9200-24P). Use when you have an exact Cisco product ID. For general product searches by name, consider using keyword search instead.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -650,7 +650,7 @@ const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'version',
-        description: 'Product version if applicable (e.g., "12.5", "15.2(4)S")',
+        description: 'Product version if applicable (e.g., "12.5", "17.5.1")',
         required: false
       },
       {
@@ -671,7 +671,7 @@ const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'product',
-        description: 'Cisco product experiencing the issue (e.g., "Cisco ASR 1000", "Catalyst 3560")',
+        description: 'Cisco product experiencing the issue (e.g., "Cisco ASR 1000", "Cisco Catalyst 9200")',
         required: true
       },
       {
@@ -681,7 +681,7 @@ const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'software_version',
-        description: 'Current software version if known (e.g., "15.2(4)S2")',
+        description: 'Current software version if known (e.g., "17.5.2")',
         required: false
       }
     ]
@@ -692,12 +692,12 @@ const ciscoPrompts: Prompt[] = [
     arguments: [
       {
         name: 'current_version',
-        description: 'Current software version (e.g., "15.2(4)S")',
+        description: 'Current software version (e.g., "17.5.1")',
         required: true
       },
       {
         name: 'target_version',
-        description: 'Target upgrade version (e.g., "15.2(4)S5")',
+        description: 'Target upgrade version (e.g., "17.5.5")',
         required: true
       },
       {
