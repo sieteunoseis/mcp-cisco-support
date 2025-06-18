@@ -228,9 +228,10 @@ export function formatEoxResults(data: EoxApiResponse, searchContext?: { toolNam
   }
 
   data.EOXRecord.forEach((eoxItem, index) => {
-    formatted += `## ${index + 1}. ${eoxItem.EOLProductID}\n\n`;
+    const productId = eoxItem.EOLProductID || eoxItem.ProductID || 'Unknown Product';
+    formatted += `## ${index + 1}. ${productId}\n\n`;
     
-    formatted += `**Product Description:** ${eoxItem.ProductIDDescription || 'N/A'}\n\n`;
+    formatted += `**Product Description:** ${eoxItem.ProductIDDescription || eoxItem.Description || 'N/A'}\n\n`;
     
     // Format important dates
     if (eoxItem.EOXExternalAnnouncementDate) {
@@ -316,9 +317,34 @@ function formatEoxSearchContext(searchContext: { toolName: string; args: ToolArg
 }
 
 // Helper function to format dates
-function formatDate(dateStr: any): string {
-  // Convert to string and handle null/undefined
-  const strValue = String(dateStr || '').trim();
+function formatDate(dateValue: any): string {
+  // Handle null/undefined
+  if (!dateValue) {
+    return 'Not specified';
+  }
+  
+  // If it's an object, try to extract the actual date value
+  if (typeof dateValue === 'object') {
+    // Look for common date properties in the object
+    const possibleDateKeys = ['value', 'date', 'dateValue', 'text', '#text'];
+    for (const key of possibleDateKeys) {
+      if (dateValue[key]) {
+        return formatDate(dateValue[key]); // Recursive call with the nested value
+      }
+    }
+    
+    // If no common date keys found, stringify the object to see its structure
+    const objStr = JSON.stringify(dateValue);
+    if (objStr === '{}' || objStr === 'null') {
+      return 'Not specified';
+    }
+    
+    // Return the JSON representation for debugging
+    return objStr;
+  }
+  
+  // Convert to string and handle string values
+  const strValue = String(dateValue).trim();
   
   if (!strValue || strValue === 'null' || strValue === 'undefined' || strValue === ' ') {
     return 'Not specified';
