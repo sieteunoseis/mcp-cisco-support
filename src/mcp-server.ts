@@ -15,14 +15,33 @@ import { join } from 'path';
 
 // Import modular API system
 import { createApiRegistry, ApiRegistry, SupportedAPI, getEnabledAPIs } from './apis/index.js';
-import { formatBugResults, formatCaseResults, ApiResponse, BugApiResponse, CaseApiResponse } from './utils/formatting.js';
+import { formatBugResults, formatCaseResults, formatEoxResults, ApiResponse, BugApiResponse, CaseApiResponse, EoxApiResponse } from './utils/formatting.js';
 import { setLogging, logger } from './utils/logger.js';
 
 // Load environment variables
 dotenv.config();
 
-// Get version from package.json
-const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
+// Get version from package.json (handle different working directories)
+function findPackageJson(): string {
+  const possiblePaths = [
+    join(__dirname, '../../package.json'),  // When compiled to dist/src/
+    join(__dirname, '../package.json'),     // When running from src/
+    join(process.cwd(), 'package.json'),    // When running from project root
+  ];
+  
+  for (const path of possiblePaths) {
+    try {
+      return readFileSync(path, 'utf8');
+    } catch (error) {
+      // Continue to next path
+    }
+  }
+  
+  // Fallback version
+  return JSON.stringify({ version: '1.5.0' });
+}
+
+const packageJson = JSON.parse(findPackageJson());
 const VERSION = packageJson.version;
 
 // Initialize API registry (will be created fresh each time for dynamic config)
@@ -206,6 +225,48 @@ const ciscoPrompts: Prompt[] = [
         required: false
       }
     ]
+  },
+  {
+    name: 'cisco-lifecycle-planning',
+    description: 'Research end-of-life information for Cisco products to plan replacements and maintenance',
+    arguments: [
+      {
+        name: 'product_ids',
+        description: 'Product IDs to check (comma-separated, e.g., "WS-C3560-48PS-S,WS-C2960-24TC-L")',
+        required: false
+      },
+      {
+        name: 'serial_numbers',
+        description: 'Serial numbers to check (comma-separated)',
+        required: false
+      },
+      {
+        name: 'date_range_start',
+        description: 'Start date for lifecycle search (YYYY-MM-DD)',
+        required: false
+      },
+      {
+        name: 'date_range_end',
+        description: 'End date for lifecycle search (YYYY-MM-DD)',
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'cisco-eox-research',
+    description: 'Research end-of-life and end-of-sale information for specific Cisco products',
+    arguments: [
+      {
+        name: 'product_focus',
+        description: 'Focus area: product_ids, serial_numbers, software_releases, or date_range',
+        required: true
+      },
+      {
+        name: 'search_values',
+        description: 'Values to search for (product IDs, serial numbers, or software releases)',
+        required: true
+      }
+    ]
   }
 ];
 
@@ -217,7 +278,9 @@ const promptApiMapping: Record<string, SupportedAPI[]> = {
   'cisco-maintenance-prep': ['bug'],
   'cisco-security-advisory': ['bug'],
   'cisco-known-issues': ['bug'],
-  'cisco-case-investigation': ['case']
+  'cisco-case-investigation': ['case'],
+  'cisco-lifecycle-planning': ['eox'],
+  'cisco-eox-research': ['eox']
 };
 
 // Get available prompts (filtered by enabled APIs)
@@ -419,6 +482,69 @@ Please use the appropriate Case API tools to gather comprehensive case informati
         }
       ];
 
+    case 'cisco-lifecycle-planning':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me plan for Cisco product lifecycle management:
+
+**Lifecycle Planning Target:**
+${args.product_ids ? `- Product IDs: ${args.product_ids}` : ''}
+${args.serial_numbers ? `- Serial Numbers: ${args.serial_numbers}` : ''}
+${args.date_range_start && args.date_range_end ? `- Date Range: ${args.date_range_start} to ${args.date_range_end}` : ''}
+
+**Lifecycle Analysis Plan:**
+1. Check end-of-life and end-of-sale dates for specified products
+2. Identify upcoming maintenance and support end dates  
+3. Analyze end-of-software maintenance dates
+4. Review product bulletins and migration information
+5. Plan replacement timeline and budget considerations
+
+**Key Dates to Monitor:**
+- End of Sale Date (when product stops being sold)
+- End of Software Maintenance (when software updates stop)
+- Last Date of Support (when all support ends)
+- End of Service Contract Renewal (when new contracts stop)
+
+Please use the EoX API tools to gather comprehensive lifecycle information for planning purposes.`
+          }
+        }
+      ];
+
+    case 'cisco-eox-research':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me research Cisco end-of-life information:
+
+**Research Focus:** ${args.product_focus}
+**Search Values:** ${args.search_values}
+
+**EoX Research Plan:**
+${args.product_focus === 'product_ids' ? '1. Search EoX information by Product IDs' : ''}
+${args.product_focus === 'serial_numbers' ? '1. Search EoX information by Serial Numbers' : ''}
+${args.product_focus === 'software_releases' ? '1. Search EoX information by Software Releases' : ''}
+${args.product_focus === 'date_range' ? '1. Search EoX information by Date Range' : ''}
+2. Analyze end-of-life timeline and critical dates
+3. Review product bulletins and migration guides
+4. Identify replacement products and upgrade paths
+5. Assess impact on current operations
+
+**Important EoX Milestones:**
+- **End of Life Announcement:** When Cisco announces the product's retirement
+- **End of Sale:** Last date to order the product
+- **End of Software Maintenance:** Last software updates and bug fixes
+- **End of Support:** All technical support ends
+
+Please use the appropriate EoX API tools based on the research focus area.`
+          }
+        }
+      ];
+
     default:
       throw new Error(`Unknown prompt: ${name}`);
   }
@@ -432,6 +558,8 @@ function formatResults(result: ApiResponse, apiName: string, toolName: string, a
     return formatBugResults(result as BugApiResponse, searchContext);
   } else if (apiName === 'Case' || toolName.includes('case')) {
     return formatCaseResults(result as CaseApiResponse, searchContext);
+  } else if (apiName === 'EoX' || toolName.includes('eox')) {
+    return formatEoxResults(result as EoxApiResponse, searchContext);
   } else {
     // For placeholder APIs, the result already contains formatted error message
     return formatBugResults(result as BugApiResponse, searchContext);
@@ -479,7 +607,8 @@ export function createMCPServer(): Server {
         name, 
         apiName,
         resultCount: ('bugs' in result && Array.isArray(result.bugs)) ? result.bugs.length : 
-                    ('cases' in result && Array.isArray(result.cases)) ? result.cases.length : 0
+                    ('cases' in result && Array.isArray(result.cases)) ? result.cases.length :
+                    ('EOXRecord' in result && Array.isArray(result.EOXRecord)) ? result.EOXRecord.length : 0
       });
       
       const content: TextContent = {

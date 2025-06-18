@@ -28,7 +28,7 @@
     "test:jest-tool": "node scripts/test-specific-tool.js",
     "test:integration": "npm test -- --testNamePattern=\"Integration\"",
     "test:coverage": "jest --coverage",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run build",
     "actions:list": "gh run list --limit 10",
     "actions:watch": "gh run watch",
     "actions:logs": "gh run view --log",

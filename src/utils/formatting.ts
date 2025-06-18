@@ -32,6 +32,31 @@ export interface CaseApiResponse extends ApiResponse {
   total_results?: number;
 }
 
+// EoX-specific response interface
+export interface EoxApiResponse extends ApiResponse {
+  EOXRecord?: Array<{
+    EOLProductID: string;
+    ProductIDDescription: string;
+    ProductBulletinNumber: string;
+    LinkToProductBulletinURL: string;
+    EOXExternalAnnouncementDate: string;
+    EndOfSaleDate: string;
+    EndOfSWMaintenanceReleases: string;
+    EndOfRoutineFailureAnalysisDate: string;
+    EndOfServiceContractRenewal: string;
+    LastDateOfSupport: string;
+    EndOfSvcAttachDate: string;
+    UpdatedTimeStamp: string;
+    [key: string]: any;
+  }>;
+  PaginationResponseRecord?: {
+    PageIndex: number;
+    LastIndex: number;
+    TotalRecords: number;
+    PageRecords: number;
+  };
+}
+
 // Format bug results with hyperlinks (existing functionality)
 export function formatBugResults(data: BugApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
   // Handle special error responses (like Case API placeholder)
@@ -164,6 +189,144 @@ export function formatCaseResults(data: CaseApiResponse, searchContext?: { toolN
   });
 
   return formatted;
+}
+
+// Format EoX results with hyperlinks
+export function formatEoxResults(data: EoxApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
+  // Handle special error responses
+  if (data && typeof data === 'object' && 'error' in data && 'message' in data) {
+    let formatted = `# ⚠️ ${data.error}\n\n`;
+    formatted += `**${data.message}**\n\n`;
+    
+    if (data.alternatives && Array.isArray(data.alternatives)) {
+      formatted += `## Alternative Approaches:\n\n`;
+      data.alternatives.forEach((alt: string, index: number) => {
+        formatted += `${index + 1}. ${alt}\n`;
+      });
+      formatted += `\n`;
+    }
+    
+    return formatted;
+  }
+  
+  if (!data.EOXRecord || data.EOXRecord.length === 0) {
+    return JSON.stringify(data, null, 2);
+  }
+
+  let formatted = `# Cisco End-of-Life (EoX) Results\n\n`;
+  
+  // Add search context if available
+  if (searchContext) {
+    formatted += formatEoxSearchContext(searchContext);
+  }
+  
+  // Add pagination info if available
+  if (data.PaginationResponseRecord) {
+    const pagination = data.PaginationResponseRecord;
+    formatted += `**Page:** ${pagination.PageIndex} of ${pagination.LastIndex}\n\n`;
+    formatted += `**Records:** ${pagination.PageRecords} of ${pagination.TotalRecords} total\n\n`;
+  }
+
+  data.EOXRecord.forEach((eoxItem, index) => {
+    formatted += `## ${index + 1}. ${eoxItem.EOLProductID}\n\n`;
+    
+    formatted += `**Product Description:** ${eoxItem.ProductIDDescription || 'N/A'}\n\n`;
+    
+    // Format important dates
+    if (eoxItem.EOXExternalAnnouncementDate) {
+      formatted += `**End of Life Announcement:** ${formatDate(eoxItem.EOXExternalAnnouncementDate)}\n\n`;
+    }
+    if (eoxItem.EndOfSaleDate) {
+      formatted += `**End of Sale Date:** ${formatDate(eoxItem.EndOfSaleDate)}\n\n`;
+    }
+    if (eoxItem.LastDateOfSupport) {
+      formatted += `**Last Date of Support:** ${formatDate(eoxItem.LastDateOfSupport)}\n\n`;
+    }
+    if (eoxItem.EndOfSWMaintenanceReleases) {
+      formatted += `**End of SW Maintenance:** ${formatDate(eoxItem.EndOfSWMaintenanceReleases)}\n\n`;
+    }
+    if (eoxItem.EndOfRoutineFailureAnalysisDate) {
+      formatted += `**End of Failure Analysis:** ${formatDate(eoxItem.EndOfRoutineFailureAnalysisDate)}\n\n`;
+    }
+    if (eoxItem.EndOfServiceContractRenewal) {
+      formatted += `**End of Service Contract Renewal:** ${formatDate(eoxItem.EndOfServiceContractRenewal)}\n\n`;
+    }
+    
+    // Add bulletin information with hyperlink
+    if (eoxItem.ProductBulletinNumber) {
+      formatted += `**Product Bulletin:** ${eoxItem.ProductBulletinNumber}\n\n`;
+    }
+    if (eoxItem.LinkToProductBulletinURL) {
+      formatted += `**Bulletin URL:** [${eoxItem.ProductBulletinNumber || 'View Bulletin'}](${eoxItem.LinkToProductBulletinURL})\n\n`;
+    }
+    
+    if (eoxItem.UpdatedTimeStamp) {
+      formatted += `**Updated:** ${formatDate(eoxItem.UpdatedTimeStamp)}\n\n`;
+    }
+    
+    // Add additional fields if they exist
+    Object.keys(eoxItem).forEach(key => {
+      const excludedKeys = [
+        'EOLProductID', 'ProductIDDescription', 'ProductBulletinNumber', 
+        'LinkToProductBulletinURL', 'EOXExternalAnnouncementDate', 'EndOfSaleDate',
+        'EndOfSWMaintenanceReleases', 'EndOfRoutineFailureAnalysisDate', 
+        'EndOfServiceContractRenewal', 'LastDateOfSupport', 'EndOfSvcAttachDate',
+        'UpdatedTimeStamp'
+      ];
+      
+      if (!excludedKeys.includes(key)) {
+        const value = eoxItem[key];
+        if (value && value !== '' && value !== null && value !== undefined) {
+          const fieldName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          formatted += `**${fieldName}:** ${value}\n\n`;
+        }
+      }
+    });
+    
+    formatted += `---\n\n`;
+  });
+
+  return formatted;
+}
+
+// Helper function to format EoX search context
+function formatEoxSearchContext(searchContext: { toolName: string; args: ToolArgs }): string {
+  let formatted = '';
+  
+  if (searchContext.toolName === 'get_eox_by_date') {
+    formatted += `**Date Range:** ${searchContext.args.start_date} to ${searchContext.args.end_date}\n\n`;
+    if (searchContext.args.eox_attrib && searchContext.args.eox_attrib !== 'UPDATED_TIMESTAMP') {
+      formatted += `**EoX Attribute Filter:** ${searchContext.args.eox_attrib}\n\n`;
+    }
+  } else if (searchContext.toolName === 'get_eox_by_product_id') {
+    formatted += `**Product IDs:** ${searchContext.args.product_ids}\n\n`;
+  } else if (searchContext.toolName === 'get_eox_by_serial_number') {
+    formatted += `**Serial Numbers:** ${searchContext.args.serial_numbers}\n\n`;
+  } else if (searchContext.toolName === 'get_eox_by_software_release') {
+    const inputs: string[] = [];
+    ['input1', 'input2', 'input3', 'input4', 'input5'].forEach(inputKey => {
+      if (searchContext.args[inputKey]) {
+        inputs.push(searchContext.args[inputKey] as string);
+      }
+    });
+    formatted += `**Software Releases:** ${inputs.join(', ')}\n\n`;
+  }
+  
+  return formatted;
+}
+
+// Helper function to format dates
+function formatDate(dateStr: string): string {
+  if (!dateStr || dateStr === ' ' || dateStr.trim() === '') {
+    return 'Not specified';
+  }
+  
+  // If it's already a readable date format, return as-is
+  if (dateStr.includes('/') || dateStr.includes('-')) {
+    return dateStr;
+  }
+  
+  return dateStr;
 }
 
 // Helper function to format search context

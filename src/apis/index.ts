@@ -2,6 +2,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseApi } from './base-api.js';
 import { BugApi } from './bug-api.js';
 import { CaseApi } from './case-api.js';
+import { EoxApi } from './eox-api.js';
 import { ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
 
@@ -69,10 +70,10 @@ export class ApiRegistry {
     // Initialize implemented APIs
     this.apis.set('bug', new BugApi());
     this.apis.set('case', new CaseApi());
+    this.apis.set('eox', new EoxApi());
     
     // Initialize placeholder APIs for unimplemented ones only
     this.apis.set('asd', new PlaceholderApi('ASD'));
-    this.apis.set('eox', new PlaceholderApi('EoX'));
     this.apis.set('product', new PlaceholderApi('Product'));
     this.apis.set('serial', new PlaceholderApi('Serial'));
     this.apis.set('rma', new PlaceholderApi('RMA'));
