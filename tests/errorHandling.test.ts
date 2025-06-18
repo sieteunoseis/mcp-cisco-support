@@ -285,21 +285,21 @@ const isIntegrationMode = !mockFetch;
     });
   });
 
-  describe('Case API Placeholder', () => {
-    test('should return helpful error for case API placeholder', async () => {
-      const result = await executeTool('search_case_placeholder', {});
+  describe('EoX API Placeholder', () => {
+    test('should return helpful error for EoX API placeholder', async () => {
+      const result = await executeTool('eox_placeholder', {});
       
       expect(result).toEqual({
-        error: 'Case API Not Implemented',
-        message: 'The Cisco Case Management API is not yet implemented in this MCP server. Currently, only the Bug Search API is available.',
+        error: 'EoX API Not Implemented',
+        message: 'The Cisco EoX API is not yet implemented in this MCP server. Currently, only the Bug and Case APIs are available.',
         alternatives: [
-          'Use search_bugs_by_keyword to find bugs related to your case topic',
+          'Use search_bugs_by_keyword to find bugs related to your topic',
           'Use search_bugs_by_product_id if you have a specific product ID',
-          'Use search_bugs_by_product_series_affected for product series searches'
+          'Use get_case_details if you have a case ID to investigate'
         ],
-        example: 'Try: "Search for bugs related to \'Unified Communications Manager\' with keyword search"',
-        available_apis: ['bug'],
-        planned_apis: ['case', 'eox', 'product', 'serial', 'rma', 'software', 'asd']
+        example: 'Try: "Search for bugs related to your eox topic with keyword search"',
+        available_apis: ['bug', 'case'],
+        planned_apis: ['eox', 'product', 'serial', 'rma', 'software', 'asd']
       });
     });
   });

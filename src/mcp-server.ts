@@ -5,7 +5,6 @@ import {
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
   PingRequestSchema,
-  Tool,
   Prompt,
   PromptMessage,
   TextContent
@@ -14,6 +13,11 @@ import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+// Import modular API system
+import { createApiRegistry, ApiRegistry, SupportedAPI, getEnabledAPIs } from './apis/index.js';
+import { formatBugResults, formatCaseResults, ApiResponse, BugApiResponse, CaseApiResponse } from './utils/formatting.js';
+import { setLogging, logger } from './utils/logger.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -21,623 +25,20 @@ dotenv.config();
 const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
 const VERSION = packageJson.version;
 
-// Supported API configuration
-type SupportedAPI = 'asd' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software';
+// Initialize API registry (will be created fresh each time for dynamic config)
+let apiRegistry: ApiRegistry;
+let ENABLED_APIS: SupportedAPI[];
 
-const SUPPORTED_APIS: SupportedAPI[] = ['asd', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software'];
-
-// Get enabled APIs from environment
-function getEnabledAPIs(): SupportedAPI[] {
-  const supportApiEnv = process.env.SUPPORT_API || 'bug';
-  
-  if (supportApiEnv.toLowerCase() === 'all') {
-    return SUPPORTED_APIS;
-  }
-  
-  const requestedAPIs = supportApiEnv.toLowerCase().split(',').map(api => api.trim()) as SupportedAPI[];
-  return requestedAPIs.filter(api => SUPPORTED_APIS.includes(api));
+// Initialize or refresh the API registry
+function initializeApiRegistry() {
+  ENABLED_APIS = getEnabledAPIs();
+  apiRegistry = createApiRegistry();
 }
 
-const ENABLED_APIS = getEnabledAPIs();
+// Initialize at module load
+initializeApiRegistry();
 
-// Types
-interface TokenData {
-  access_token: string;
-  expires_in: number;
-}
-
-interface CiscoApiResponse {
-  bugs?: Array<{
-    bug_id: string;
-    headline: string;
-    status: string;
-    severity: string;
-    last_modified_date: string;
-    [key: string]: any;
-  }>;
-  total_results?: number;
-  [key: string]: any;
-}
-
-interface Logger {
-  info: (message: string, data?: any) => void;
-  error: (message: string, data?: any) => void;
-  warn: (message: string, data?: any) => void;
-}
-
-interface ToolArgs {
-  [key: string]: any;
-}
-
-// Global variables for OAuth2 token management
-let accessToken: string | null = null;
-let tokenExpiry: number | null = null;
-const TOKEN_REFRESH_MARGIN = 30 * 60 * 1000; // 30 minutes in milliseconds
-
-// Logger implementation - can be controlled externally
-let loggingEnabled = true;
-
-export const logger: Logger = {
-  info: (message: string, data?: any) => {
-    if (loggingEnabled) {
-      const timestamp = new Date().toISOString();
-      const logEntry = { timestamp, level: 'info', message, ...(data && { data }) };
-      console.log(JSON.stringify(logEntry));
-    }
-  },
-  error: (message: string, data?: any) => {
-    if (loggingEnabled) {
-      const timestamp = new Date().toISOString();
-      const logEntry = { timestamp, level: 'error', message, ...(data && { data }) };
-      console.error(JSON.stringify(logEntry));
-    }
-  },
-  warn: (message: string, data?: any) => {
-    if (loggingEnabled) {
-      const timestamp = new Date().toISOString();
-      const logEntry = { timestamp, level: 'warn', message, ...(data && { data }) };
-      console.warn(JSON.stringify(logEntry));
-    }
-  }
-};
-
-// Control logging externally
-export function setLogging(enabled: boolean) {
-  loggingEnabled = enabled;
-}
-
-// OAuth2 authentication
-async function authenticateWithCisco(): Promise<string> {
-  const { CISCO_CLIENT_ID, CISCO_CLIENT_SECRET } = process.env;
-  
-  if (!CISCO_CLIENT_ID || !CISCO_CLIENT_SECRET) {
-    throw new Error('Missing Cisco API credentials in environment variables');
-  }
-
-  const tokenUrl = 'https://id.cisco.com/oauth2/default/v1/token';
-  const credentials = Buffer.from(`${CISCO_CLIENT_ID}:${CISCO_CLIENT_SECRET}`).toString('base64');
-  
-  try {
-    logger.info('Requesting OAuth2 token from Cisco');
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for auth
-    
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-      },
-      body: 'grant_type=client_credentials',
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OAuth2 authentication failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    const tokenData = await response.json() as TokenData;
-    
-    if (!tokenData.access_token) {
-      throw new Error('No access token received from Cisco OAuth2 API');
-    }
-
-    // Calculate token expiry (default 12 hours if not provided)
-    const expiresIn = tokenData.expires_in || 43200; // 12 hours default
-    tokenExpiry = Date.now() + (expiresIn * 1000);
-    accessToken = tokenData.access_token;
-
-    logger.info('Successfully obtained OAuth2 token', {
-      expiresIn: expiresIn,
-      expiryTime: new Date(tokenExpiry).toISOString()
-    });
-
-    return accessToken;
-  } catch (error) {
-    // Handle specific timeout errors
-    if (error instanceof Error) {
-      if (error.name === 'AbortError' || error.message.includes('timeout')) {
-        logger.error('OAuth2 authentication timed out', { timeout: '30s' });
-        throw new Error(`OAuth2 authentication timed out after 30 seconds. Cisco's authentication service may be experiencing issues.`);
-      } else if (error.message.includes('Headers Timeout') || error.message.includes('UND_ERR_HEADERS_TIMEOUT')) {
-        logger.error('OAuth2 headers timeout');
-        throw new Error(`OAuth2 authentication connection timed out. Cisco's authentication service may be temporarily unavailable.`);
-      }
-    }
-    
-    logger.error('OAuth2 authentication failed', error);
-    throw error;
-  }
-}
-
-// Get valid access token, refreshing if necessary
-async function getValidToken(): Promise<string> {
-  const now = Date.now();
-  
-  // Check if token exists and is not expired (with margin)
-  if (accessToken && tokenExpiry && (tokenExpiry - now) > TOKEN_REFRESH_MARGIN) {
-    return accessToken;
-  }
-  
-  logger.info('Token expired or missing, refreshing...');
-  return await authenticateWithCisco();
-}
-
-// Make authenticated API call to Cisco Bug API
-async function makeCiscoApiCall(endpoint: string, params: Record<string, any> = {}): Promise<CiscoApiResponse> {
-  const token = await getValidToken();
-  const baseUrl = 'https://apix.cisco.com/bug/v2.0';
-  
-  // Build query string
-  const queryParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      queryParams.append(key, String(value));
-    }
-  });
-  
-  const queryString = queryParams.toString();
-  const url = `${baseUrl}${endpoint}${queryString ? '?' + queryString : ''}`;
-  
-  try {
-    logger.info('Making Cisco API call', { endpoint, params });
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'User-Agent': 'mcp-cisco-support/1.0'
-      },
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (response.status === 401) {
-      logger.warn('Received 401, token may be expired, refreshing...');
-      // Token expired, refresh and retry once
-      const newToken = await authenticateWithCisco();
-      const retryController = new AbortController();
-      const retryTimeoutId = setTimeout(() => retryController.abort(), 60000); // 60 second timeout
-      
-      const retryResponse = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${newToken}`,
-          'Accept': 'application/json',
-          'User-Agent': 'mcp-cisco-support/1.0'
-        },
-        signal: retryController.signal
-      });
-      
-      clearTimeout(retryTimeoutId);
-      
-      if (!retryResponse.ok) {
-        const errorText = await retryResponse.text();
-        throw new Error(`Cisco API call failed after token refresh: ${retryResponse.status} ${retryResponse.statusText} - ${errorText}`);
-      }
-      
-      const retryData = await retryResponse.json() as CiscoApiResponse;
-      return retryData;
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Cisco API call failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    const data = await response.json() as CiscoApiResponse;
-    logger.info('Cisco API call successful', { endpoint, resultCount: data.bugs ? data.bugs.length : 0 });
-    
-    return data;
-  } catch (error) {
-    // Handle specific timeout errors
-    if (error instanceof Error) {
-      if (error.name === 'AbortError' || error.message.includes('timeout')) {
-        logger.error('Cisco API call timed out', { endpoint, params, timeout: '60s' });
-        throw new Error(`Cisco API call timed out after 60 seconds. The API may be experiencing high load. Please try again later.`);
-      } else if (error.message.includes('Headers Timeout') || error.message.includes('UND_ERR_HEADERS_TIMEOUT')) {
-        logger.error('Cisco API headers timeout', { endpoint, params });
-        throw new Error(`Cisco API connection timed out while waiting for response headers. The service may be temporarily unavailable.`);
-      }
-    }
-    
-    logger.error('Cisco API call failed', { endpoint, error: error instanceof Error ? error.message : error });
-    throw error;
-  }
-}
-
-// MCP Tools definitions with proper JSON Schema format - organized by API
-const bugApiTools: Tool[] = [
-  {
-    name: 'get_bug_details',
-    description: 'Get details for up to 5 specific bug IDs',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        bug_ids: {
-          type: 'string',
-          description: 'Comma-separated list of bug IDs (max 5)'
-        }
-      },
-      required: ['bug_ids']
-    }
-  },
-  {
-    name: 'search_bugs_by_keyword',
-    description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: Cisco API only accepts ONE severity and ONE status value per search - for "severity 3 or higher" you must make separate searches for each severity level (1, 2, 3).',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        keyword: {
-          type: 'string',
-          description: 'Keywords to search for'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['keyword']
-    }
-  },
-  {
-    name: 'search_bugs_by_product_id',
-    description: 'Search bugs by specific base product ID (e.g., C9200-24P). Use when you have an exact Cisco product ID. For general product searches by name, consider using keyword search instead.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        base_pid: {
-          type: 'string',
-          description: 'Base product ID'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['base_pid']
-    }
-  },
-  {
-    name: 'search_bugs_by_product_and_release',
-    description: 'Search bugs by product ID and software releases',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        base_pid: {
-          type: 'string',
-          description: 'Base product ID'
-        },
-        software_releases: {
-          type: 'string',
-          description: 'Comma-separated software release versions'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['base_pid', 'software_releases']
-    }
-  },
-  {
-    name: 'search_bugs_by_product_series_affected',
-    description: 'Search bugs by product series and affected releases',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        product_series: {
-          type: 'string',
-          description: 'Product series name'
-        },
-        affected_releases: {
-          type: 'string',
-          description: 'Comma-separated affected release versions'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['product_series', 'affected_releases']
-    }
-  },
-  {
-    name: 'search_bugs_by_product_series_fixed',
-    description: 'Search bugs by product series and fixed releases',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        product_series: {
-          type: 'string',
-          description: 'Product series name'
-        },
-        fixed_releases: {
-          type: 'string',
-          description: 'Comma-separated fixed release versions'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['product_series', 'fixed_releases']
-    }
-  },
-  {
-    name: 'search_bugs_by_product_name_affected',
-    description: 'Search bugs by exact product name and affected releases',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        product_name: {
-          type: 'string',
-          description: 'Exact product name'
-        },
-        affected_releases: {
-          type: 'string',
-          description: 'Comma-separated affected release versions'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['product_name', 'affected_releases']
-    }
-  },
-  {
-    name: 'search_bugs_by_product_name_fixed',
-    description: 'Search bugs by exact product name and fixed releases',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        product_name: {
-          type: 'string',
-          description: 'Exact product name'
-        },
-        fixed_releases: {
-          type: 'string',
-          description: 'Comma-separated fixed release versions'
-        },
-        page_index: {
-          type: 'integer',
-          default: 1,
-          description: 'Page number (10 results per page)'
-        },
-        status: {
-          type: 'string',
-          description: 'Bug status filter. IMPORTANT: Only ONE status allowed per search. Values: O=Open, F=Fixed, T=Terminated. Do NOT use comma-separated values like "O,F".',
-          enum: ['O', 'F', 'T']
-        },
-        severity: {
-          type: 'string',
-          description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
-          enum: ['1', '2', '3', '4', '5', '6']
-        },
-        modified_date: {
-          type: 'string',
-          description: 'Last modified date filter. Values: 1=Last Week, 2=Last 30 Days, 3=Last 6 Months, 4=Last Year, 5=All. Default: 5 (All)',
-          enum: ['1', '2', '3', '4', '5'],
-          default: '5'
-        },
-        sort_by: {
-          type: 'string',
-          description: 'Sort order'
-        }
-      },
-      required: ['product_name', 'fixed_releases']
-    }
-  }
-];
-
-// Placeholder tools for future APIs with helpful error messages
-const asdApiTools: Tool[] = [];
-const caseApiTools: Tool[] = [
-  {
-    name: 'search_case_placeholder',
-    description: '⚠️ Case API not yet implemented. Please use Bug API tools instead to search for related issues.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          description: 'This is a placeholder - Case API is not yet implemented'
-        }
-      },
-      required: []
-    }
-  }
-];
-const eoxApiTools: Tool[] = [];
-const productApiTools: Tool[] = [];
-const serialApiTools: Tool[] = [];
-const rmaApiTools: Tool[] = [];
-const softwareApiTools: Tool[] = [];
-
-// Map API names to their tool arrays
-const API_TOOLS_MAP: Record<SupportedAPI, Tool[]> = {
-  asd: asdApiTools,
-  bug: bugApiTools,
-  case: caseApiTools,
-  eox: eoxApiTools,
-  product: productApiTools,
-  serial: serialApiTools,
-  rma: rmaApiTools,
-  software: softwareApiTools
-};
-
-// Generate tools array based on enabled APIs
-export function getAvailableTools(): Tool[] {
-  const availableTools: Tool[] = [];
-  
-  for (const api of ENABLED_APIS) {
-    const apiTools = API_TOOLS_MAP[api];
-    if (apiTools && apiTools.length > 0) {
-      availableTools.push(...apiTools);
-    }
-  }
-  
-  return availableTools;
-}
-
-// Cisco Support MCP Prompts
+// Cisco Support MCP Prompts (unchanged from original)
 const ciscoPrompts: Prompt[] = [
   {
     name: 'cisco-high-severity-search',
@@ -779,12 +180,61 @@ const ciscoPrompts: Prompt[] = [
         required: false
       }
     ]
+  },
+  {
+    name: 'cisco-case-investigation',
+    description: 'Investigate support cases and related information using Case API tools',
+    arguments: [
+      {
+        name: 'case_id',
+        description: 'Specific case ID to investigate (optional)',
+        required: false
+      },
+      {
+        name: 'contract_id',
+        description: 'Contract ID to search cases for (optional)',
+        required: false
+      },
+      {
+        name: 'user_id',
+        description: 'User ID to search cases for (optional)',
+        required: false
+      },
+      {
+        name: 'status',
+        description: 'Case status to filter by (Open, Closed, etc.)',
+        required: false
+      }
+    ]
   }
 ];
 
-// Get available prompts (for now, return all prompts regardless of API configuration)
+// Prompt to API mapping - defines which APIs each prompt uses
+const promptApiMapping: Record<string, SupportedAPI[]> = {
+  'cisco-high-severity-search': ['bug'],
+  'cisco-incident-investigation': ['bug'],
+  'cisco-upgrade-planning': ['bug'],
+  'cisco-maintenance-prep': ['bug'],
+  'cisco-security-advisory': ['bug'],
+  'cisco-known-issues': ['bug'],
+  'cisco-case-investigation': ['case']
+};
+
+// Get available prompts (filtered by enabled APIs)
 export function getAvailablePrompts(): Prompt[] {
-  return ciscoPrompts;
+  // Check if prompts should be filtered based on enabled APIs
+  const enabledApis = ENABLED_APIS;
+  
+  return ciscoPrompts.filter(prompt => {
+    const requiredApis = promptApiMapping[prompt.name];
+    if (!requiredApis) {
+      // If no API mapping defined, include the prompt by default
+      return true;
+    }
+    
+    // Include prompt if at least one of its required APIs is enabled
+    return requiredApis.some(api => enabledApis.includes(api));
+  });
 }
 
 // Generate prompt content based on prompt name and arguments
@@ -942,214 +392,50 @@ Please search comprehensively for bugs affecting this version and provide a summ
         }
       ];
 
+    case 'cisco-case-investigation':
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Help me investigate Cisco support cases:
+
+**Investigation Target:**
+${args.case_id ? `- Case ID: ${args.case_id}` : ''}
+${args.contract_id ? `- Contract ID: ${args.contract_id}` : ''}
+${args.user_id ? `- User ID: ${args.user_id}` : ''}
+${args.status ? `- Status Filter: ${args.status}` : ''}
+
+**Case Investigation Plan:**
+${args.case_id ? '1. Get detailed case information' : ''}
+${args.contract_id ? '1. Search cases by contract ID' : ''}
+${args.user_id ? '1. Search cases by user ID' : ''}
+2. Analyze case status and severity
+3. Look for related cases or patterns
+4. Check for associated bugs or known issues
+
+Please use the appropriate Case API tools to gather comprehensive case information.`
+          }
+        }
+      ];
+
     default:
       throw new Error(`Unknown prompt: ${name}`);
   }
 }
 
-// Format bug results with hyperlinks
-function formatBugResults(data: CiscoApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
-  // Handle special error responses (like Case API placeholder)
-  if (data && typeof data === 'object' && 'error' in data && 'message' in data) {
-    let formatted = `# ⚠️ ${data.error}\n\n`;
-    formatted += `**${data.message}**\n\n`;
-    
-    if (data.alternatives && Array.isArray(data.alternatives)) {
-      formatted += `## Alternative Approaches:\n\n`;
-      data.alternatives.forEach((alt: string, index: number) => {
-        formatted += `${index + 1}. ${alt}\n`;
-      });
-      formatted += `\n`;
-    }
-    
-    if (data.example) {
-      formatted += `## Example:\n${data.example}\n\n`;
-    }
-    
-    if (data.available_apis) {
-      formatted += `**Currently Available APIs:** ${data.available_apis.join(', ')}\n\n`;
-    }
-    
-    if (data.planned_apis) {
-      formatted += `**Planned APIs:** ${data.planned_apis.join(', ')}\n\n`;
-    }
-    
-    return formatted;
+// Format results based on API type
+function formatResults(result: ApiResponse, apiName: string, toolName: string, args: Record<string, any>): string {
+  const searchContext = { toolName, args };
+  
+  if (apiName === 'Bug' || toolName.includes('bug')) {
+    return formatBugResults(result as BugApiResponse, searchContext);
+  } else if (apiName === 'Case' || toolName.includes('case')) {
+    return formatCaseResults(result as CaseApiResponse, searchContext);
+  } else {
+    // For placeholder APIs, the result already contains formatted error message
+    return formatBugResults(result as BugApiResponse, searchContext);
   }
-  
-  if (!data.bugs || data.bugs.length === 0) {
-    return JSON.stringify(data, null, 2);
-  }
-
-  let formatted = `# Cisco Bug Search Results\n\n`;
-  
-  // Add search context if available
-  if (searchContext) {
-    if (searchContext.toolName === 'search_bugs_by_keyword' && searchContext.args.keyword) {
-      formatted += `**Search Keywords:** "${searchContext.args.keyword}"\n\n`;
-    } else if (searchContext.toolName === 'search_bugs_by_product_id' && searchContext.args.base_pid) {
-      formatted += `**Product ID:** ${searchContext.args.base_pid}\n\n`;
-    } else if (searchContext.toolName === 'search_bugs_by_product_and_release') {
-      formatted += `**Product ID:** ${searchContext.args.base_pid}\n\n`;
-      formatted += `**Software Releases:** ${searchContext.args.software_releases}\n\n`;
-    } else if (searchContext.toolName === 'search_bugs_by_product_series_affected') {
-      formatted += `**Product Series:** ${searchContext.args.product_series}\n\n`;
-      formatted += `**Affected Releases:** ${searchContext.args.affected_releases}\n\n`;
-    } else if (searchContext.toolName === 'search_bugs_by_product_series_fixed') {
-      formatted += `**Product Series:** ${searchContext.args.product_series}\n\n`;
-      formatted += `**Fixed Releases:** ${searchContext.args.fixed_releases}\n\n`;
-    } else if (searchContext.toolName === 'search_bugs_by_product_name_affected') {
-      formatted += `**Product Name:** ${searchContext.args.product_name}\n\n`;
-      formatted += `**Affected Releases:** ${searchContext.args.affected_releases}\n\n`;
-    } else if (searchContext.toolName === 'search_bugs_by_product_name_fixed') {
-      formatted += `**Product Name:** ${searchContext.args.product_name}\n\n`;
-      formatted += `**Fixed Releases:** ${searchContext.args.fixed_releases}\n\n`;
-    }
-    
-    // Add filters if specified
-    if (searchContext.args.status) {
-      const statusMap: {[key: string]: string} = {
-        'O': 'Open',
-        'F': 'Fixed', 
-        'T': 'Terminated'
-      };
-      formatted += `**Status Filter:** ${statusMap[searchContext.args.status] || searchContext.args.status}\n\n`;
-    }
-    if (searchContext.args.severity) {
-      formatted += `**Severity Filter:** Severity ${searchContext.args.severity}\n\n`;
-    }
-    if (searchContext.args.modified_date && searchContext.args.modified_date !== '5') {
-      const dateMap: {[key: string]: string} = {
-        '1': 'Last Week',
-        '2': 'Last 30 Days', 
-        '3': 'Last 6 Months',
-        '4': 'Last Year',
-        '5': 'All'
-      };
-      formatted += `**Modified Date Filter:** ${dateMap[searchContext.args.modified_date] || searchContext.args.modified_date}\n\n`;
-    }
-  }
-  
-  if (data.total_results) {
-    formatted += `**Total Results:** ${data.total_results}\n\n`;
-  }
-
-  data.bugs.forEach((bug, index) => {
-    const bugUrl = `https://bst.cisco.com/bugsearch/bug/${bug.bug_id}`;
-    
-    formatted += `## ${index + 1}. [${bug.bug_id}](${bugUrl})\n\n`;
-    formatted += `**Headline:** ${bug.headline}\n\n`;
-    formatted += `**Status:** ${bug.status}\n\n`;
-    formatted += `**Severity:** ${bug.severity}\n\n`;
-    formatted += `**Last Modified:** ${bug.last_modified_date}\n\n`;
-    
-    // Add additional fields if they exist
-    Object.keys(bug).forEach(key => {
-      if (!['bug_id', 'headline', 'status', 'severity', 'last_modified_date'].includes(key)) {
-        const value = bug[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
-          const fieldName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          formatted += `**${fieldName}:** ${value}\n\n`;
-        }
-      }
-    });
-    
-    formatted += `**Bug URL:** ${bugUrl}\n\n`;
-    formatted += `---\n\n`;
-  });
-
-  return formatted;
-}
-
-// Execute tool function
-export async function executeTool(name: string, args: ToolArgs): Promise<CiscoApiResponse> {
-  const tools = getAvailableTools();
-  const tool = tools.find(t => t.name === name);
-  if (!tool) {
-    throw new Error(`Unknown tool: ${name}`);
-  }
-
-  // Basic validation - ensure required fields are present
-  const schema = tool.inputSchema;
-  if (schema.required) {
-    for (const field of schema.required) {
-      if (!args[field]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-  }
-
-  // Set defaults
-  const processedArgs = { ...args };
-  if (!processedArgs.page_index) processedArgs.page_index = 1;
-  if (!processedArgs.modified_date) processedArgs.modified_date = '5';
-  
-  // Build API parameters
-  const apiParams: Record<string, any> = {
-    page_index: processedArgs.page_index
-  };
-  
-  // Add optional filters - only if explicitly provided
-  if (processedArgs.status) apiParams.status = processedArgs.status;
-  if (processedArgs.severity) apiParams.severity = processedArgs.severity;
-  if (processedArgs.modified_date) apiParams.modified_date = processedArgs.modified_date;
-  if (processedArgs.sort_by) apiParams.sort_by = processedArgs.sort_by;
-  
-  let endpoint: string;
-  
-  switch (name) {
-    case 'get_bug_details':
-      endpoint = `/bugs/bug_ids/${encodeURIComponent(processedArgs.bug_ids)}`;
-      break;
-      
-    case 'search_bugs_by_keyword':
-      endpoint = `/bugs/keyword/${encodeURIComponent(processedArgs.keyword)}`;
-      break;
-      
-    case 'search_bugs_by_product_id':
-      endpoint = `/bugs/products/product_id/${encodeURIComponent(processedArgs.base_pid)}`;
-      break;
-      
-    case 'search_bugs_by_product_and_release':
-      endpoint = `/bugs/products/product_id/${encodeURIComponent(processedArgs.base_pid)}/software_releases/${encodeURIComponent(processedArgs.software_releases)}`;
-      break;
-      
-    case 'search_bugs_by_product_series_affected':
-      endpoint = `/bugs/product_series/${encodeURIComponent(processedArgs.product_series)}/affected_releases/${encodeURIComponent(processedArgs.affected_releases)}`;
-      break;
-      
-    case 'search_bugs_by_product_series_fixed':
-      endpoint = `/bugs/product_series/${encodeURIComponent(processedArgs.product_series)}/fixed_releases/${encodeURIComponent(processedArgs.fixed_releases)}`;
-      break;
-      
-    case 'search_bugs_by_product_name_affected':
-      endpoint = `/bugs/products/product_name/${encodeURIComponent(processedArgs.product_name)}/affected_releases/${encodeURIComponent(processedArgs.affected_releases)}`;
-      break;
-      
-    case 'search_bugs_by_product_name_fixed':
-      endpoint = `/bugs/products/product_name/${encodeURIComponent(processedArgs.product_name)}/fixed_releases/${encodeURIComponent(processedArgs.fixed_releases)}`;
-      break;
-      
-    case 'search_case_placeholder':
-      // Return helpful error message for Case API
-      return {
-        error: 'Case API Not Implemented',
-        message: 'The Cisco Case Management API is not yet implemented in this MCP server. Currently, only the Bug Search API is available.',
-        alternatives: [
-          'Use search_bugs_by_keyword to find bugs related to your case topic',
-          'Use search_bugs_by_product_id if you have a specific product ID',
-          'Use search_bugs_by_product_series_affected for product series searches'
-        ],
-        example: 'Try: "Search for bugs related to \'Unified Communications Manager\' with keyword search"',
-        available_apis: ['bug'],
-        planned_apis: ['case', 'eox', 'product', 'serial', 'rma', 'software', 'asd']
-      } as any;
-      
-    default:
-      throw new Error(`Tool implementation not found: ${name}`);
-  }
-  
-  return await makeCiscoApiCall(endpoint, apiParams);
 }
 
 // Create MCP server
@@ -1176,7 +462,7 @@ export function createMCPServer(): Server {
   // List tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-      tools: getAvailableTools(),
+      tools: apiRegistry.getAvailableTools(),
     };
   });
 
@@ -1187,16 +473,18 @@ export function createMCPServer(): Server {
     try {
       logger.info('Tool call started', { name, args });
       
-      const result = await executeTool(name, args || {});
+      const { result, apiName } = await apiRegistry.executeTool(name, args || {});
       
       logger.info('Tool call completed', { 
         name, 
-        resultCount: result.bugs ? result.bugs.length : 0
+        apiName,
+        resultCount: ('bugs' in result && Array.isArray(result.bugs)) ? result.bugs.length : 
+                    ('cases' in result && Array.isArray(result.cases)) ? result.cases.length : 0
       });
       
       const content: TextContent = {
         type: 'text',
-        text: formatBugResults(result, { toolName: name, args: args || {} })
+        text: formatResults(result, apiName, name, args || {})
       };
       
       return {
@@ -1214,11 +502,15 @@ export function createMCPServer(): Server {
       
       if (errorMessage.includes('Unknown tool')) {
         errorMessage += '\n\nℹ️ Currently available tools:\n' + 
-          getAvailableTools().map(t => `• ${t.name}: ${t.description}`).join('\n');
+          apiRegistry.getAvailableTools().map(t => `• ${t.name}: ${t.description}`).join('\n');
+        
+        errorMessage += `\n\nℹ️ Enabled APIs: ${ENABLED_APIS.join(', ')}`;
       }
       
       if (errorMessage.includes('Tool implementation not found')) {
-        errorMessage += '\n\nℹ️ This tool may require an API that is not yet implemented. Currently only the Bug API is available.';
+        errorMessage += '\n\nℹ️ This tool may require an API that is not yet implemented or enabled.';
+        errorMessage += `\nCurrently enabled APIs: ${ENABLED_APIS.join(', ')}`;
+        errorMessage += `\nTo enable more APIs, set SUPPORT_API environment variable (e.g., SUPPORT_API=bug,case)`;
       }
       
       const errorContent: TextContent = {
@@ -1268,5 +560,20 @@ export function createMCPServer(): Server {
   return server;
 }
 
-// Export the main server instance
+// Export the main server instance and utilities
 export const mcpServer = createMCPServer();
+export { setLogging, logger, apiRegistry, ENABLED_APIS };
+
+// Export functions for backward compatibility with tests
+export function getAvailableTools() {
+  // Reinitialize registry to pick up any environment changes
+  initializeApiRegistry();
+  return apiRegistry.getAvailableTools();
+}
+
+export async function executeTool(name: string, args: Record<string, any>) {
+  // Reinitialize registry to pick up any environment changes
+  initializeApiRegistry();
+  const { result } = await apiRegistry.executeTool(name, args);
+  return result;
+}

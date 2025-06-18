@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="Cisco Return API v1.0 (Service Order return)"/>
+  <resources base="https://api.cisco.com">
+    <resource path="return" id="return">
+      <doc xml:lang="en" title="return"/>
+      <resource path="{version}" id="{version}">
+        <doc xml:lang="en" title="{version}"/>
+        <param name="version" default="v1.0" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+        <resource path="returns" id="returns">
+          <doc xml:lang="en" title="returns"/>
+          <resource path="rma_numbers/{rma_numbers}" id="RMA Details by RMA Number">
+            <doc xml:lang="en" title="RMA Details by RMA Number"/>
+            <param name="rma_numbers" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="rma_numbers Parameter">Identifier of the RMA for which to return details. (only one RMA number) e.g. 84894022</doc>
+            </param>
+            <param name="pageIndex" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="pageIndex Parameter">page of results (default is page 1)</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="403">
+                <representation mediaType="application/json" element="ns:Fault" xmlns:ns="https://api.cisco.com/return/v1.0/returns/rma_numbers/84894022"/>
+              </response>
+              <response status="200">
+                <representation mediaType="application/json" element="ns:Response" xmlns:ns="https://api.cisco.com/return/v1.0/returns/rma_numbers/84894022"/>
+              </response>
+            </method>
+          </resource>
+          <resource path="users" id="users">
+            <doc xml:lang="en" title="users"/>
+            <resource path="user_ids/{user_ids}" id="RMAs by User ID">
+              <doc xml:lang="en" title="RMAs by User ID"/>
+              <param name="user_ids" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="user_ids Parameter">Identifier of the user for which to return associated RMAs. Note: Only 1 user ID is accepted e.g. svorma8</doc>
+              </param>
+              <param name="pageIndex" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="pageIndex Parameter">page index of result (default is page 1)</doc>
+              </param>
+              <param name="fromDate" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="fromDate Parameter">Beginning date from which to return results. Date must be GMT in the following format: YYYY-MM-DD</doc>
+              </param>
+              <param name="toDate" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="toDate Parameter">End date from which to return results. Date must be GMT in the following format: YYYY-MM-DD</doc>
+              </param>
+              <param name="status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="status Parameter">Status of the RMA on which to filter results; (only one status) Default is All</doc>
+                <option value="open"/>
+                <option value="booked"/>
+                <option value="hold"/>
+                <option value="closed"/>
+                <option value="cancelled"/>
+              </param>
+              <param name="sortBy" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="sortBy Parameter">Value on which to sort the results; one of the following values: orderdate (default) or status.</doc>
+                <option value="orderdate"/>
+                <option value="status"/>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json" element="dir:Response" xmlns:dir="https://api.cisco.com/return/v1.0/returns/users/user_ids/directcust4"/>
+                </response>
+                <response status="403">
+                  <representation mediaType="application/json" element="dir:Fault" xmlns:dir="https://api.cisco.com/return/v1.0/returns/users/user_ids/directcust4"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+        </resource>
+      </resource>
+    </resource>
+  </resources>
+</application>

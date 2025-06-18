@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="Cisco Product Info API v1"/>
+  <resources base="https://api.cisco.com">
+    <resource path="product" id="Product">
+      <doc xml:lang="en" title="Product"/>
+      <resource path="{version}" id="{version}">
+        <doc xml:lang="en" title="{version}"/>
+        <param name="version" default="v1" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="version Parameter">Version of the API e.g. v1</doc>
+          <option value="v1"/>
+        </param>
+        <resource path="information" id="information">
+          <doc xml:lang="en" title="information"/>
+          <param name="page_index" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <doc xml:lang="en" title="page_index Parameter">Index number of the page to return e.g 1</doc>
+          </param>
+          <resource path="serial_numbers/{serial_numbers}" id="Product Info by Serial Numbers">
+            <doc xml:lang="en" title="Product Info by Serial Numbers"/>
+            <param name="serial_numbers" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="serial_numbers Parameter">Enter upto 5 device serial numbers separated by commas e.g FOC1710W3DY,SMG1149NKBS</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="400 500">
+                <representation mediaType="application/json;charset=UTF-8" element="ser:Fault" xmlns:ser="https://api.cisco.com/product/v1/information/serial_numbers"/>
+              </response>
+              <response status="200">
+                <representation mediaType="application/json;charset=UTF-8" element="ser:Response" xmlns:ser="https://api.cisco.com/product/v1/information/serial_numbers"/>
+              </response>
+              <response status="403 596">
+                <representation mediaType="text/xml" element="h1"/>
+              </response>
+              <response status="500">
+                <representation mediaType="text/html" element="html"/>
+              </response>
+            </method>
+          </resource>
+          <resource path="product_ids/{pids}" id="Product Info by Product Identifiers">
+            <doc xml:lang="en" title="Product Info by Product Identifiers"/>
+            <param name="pids" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="pids Parameter">Enter up to 5 product identifiers separated by commas e.g BLKR-SVB-100U-1Y-U,WS-C6509-E</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="596">
+                <representation mediaType="text/xml" element="h1"/>
+              </response>
+              <response status="404">
+                <representation mediaType="text/html;charset=ISO-8859-1" element="html"/>
+              </response>
+              <response status="200">
+                <representation mediaType="application/json;charset=UTF-8" element="pids:Response" xmlns:pids="https://api.cisco.com/product/v1/information/pids"/>
+              </response>
+              <response status="500">
+                <representation mediaType="text/html" element="html"/>
+              </response>
+            </method>
+          </resource>
+        </resource>
+      </resource>
+    </resource>
+  </resources>
+</application>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="Cisco SN2INFO v2"/>
+  <resources base="https://api.cisco.com">
+    <resource path="sn2info" id="sn2info">
+      <doc xml:lang="en" title="sn2info"/>
+      <resource path="{version}" id="{version}">
+        <doc xml:lang="en" title="{version}"/>
+        <param name="version" default="v2" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+        <resource path="identifiers" id="identifiers">
+          <doc xml:lang="en" title="identifiers"/>
+          <resource path="orderable" id="orderable">
+            <doc xml:lang="en" title="orderable"/>
+            <resource path="serial_numbers/{serial_numbers}" id="Orderable Product Identifier(s) by Serial Number(s)">
+              <doc xml:lang="en" title="Orderable Product Identifier(s) by Serial Number(s)"/>
+              <param name="serial_numbers" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="serial_numbers Parameter">Serial number of the device for which to return the orderable PID. You can enter up to 75 serial numbers (each with a max length of 40) separated by commas. e.g. FOC10220LK9</doc>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="foc:Response" xmlns:foc="https://api.cisco.com/sn2info/v2/identifiers/orderable/serial_numbers/FOC10220LK9%2C3545J999999%2CFDO13999999%2CFOX10999999"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+        </resource>
+        <resource path="coverage" id="coverage">
+          <doc xml:lang="en" title="coverage"/>
+          <resource path="status" id="status">
+            <doc xml:lang="en" title="status"/>
+            <resource path="serial_numbers/{serial_numbers}" id="Coverage Status by Serial Number(s)">
+              <doc xml:lang="en" title="Coverage Status by Serial Number(s)"/>
+              <param name="serial_numbers" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="serial_numbers Parameter">Serial number of the device for which to return coverage status. You can enter up to 75 serial numbers (each with a max length of 40) separated by commas. e.g. FOC10220LK9</doc>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="foc:Response" xmlns:foc="https://api.cisco.com/sn2info/v2/coverage/status/serial_numbers/FOC10220LK9%2C3545J999999%2CFDO13999999%2CFOX10999999"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+          <resource path="summary" id="summary">
+            <doc xml:lang="en" title="summary"/>
+            <resource path="serial_numbers/{serial_numbers}" id="Coverage Summary by Serial Number(s)">
+              <doc xml:lang="en" title="Coverage Summary by Serial Number(s)"/>
+              <param name="serial_numbers" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="serial_numbers Parameter">Serial number of the device for which to return coverage status. You can enter up to 75 serial numbers (each with a max length of 40) separated by commas. e.g. 3545J999999,FDO13999999,FOX10999999</doc>
+              </param>
+              <param name="page_index" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="page_index Parameter">Index number of the page to return; a maximum of 50 records per page is returned. (Default is page 1)</doc>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="foc:Response" xmlns:foc="https://api.cisco.com/sn2info/v2/coverage/summary/serial_numbers/FOC10220LK9%2C3545J999999%2CFDO13999999%2CFOX10999999"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+          <resource path="owner_status" id="owner status">
+            <doc xml:lang="en" title="owner status"/>
+            <resource path="serial_numbers/{serial_numbers}" id="Coverage Owner Status by Serial Number(s)">
+              <doc xml:lang="en" title="Coverage Owner Status by Serial Number(s)"/>
+              <param name="serial_numbers" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="serial_numbers Parameter">Serial number of the device for which to return coverage status. You can enter up to 75 serial numbers (each with a max length of 40) separated by commas. e.g. FOC10220LK9</doc>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json;charset=UTF-8" element="foc:Response" xmlns:foc="https://api.cisco.com/sn2info/v2/coverage/status/serial_numbers/FOC10220LK9%2C3545J999999%2CFDO13999999%2CFOX10999999"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+        </resource>
+      </resource>
+    </resource>
+  </resources>
+</application>

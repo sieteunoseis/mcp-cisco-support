@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="Cisco CaseAPI V3"/>
+  <resources base="https://api.cisco.com">
+    <resource path="case/v3/cases" id="Cases">
+      <doc xml:lang="en" title="Cases"/>
+      <resource path="case_ids/{case_ids}" id="CaseSummary">
+        <doc xml:lang="en" title="CaseSummary"/>
+        <param name="case_ids" default="case_ids" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="case_ids Parameter">This API returns case summary for the given case ids. Max case ids allowed is 30.</doc>
+        </param>
+        <method name="GET" id="GET">
+          <doc xml:lang="en" title="GET"/>
+          <request/>
+          <response status="403">
+            <representation mediaType="text/xml" element="h1"/>
+          </response>
+          <response status="200">
+            <representation mediaType="application/json;charset=UTF-8" element="case:Response" xmlns:case="https://api.cisco.com/case/v3/cases/case_ids/case_ids"/>
+          </response>
+        </method>
+      </resource>
+      <resource path="details/case_id/{case_id}" id="CaseDetails">
+        <doc xml:lang="en" title="CaseDetails"/>
+        <param name="case_id" default="case_id" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="case_id Parameter">This API returns case details for a given case id. Max case ids allowed is 1.</doc>
+        </param>
+        <method name="GET" id="GET">
+          <doc xml:lang="en" title="GET"/>
+          <request/>
+          <response status="403">
+            <representation mediaType="text/xml" element="h1"/>
+          </response>
+          <response status="200">
+            <representation mediaType="application/json;charset=UTF-8" element="case:Response" xmlns:case="https://api.cisco.com/case/v3/cases/details/case_id"/>
+          </response>
+        </method>
+      </resource>
+      <resource path="contracts/contract_ids/{contract_ids}" id="CasesByContractId">
+        <doc xml:lang="en" title="CasesByContractId"/>
+        <param name="contract_ids" default="contract_ids" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="contract_ids Parameter">This API returns case details for the given contract ids. Max contract ids allowed is 10.</doc>
+        </param>
+        <method name="GET" id="GET">
+          <doc xml:lang="en" title="GET"/>
+          <request/>
+          <response status="403">
+            <representation mediaType="text/xml" element="h1"/>
+          </response>
+          <response status="200">
+            <representation mediaType="application/json;charset=UTF-8" element="con:Response" xmlns:con="https://api.cisco.com/case/v3/cases/contracts/contract_ids/contract_ids"/>
+          </response>
+        </method>
+      </resource>
+      <resource path="users/user_ids/{user_ids}" id="CasesByUserId">
+        <doc xml:lang="en" title="CasesByUserId"/>
+        <param name="user_ids" default="user_ids" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="user_ids Parameter">This API returns case information for the given user ids. Max user ids supported is 10.</doc>
+        </param>
+        <method name="GET" id="GET">
+          <doc xml:lang="en" title="GET"/>
+          <request/>
+          <response status="200">
+            <representation mediaType="application/json;charset=UTF-8" element="user:Response" xmlns:user="https://api.cisco.com/case/v3/cases/users/user_ids/user_ids"/>
+          </response>
+        </method>
+      </resource>
+    </resource>
+  </resources>
+</application>

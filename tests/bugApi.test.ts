@@ -212,7 +212,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        expect(url).toContain('/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/affected_releases/7.4');
+        expect(url).toContain('/bugs/product_series/Cisco%20Catalyst%209200%20Series/affected_releases/17.5.1');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -241,7 +241,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        expect(url).toContain('/bugs/product_series/Cisco%205500%20Series%20Wireless%20Controllers/fixed_releases/7.6');
+        expect(url).toContain('/bugs/product_series/Cisco%20Catalyst%209200%20Series/fixed_releases/17.5.2');
         return Promise.resolve({
           ok: true,
           status: 200,

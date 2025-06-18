@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="suggestions API v1.0"/>
+  <resources base="https://api-stage.cisco.com">
+    <resource path="software/suggestion/v1.0/suggestions/{basePID}" id="suggestions">
+      <doc xml:lang="en" title="suggestions"/>
+      <param name="basePID" default="basePID" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+      <param name="pageIndex" default="{pageIndex}" type="xs:string" required="false" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+      <method name="GET" id="GET - suggestions by basePID">
+        <doc xml:lang="en" title="GET - suggestions by basePID"/>
+        <request/>
+        <response status="200">
+          <representation mediaType="application/json"/>
+        </response>
+        <response status="403">
+          <representation mediaType="text/xml" element="h1"/>
+        </response>
+        <response status="500">
+          <representation mediaType="text/html"/>
+        </response>
+        <response status="0">
+          <representation mediaType=""/>
+        </response>
+      </method>
+    </resource>
+    <resource path="software/suggestion/v1.0/suggestions/software/{basePID}" id="suggested releases and images">
+      <doc xml:lang="en" title="suggested releases and images"/>
+      <param name="basePID" default="basePID" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+      <param name="pageIndex" default="{pageIndex}" type="xs:string" required="false" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+      <method name="GET" id="GET - suggestions by basePIDs">
+        <doc xml:lang="en" title="GET - suggestions by basePIDs"/>
+        <request/>
+        <response status="200">
+          <representation mediaType="application/json"/>
+        </response>
+        <response status="403">
+          <representation mediaType="text/xml" element="h1"/>
+        </response>
+      </method>
+    </resource>
+    <resource path="software/suggestion/v1.0/suggestions/releases/{basePID}" id="suggested releases no images">
+      <doc xml:lang="en" title="suggested releases no images"/>
+      <param name="basePID" default="basePID" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+      <param name="pageIndex" default="{pageIndex}" type="xs:string" required="false" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+      <method name="GET" id="Get - suggestionsnoimages by basePIDs">
+        <doc xml:lang="en" title="Get - suggestionsnoimages by basePIDs"/>
+        <request/>
+        <response status="0">
+          <representation mediaType=""/>
+        </response>
+        <response status="403">
+          <representation mediaType="text/xml" element="h1"/>
+        </response>
+        <response status="200">
+          <representation mediaType="application/json"/>
+        </response>
+      </method>
+    </resource>
+  </resources>
+</application>
