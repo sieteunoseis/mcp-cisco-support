@@ -47,10 +47,15 @@ export interface EoxApiResponse extends ApiResponse {
     LastDateOfSupport?: any;
     EndOfSvcAttachDate?: any;
     UpdatedTimeStamp?: any;
-    EOXError?: any;
+    EOXError?: {
+      ErrorID: string;
+      ErrorDescription: string;
+      ErrorDataType?: string;
+      ErrorDataValue?: string;
+    };
     EOXMigrationDetails?: any;
-    EOXInputType?: any;
-    EOXInputValue?: any;
+    EOXInputType?: string;
+    EOXInputValue?: string;
     [key: string]: any;
   }>;
   PaginationResponseRecord?: {
@@ -232,6 +237,22 @@ export function formatEoxResults(data: EoxApiResponse, searchContext?: { toolNam
   }
 
   data.EOXRecord.forEach((eoxItem, index) => {
+    // Check for errors first
+    const eoxError = eoxItem.EOXError;
+    if (eoxError && eoxError.ErrorID) {
+      formatted += `## ${index + 1}. ⚠️ EoX Lookup Error\n\n`;
+      formatted += `**Error ID:** ${eoxError.ErrorID}\n\n`;
+      formatted += `**Error Description:** ${eoxError.ErrorDescription}\n\n`;
+      formatted += `**Search Input:** ${eoxItem.EOXInputValue || 'N/A'} (${eoxItem.EOXInputType || 'Unknown Type'})\n\n`;
+      
+      if (eoxError.ErrorDataType && eoxError.ErrorDataValue) {
+        formatted += `**Failed Lookup:** ${eoxError.ErrorDataType} = ${eoxError.ErrorDataValue}\n\n`;
+      }
+      
+      formatted += `---\n\n`;
+      return; // Skip normal processing for error records
+    }
+    
     // Extract product ID (handle object structure)
     const productId = extractValue(eoxItem.EOLProductID) || 'Unknown Product';
     formatted += `## ${index + 1}. ${productId}\n\n`;
