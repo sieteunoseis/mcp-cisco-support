@@ -316,17 +316,20 @@ function formatEoxSearchContext(searchContext: { toolName: string; args: ToolArg
 }
 
 // Helper function to format dates
-function formatDate(dateStr: string): string {
-  if (!dateStr || dateStr === ' ' || dateStr.trim() === '') {
+function formatDate(dateStr: any): string {
+  // Convert to string and handle null/undefined
+  const strValue = String(dateStr || '').trim();
+  
+  if (!strValue || strValue === 'null' || strValue === 'undefined' || strValue === ' ') {
     return 'Not specified';
   }
   
   // If it's already a readable date format, return as-is
-  if (dateStr.includes('/') || dateStr.includes('-')) {
-    return dateStr;
+  if (strValue.includes('/') || strValue.includes('-')) {
+    return strValue;
   }
   
-  return dateStr;
+  return strValue;
 }
 
 // Helper function to format search context
