@@ -32,21 +32,25 @@ export interface CaseApiResponse extends ApiResponse {
   total_results?: number;
 }
 
-// EoX-specific response interface
+// EoX-specific response interface (based on actual API responses)
 export interface EoxApiResponse extends ApiResponse {
   EOXRecord?: Array<{
-    EOLProductID: string;
-    ProductIDDescription: string;
-    ProductBulletinNumber: string;
-    LinkToProductBulletinURL: string;
-    EOXExternalAnnouncementDate: string;
-    EndOfSaleDate: string;
-    EndOfSWMaintenanceReleases: string;
-    EndOfRoutineFailureAnalysisDate: string;
-    EndOfServiceContractRenewal: string;
-    LastDateOfSupport: string;
-    EndOfSvcAttachDate: string;
-    UpdatedTimeStamp: string;
+    EOLProductID?: any;  // Can be string or object
+    ProductIDDescription?: any;
+    ProductBulletinNumber?: any;
+    LinkToProductBulletinURL?: any;
+    EOXExternalAnnouncementDate?: any;  // Objects with nested date values
+    EndOfSaleDate?: any;
+    EndOfSWMaintenanceReleases?: any;
+    EndOfRoutineFailureAnalysisDate?: any;
+    EndOfServiceContractRenewal?: any;
+    LastDateOfSupport?: any;
+    EndOfSvcAttachDate?: any;
+    UpdatedTimeStamp?: any;
+    EOXError?: any;
+    EOXMigrationDetails?: any;
+    EOXInputType?: any;
+    EOXInputValue?: any;
     [key: string]: any;
   }>;
   PaginationResponseRecord?: {
@@ -228,56 +232,60 @@ export function formatEoxResults(data: EoxApiResponse, searchContext?: { toolNam
   }
 
   data.EOXRecord.forEach((eoxItem, index) => {
-    const productId = eoxItem.EOLProductID || eoxItem.ProductID || 'Unknown Product';
+    // Extract product ID (handle object structure)
+    const productId = extractValue(eoxItem.EOLProductID) || 'Unknown Product';
     formatted += `## ${index + 1}. ${productId}\n\n`;
     
-    formatted += `**Product Description:** ${eoxItem.ProductIDDescription || eoxItem.Description || 'N/A'}\n\n`;
-    
-    // Format important dates
-    if (eoxItem.EOXExternalAnnouncementDate) {
-      formatted += `**End of Life Announcement:** ${formatDate(eoxItem.EOXExternalAnnouncementDate)}\n\n`;
-    }
-    if (eoxItem.EndOfSaleDate) {
-      formatted += `**End of Sale Date:** ${formatDate(eoxItem.EndOfSaleDate)}\n\n`;
-    }
-    if (eoxItem.LastDateOfSupport) {
-      formatted += `**Last Date of Support:** ${formatDate(eoxItem.LastDateOfSupport)}\n\n`;
-    }
-    if (eoxItem.EndOfSWMaintenanceReleases) {
-      formatted += `**End of SW Maintenance:** ${formatDate(eoxItem.EndOfSWMaintenanceReleases)}\n\n`;
-    }
-    if (eoxItem.EndOfRoutineFailureAnalysisDate) {
-      formatted += `**End of Failure Analysis:** ${formatDate(eoxItem.EndOfRoutineFailureAnalysisDate)}\n\n`;
-    }
-    if (eoxItem.EndOfServiceContractRenewal) {
-      formatted += `**End of Service Contract Renewal:** ${formatDate(eoxItem.EndOfServiceContractRenewal)}\n\n`;
+    // Extract and format core fields
+    const description = extractValue(eoxItem.ProductIDDescription);
+    if (description) {
+      formatted += `**Product Description:** ${description}\n\n`;
     }
     
-    // Add bulletin information with hyperlink
-    if (eoxItem.ProductBulletinNumber) {
-      formatted += `**Product Bulletin:** ${eoxItem.ProductBulletinNumber}\n\n`;
-    }
-    if (eoxItem.LinkToProductBulletinURL) {
-      formatted += `**Bulletin URL:** [${eoxItem.ProductBulletinNumber || 'View Bulletin'}](${eoxItem.LinkToProductBulletinURL})\n\n`;
+    // Format all date fields consistently
+    const dateFields = [
+      { key: 'EOXExternalAnnouncementDate', label: 'End of Life Announcement' },
+      { key: 'EndOfSaleDate', label: 'End of Sale Date' },
+      { key: 'LastDateOfSupport', label: 'Last Date of Support' },
+      { key: 'EndOfSWMaintenanceReleases', label: 'End of SW Maintenance' },
+      { key: 'EndOfRoutineFailureAnalysisDate', label: 'End of Failure Analysis' },
+      { key: 'EndOfServiceContractRenewal', label: 'End of Service Contract Renewal' },
+      { key: 'UpdatedTimeStamp', label: 'Updated' }
+    ];
+    
+    dateFields.forEach(({ key, label }) => {
+      const dateValue = formatDate(eoxItem[key]);
+      if (dateValue && dateValue !== 'Not specified') {
+        formatted += `**${label}:** ${dateValue}\n\n`;
+      }
+    });
+    
+    // Handle bulletin information
+    const bulletinNumber = extractValue(eoxItem.ProductBulletinNumber);
+    const bulletinURL = extractValue(eoxItem.LinkToProductBulletinURL);
+    
+    if (bulletinNumber || bulletinURL) {
+      if (bulletinNumber) {
+        formatted += `**Product Bulletin:** ${bulletinNumber}\n\n`;
+      }
+      if (bulletinURL) {
+        formatted += `**Bulletin URL:** [${bulletinNumber || 'View Bulletin'}](${bulletinURL})\n\n`;
+      }
     }
     
-    if (eoxItem.UpdatedTimeStamp) {
-      formatted += `**Updated:** ${formatDate(eoxItem.UpdatedTimeStamp)}\n\n`;
-    }
+    // Show additional fields that aren't explicitly handled
+    const handledKeys = [
+      'EOLProductID', 'ProductIDDescription', 'ProductBulletinNumber', 
+      'LinkToProductBulletinURL', 'EOXExternalAnnouncementDate', 'EndOfSaleDate',
+      'EndOfSWMaintenanceReleases', 'EndOfRoutineFailureAnalysisDate', 
+      'EndOfServiceContractRenewal', 'LastDateOfSupport', 'EndOfSvcAttachDate',
+      'UpdatedTimeStamp'
+    ];
     
-    // Add additional fields if they exist
     Object.keys(eoxItem).forEach(key => {
-      const excludedKeys = [
-        'EOLProductID', 'ProductIDDescription', 'ProductBulletinNumber', 
-        'LinkToProductBulletinURL', 'EOXExternalAnnouncementDate', 'EndOfSaleDate',
-        'EndOfSWMaintenanceReleases', 'EndOfRoutineFailureAnalysisDate', 
-        'EndOfServiceContractRenewal', 'LastDateOfSupport', 'EndOfSvcAttachDate',
-        'UpdatedTimeStamp'
-      ];
-      
-      if (!excludedKeys.includes(key)) {
-        const value = eoxItem[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
+      if (!handledKeys.includes(key)) {
+        const value = extractValue(eoxItem[key]);
+        if (value) {
           const fieldName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
           formatted += `**${fieldName}:** ${value}\n\n`;
         }
@@ -316,46 +324,35 @@ function formatEoxSearchContext(searchContext: { toolName: string; args: ToolArg
   return formatted;
 }
 
-// Helper function to format dates
-function formatDate(dateValue: any): string {
-  // Handle null/undefined
-  if (!dateValue) {
-    return 'Not specified';
+// Helper function to extract values from EoX API object structures
+function extractValue(value: any): string | null {
+  if (!value) {
+    return null;
   }
   
-  // If it's an object, try to extract the actual date value
-  if (typeof dateValue === 'object') {
-    // Look for common date properties in the object
-    const possibleDateKeys = ['value', 'date', 'dateValue', 'text', '#text'];
-    for (const key of possibleDateKeys) {
-      if (dateValue[key]) {
-        return formatDate(dateValue[key]); // Recursive call with the nested value
+  if (typeof value === 'string') {
+    return value.trim() || null;
+  }
+  
+  if (typeof value === 'object') {
+    // Try common object properties
+    const valueKeys = ['value', '#text', 'text'];
+    for (const key of valueKeys) {
+      if (value[key]) {
+        const extracted = String(value[key]).trim();
+        return extracted || null;
       }
     }
-    
-    // If no common date keys found, stringify the object to see its structure
-    const objStr = JSON.stringify(dateValue);
-    if (objStr === '{}' || objStr === 'null') {
-      return 'Not specified';
-    }
-    
-    // Return the JSON representation for debugging
-    return objStr;
+    return null;
   }
   
-  // Convert to string and handle string values
-  const strValue = String(dateValue).trim();
-  
-  if (!strValue || strValue === 'null' || strValue === 'undefined' || strValue === ' ') {
-    return 'Not specified';
-  }
-  
-  // If it's already a readable date format, return as-is
-  if (strValue.includes('/') || strValue.includes('-')) {
-    return strValue;
-  }
-  
-  return strValue;
+  return String(value).trim() || null;
+}
+
+// Helper function to format EoX date objects
+function formatDate(dateValue: any): string {
+  const extracted = extractValue(dateValue);
+  return extracted || 'Not specified';
 }
 
 // Helper function to format search context
