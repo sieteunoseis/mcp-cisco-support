@@ -550,7 +550,7 @@ Key log messages to monitor:
 | **Serial** | 🔄 **Planned** | 0 tools | Serial number to product information mapping |
 | **RMA** | 🔄 **Planned** | 0 tools | Return Merchandise Authorization processes |
 | **Software** | 🔄 **Planned** | 0 tools | Software suggestions and recommendations |
-| **ASD** | 🔄 **Planned** | 0 tools | Automated Software Distribution |
+| **PSIRT** | ✅ **Complete** | 8 tools | Product Security Incident Response Team vulnerability data |
 
 ### Next Implementation Priorities
 
@@ -584,10 +584,11 @@ Key log messages to monitor:
    - Return status tracking
    - Return authorization management
 
-7. **ASD API** - Automated distribution
-   - Software distribution automation
-   - Update deployment
-   - Distribution tracking
+7. **PSIRT API** - Security vulnerability data
+   - Security advisory information
+   - CVE vulnerability details
+   - Product security notifications
+   - Severity-based vulnerability searches
 
 ### Architecture Benefits
 

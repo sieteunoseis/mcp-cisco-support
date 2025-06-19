@@ -43,13 +43,13 @@ src/
 | **Serial** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Serial number to product mapping |
 | **Software** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Software suggestions and recommendations |
 | **RMA** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Return Merchandise Authorization |
-| **ASD** | 🔄 **PLANNED** | v1.0 | 0 tools | Low | Automated Software Distribution |
+| **PSIRT** | ✅ **COMPLETE** | v1.8.1 | 8 tools | Medium | Product Security Incident Response Team vulnerability data |
 
 ### Implementation Summary
 
-- **✅ Implemented**: 2/8 APIs (25% complete)
-- **🔄 Planned**: 6/8 APIs (75% remaining)
-- **Total Tools Available**: 12 tools (8 Bug + 4 Case)
+- **✅ Implemented**: 4/8 APIs (50% complete)
+- **🔄 Planned**: 4/8 APIs (50% remaining)
+- **Total Tools Available**: 24 tools (8 Bug + 4 Case + 4 EoX + 8 PSIRT)
 - **Target Tools**: ~40-50 tools when all APIs implemented
 
 ## API Details
@@ -97,6 +97,50 @@ src/
 - ✅ Status and severity filtering capabilities
 - ✅ Comprehensive error handling
 - ✅ New Case Investigation prompt for guided workflows
+
+### ✅ EoX API (v5.0) - COMPLETE
+
+**Status**: Production Ready  
+**Base URL**: `https://apix.cisco.com/product-intelligence/v1/`  
+**Tools**: 4 comprehensive End of Life/Sale information tools
+
+**Implemented Tools**:
+1. `get_eox_by_product_id` - Get EoX information for specific product IDs
+2. `get_eox_by_serial_number` - Get EoX information by device serial numbers
+3. `get_eox_by_dates` - Get EoX announcements within date ranges
+4. `get_eox_by_software_release` - Get EoX information for software releases
+
+**Key Features**:
+- ✅ Full EoX API v5.0 implementation with lifecycle planning
+- ✅ Multiple search methods (product ID, serial, date, software)
+- ✅ Rich formatting with clickable product links
+- ✅ Date-based filtering for lifecycle planning
+- ✅ Comprehensive error handling and validation
+
+### ✅ PSIRT API (v2.0) - COMPLETE
+
+**Status**: Production Ready  
+**Base URL**: `https://apix.cisco.com/security/advisories/v2`  
+**Tools**: 8 comprehensive security vulnerability tools
+
+**Implemented Tools**:
+1. `get_all_security_advisories` - Get all published security advisories with pagination
+2. `get_security_advisory_by_id` - Get specific advisory by ID (cisco-sa-YYYYMMDD-xxxx)
+3. `get_security_advisory_by_cve` - Get advisory by CVE identifier (CVE-YYYY-NNNN)
+4. `get_security_advisories_by_severity` - Get advisories by severity (**text**: critical/high/medium/low/informational)
+5. `get_security_advisory_by_bug_id` - Get advisory by Cisco bug ID
+6. `get_latest_security_advisories` - Get the latest N security advisories
+7. `get_security_advisories_by_year` - Get all advisories published in a specific year
+8. `get_security_advisories_by_first_published` - Get advisories by publication date range
+
+**Key Features**:
+- ✅ Full PSIRT openVuln API v2.0 implementation
+- ✅ Multiple search methods (ID, CVE, severity, bug ID, date)
+- ✅ **Text-based severity levels** (critical, high, medium, low, informational) vs Bug API's numeric severity (1-6)
+- ✅ Rich formatting with clickable advisory links to Cisco Security Center
+- ✅ Pagination support for large result sets
+- ✅ Optional summary details and product name inclusion
+- ✅ Comprehensive security vulnerability management
 
 ## Configuration System
 
@@ -175,10 +219,10 @@ SUPPORT_API=all
 - **Key Features**: RMA creation, status tracking, authorization management
 - **Implementation Effort**: Medium-High
 
-#### 6. **ASD API** (Automated Software Distribution) - Priority: LOW
-- **Business Impact**: Specialized use cases for software automation
-- **Estimated Tools**: 3-4 tools
-- **Key Features**: Distribution automation, update tracking
+#### 6. **PSIRT API** (Product Security Incident Response Team) - Priority: MEDIUM
+- **Business Impact**: Critical for security vulnerability management
+- **Estimated Tools**: 6-8 tools
+- **Key Features**: Security advisories, CVE searches, vulnerability severity filtering, product security notifications
 - **Implementation Effort**: Medium
 
 ## Implementation Framework

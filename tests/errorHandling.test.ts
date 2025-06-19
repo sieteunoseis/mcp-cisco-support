@@ -299,7 +299,7 @@ const isIntegrationMode = !mockFetch;
         ],
         example: 'Try: "Search for bugs related to your eox topic with keyword search"',
         available_apis: ['bug', 'case'],
-        planned_apis: ['eox', 'product', 'serial', 'rma', 'software', 'asd']
+        planned_apis: ['eox', 'product', 'serial', 'rma', 'software', 'psirt']
       });
     });
   });

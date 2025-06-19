@@ -3,13 +3,14 @@ import { BaseApi } from './base-api.js';
 import { BugApi } from './bug-api.js';
 import { CaseApi } from './case-api.js';
 import { EoxApi } from './eox-api.js';
+import { PsirtApi } from './psirt-api.js';
 import { ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
 
 // Supported API types
-export type SupportedAPI = 'asd' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software';
+export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software';
 
-export const SUPPORTED_APIS: SupportedAPI[] = ['asd', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software'];
+export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software'];
 
 // Placeholder API class for unimplemented APIs
 class PlaceholderApi extends BaseApi {
@@ -71,9 +72,9 @@ export class ApiRegistry {
     this.apis.set('bug', new BugApi());
     this.apis.set('case', new CaseApi());
     this.apis.set('eox', new EoxApi());
+    this.apis.set('psirt', new PsirtApi());
     
     // Initialize placeholder APIs for unimplemented ones only
-    this.apis.set('asd', new PlaceholderApi('ASD'));
     this.apis.set('product', new PlaceholderApi('Product'));
     this.apis.set('serial', new PlaceholderApi('Serial'));
     this.apis.set('rma', new PlaceholderApi('RMA'));

@@ -11,6 +11,7 @@ export class BugApi extends BaseApi {
     return [
       {
         name: 'get_bug_details',
+        title: 'Get Bug Details',
         description: 'Get details for up to 5 specific bug IDs',
         inputSchema: {
           type: 'object',
@@ -25,6 +26,7 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_keyword',
+        title: 'Search Bugs by Keyword',
         description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: Cisco API only accepts ONE severity and ONE status value per search - for "severity 3 or higher" you must make separate searches for each severity level (1, 2, 3).',
         inputSchema: {
           type: 'object',

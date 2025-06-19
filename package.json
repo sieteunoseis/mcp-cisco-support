@@ -1,6 +1,6 @@
 {
   "name": "mcp-cisco-support",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "MCP server for Cisco Support APIs including Bug Search and future tools",
   "main": "dist/src/index.js",
   "bin": {
@@ -34,7 +34,8 @@
     "actions:logs": "gh run view --log",
     "actions:status": "gh run list --limit 1",
     "token:generate": "npm start -- --generate-token",
-    "token:help": "npm start -- --token-help"
+    "token:help": "npm start -- --token-help",
+    "inspector": "npx @modelcontextprotocol/inspector"
   },
   "keywords": [
     "mcp",
