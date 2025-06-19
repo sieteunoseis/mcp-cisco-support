@@ -21,8 +21,8 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
       return next();
     }
 
-    // Skip auth for health check and root endpoints
-    if (req.path === '/health' || req.path === '/') {
+    // Skip auth for public endpoints
+    if (req.path === '/health' || req.path === '/' || req.path === '/token') {
       return next();
     }
 
@@ -70,6 +70,10 @@ export function createSSEServer(mcpServer: Server) {
     logger.info('🔐 HTTP Bearer token authentication enabled');
     logger.info(`🔑 Bearer token: ${authToken}`);
     logger.info('Use this Bearer token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
+    logger.info('');
+    logger.info('🌐 Users can get the token by visiting:');
+    logger.info(`   http://localhost:${process.env.PORT || 3000}/token`);
+    logger.info(`   http://localhost:${process.env.PORT || 3000}/       (server info)`);
     logger.info('');
     logger.info('📡 Authentication methods:');
     logger.info(`   1. Header: Authorization: Bearer ${authToken}`);
@@ -313,6 +317,29 @@ export function createSSEServer(mcpServer: Server) {
     }
   });
 
+  // Token endpoint - publicly accessible to get the current token
+  app.get('/token', (_req, res) => {
+    if (!enableAuth) {
+      res.json({
+        message: 'Authentication is disabled',
+        token: null,
+        note: 'Set DANGEROUSLY_OMIT_AUTH=false or remove the environment variable to enable authentication'
+      });
+      return;
+    }
+    
+    res.json({
+      token: authToken,
+      header: `Authorization: Bearer ${authToken}`,
+      query: `?token=${authToken}`,
+      examples: {
+        curl: `curl -H "Authorization: Bearer ${authToken}" http://localhost:${process.env.PORT || 3000}/mcp`,
+        curlQuery: `curl http://localhost:${process.env.PORT || 3000}/mcp?token=${authToken}`,
+        javascript: `fetch('http://localhost:${process.env.PORT || 3000}/mcp', { headers: { 'Authorization': 'Bearer ${authToken}' } })`
+      }
+    });
+  });
+
   // Health check endpoint
   app.get('/health', (_req, res) => {
     res.json({
@@ -323,7 +350,7 @@ export function createSSEServer(mcpServer: Server) {
     });
   });
 
-  // Server info endpoint
+  // Server info endpoint (publicly accessible to show auth info)
   app.get('/', (_req, res) => {
     const port = process.env.PORT || 3000;
     res.json({
@@ -341,6 +368,7 @@ export function createSSEServer(mcpServer: Server) {
         mcp: '/mcp (POST/GET/DELETE) - MCP StreamableHTTP endpoint',
         sse: '/sse (GET) - Legacy SSE connection',
         messages: '/messages (POST) - Legacy SSE messages',
+        token: '/token (GET) - Get authentication token (no auth required)',
         health: '/health (GET) - Health check (no auth required)'
       },
       examples: enableAuth ? {
