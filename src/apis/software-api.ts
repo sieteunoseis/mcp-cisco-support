@@ -234,7 +234,8 @@ export class SoftwareApi extends BaseApi {
   }
 
   private formatSoftwareSuggestionResponse(data: any, title: string): ApiResponse {
-    if (!data || !data.productList || !Array.isArray(data.productList)) {
+    // Handle different response formats: productList vs direct suggestions
+    if (!data || (!data.productList && !data.suggestions)) {
       return {
         error: 'No Software Suggestions Found',
         message: 'No software suggestions found for the specified product IDs.',
@@ -242,17 +243,40 @@ export class SoftwareApi extends BaseApi {
       };
     }
 
-    // Handle the actual API response structure with productList
-    const formattedProducts = data.productList.map((productItem: any) => this.formatProductSuggestion(productItem));
+    // Handle productList format (get_software_suggestions_by_product_ids, get_software_releases_by_product_ids)
+    if (data.productList && Array.isArray(data.productList)) {
+      const formattedProducts = data.productList.map((productItem: any) => this.formatProductSuggestion(productItem));
+
+      return {
+        data: {
+          title,
+          count: data.productList.length,
+          total_results: data.paginationResponseRecord?.totalRecords || data.productList.length,
+          products: formattedProducts,
+          pagination: data.paginationResponseRecord || null
+        }
+      };
+    }
+
+    // Handle direct suggestions format (get_compatible_software_by_product_id, get_compatible_software_by_mdf_id)
+    if (data.suggestions && Array.isArray(data.suggestions)) {
+      const formattedSuggestions = data.suggestions.map((suggestion: any) => this.formatCompatibleSuggestion(suggestion));
+
+      return {
+        data: {
+          title,
+          count: data.suggestions.length,
+          total_results: data.paginationResponseRecord?.totalRecords || data.suggestions.length,
+          suggestions: formattedSuggestions,
+          pagination: data.paginationResponseRecord || null
+        }
+      };
+    }
 
     return {
-      data: {
-        title,
-        count: data.productList.length,
-        total_results: data.paginationResponseRecord?.totalRecords || data.productList.length,
-        products: formattedProducts,
-        pagination: data.paginationResponseRecord || null
-      }
+      error: 'No Software Suggestions Found',
+      message: 'No software suggestions found for the specified product IDs.',
+      data: null
     };
   }
 
@@ -273,6 +297,33 @@ export class SoftwareApi extends BaseApi {
       // Links
       software_download_url: this.generateSoftwareDownloadUrl(product.basePID),
       cisco_url: this.generateCiscoProductUrl(product.basePID)
+    };
+  }
+
+  private formatCompatibleSuggestion(suggestion: any): any {
+    return {
+      // Basic product identification
+      product_id: suggestion.basePID,
+      product_name: suggestion.productName || 'N/A',
+      mdf_id: suggestion.mdfId,
+      software_type: suggestion.softwareType,
+      
+      // Release information
+      is_suggested: suggestion.isSuggested === 'Y',
+      release_format: suggestion.releaseFormat1 || suggestion.releaseFormat2,
+      release_date: suggestion.releaseDate,
+      major_release: suggestion.majorRelease,
+      release_train: suggestion.releaseTrain,
+      release_lifecycle: suggestion.releaseLifeCycle,
+      display_name: suggestion.relDispName,
+      train_display_name: suggestion.trainDispName,
+      
+      // Image information
+      images: this.formatImages(suggestion.images || []),
+      
+      // Links
+      software_download_url: this.generateSoftwareDownloadUrl(suggestion.basePID),
+      cisco_url: this.generateCiscoProductUrl(suggestion.basePID)
     };
   }
 
@@ -324,6 +375,9 @@ export class SoftwareApi extends BaseApi {
   protected getResultCount(data: ApiResponse): number {
     if (data.data && 'products' in data.data && Array.isArray(data.data.products)) {
       return data.data.products.length;
+    }
+    if (data.data && 'suggestions' in data.data && Array.isArray(data.data.suggestions)) {
+      return data.data.suggestions.length;
     }
     return 0;
   }
