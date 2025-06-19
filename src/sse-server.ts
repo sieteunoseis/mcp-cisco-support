@@ -11,6 +11,13 @@ import { logger } from './mcp-server.js';
 
 // Generate a secure session token for authentication
 function generateAuthToken(): string {
+  // Check if token is provided via environment variable
+  const envToken = process.env.MCP_BEARER_TOKEN;
+  if (envToken) {
+    return envToken;
+  }
+  
+  // Generate a new random token
   return randomUUID().replace(/-/g, '');
 }
 
@@ -68,9 +75,18 @@ export function createSSEServer(mcpServer: Server) {
   // Display authentication info prominently like MCP Inspector
   if (enableAuth) {
     const port = process.env.PORT || 3000;
+    const isEnvToken = !!process.env.MCP_BEARER_TOKEN;
+    
     console.log('Starting MCP Cisco Support server...');
     console.log(`⚙️  Server listening on 127.0.0.1:${port}`);
     console.log(`🔑 Bearer token: ${authToken}`);
+    
+    if (isEnvToken) {
+      console.log('   ✅ Using token from MCP_BEARER_TOKEN environment variable');
+    } else {
+      console.log('   🎲 Generated random token (set MCP_BEARER_TOKEN to use custom token)');
+    }
+    
     console.log('Use this token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
     console.log('');
     console.log('🔗 Access with Bearer token:');

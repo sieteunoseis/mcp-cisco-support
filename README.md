@@ -1,47 +1,94 @@
 # Cisco Support MCP Server
 
-A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support APIs with dual transport support. This extensible server currently provides access to Cisco's Bug Search API and is designed to support additional Cisco Support tools in the future.
+A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Support APIs with comprehensive security and dual transport support. This extensible server provides access to multiple Cisco Support APIs including Bug Search, Case Management, and End-of-Life information.
 
-## Current Features
+## 🚀 Current Features
 
-- **Configurable API Support**: Enable only the Cisco Support APIs you have access to
-- **Bug Search API**: 8 MCP tools for comprehensive Cisco bug searching (currently implemented)
-- **MCP Prompts**: 5 specialized workflow prompts for guided Cisco support scenarios
-- **Dual Transport**: stdio (local MCP clients) and HTTP (remote server)
+- **Multi-API Support**: Bug, Case, and EoX APIs fully implemented (16 total tools)
+- **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints  
+- **Configurable API Access**: Enable only the Cisco Support APIs you have access to
+- **Specialized Prompts**: 9 workflow prompts for guided Cisco support scenarios
+- **Dual Transport**: stdio (local MCP clients) and HTTP (remote server with auth)
 - **OAuth2 Authentication**: Automatic token management with Cisco API
 - **Real-time Updates**: Server-Sent Events for HTTP mode
 - **TypeScript**: Full type safety and MCP SDK integration
-- **Security**: Helmet, CORS, input validation, and non-root Docker execution
+- **Production Security**: Helmet, CORS, input validation, Bearer tokens
 - **Docker Support**: Containerized deployment with health checks
 - **Comprehensive Logging**: Structured logging with timestamps
 
-## Supported Cisco APIs
+## 📊 Supported Cisco APIs
 
 The server supports the following Cisco Support APIs (configurable via `SUPPORT_API` environment variable):
 
-- **ASD** (`asd`): Automated Software Distribution API *(planned)*
-- **Bug** (`bug`): Bug Search API *(implemented)*
-- **Case** (`case`): Case Management API *(planned)*
-- **EoX** (`eox`): End of Life/Sale Information API *(planned)*
-- **Product** (`product`): Product Information API *(planned)*
-- **Serial** (`serial`): Serial Number to Information API *(planned)*
-- **RMA** (`rma`): Service Order Return (RMA) API *(planned)*
-- **Software** (`software`): Software Suggestion API *(planned)*
+| API | Status | Tools | Description |
+|-----|--------|-------|-------------|
+| **Bug** (`bug`) | ✅ **Complete** | 8 tools | Bug Search, Details, Product-specific searches |
+| **Case** (`case`) | ✅ **Complete** | 4 tools | Support case management and operations |
+| **EoX** (`eox`) | ✅ **Complete** | 4 tools | End of Life/Sale information and lifecycle planning |
+| **ASD** (`asd`) | 🔄 *Planned* | 0 tools | Automated Software Distribution |
+| **Product** (`product`) | 🔄 *Planned* | 0 tools | Product details and specifications |
+| **Serial** (`serial`) | 🔄 *Planned* | 0 tools | Serial number to product information mapping |
+| **RMA** (`rma`) | 🔄 *Planned* | 0 tools | Return Merchandise Authorization processes |
+| **Software** (`software`) | 🔄 *Planned* | 0 tools | Software suggestions and recommendations |
 
 **Configuration Examples:**
-- `SUPPORT_API=bug` - Bug API only (default)
-- `SUPPORT_API=all` - All available APIs
-- `SUPPORT_API=bug,case,eox` - Multiple specific APIs
+- `SUPPORT_API=bug` - Bug API only
+- `SUPPORT_API=bug,case,eox` - All implemented APIs (recommended)
+- `SUPPORT_API=all` - All available APIs (includes placeholders)
 
 ## Quick Start
 
-### NPX (Recommended)
+### NPX Installation (Recommended)
+
+**Start in stdio mode for Claude Desktop:**
 ```bash
 npx mcp-cisco-support
 ```
 
-### Local Installation
+**Start HTTP server with authentication:**
 ```bash
+npx mcp-cisco-support --http
+# Token displayed in console for authentication
+```
+
+**Generate Bearer token for HTTP mode:**
+```bash
+npx mcp-cisco-support --generate-token
+```
+
+**Get help and see all options:**
+```bash
+npx mcp-cisco-support --help
+```
+
+### Environment Setup
+
+1. **Generate authentication token (for HTTP mode):**
+   ```bash
+   npx mcp-cisco-support --generate-token
+   export MCP_BEARER_TOKEN=<generated_token>
+   ```
+
+2. **Set Cisco API credentials:**
+   ```bash
+   export CISCO_CLIENT_ID=your_client_id_here
+   export CISCO_CLIENT_SECRET=your_client_secret_here
+   export SUPPORT_API=bug,case,eox  # Enable multiple APIs
+   ```
+
+3. **Start the server:**
+   ```bash
+   # For Claude Desktop (stdio mode)
+   npx mcp-cisco-support
+   
+   # For HTTP access (with authentication)
+   npx mcp-cisco-support --http
+   ```
+
+### Local Development
+```bash
+git clone https://github.com/sieteunoseis/mcp-cisco-support.git
+cd mcp-cisco-support
 npm install
 npm run build
 npm start
@@ -377,24 +424,136 @@ docker run -p 3000:3000 \
 docker-compose up -d
 ```
 
+## 🔐 Security and Authentication
+
+### stdio Mode (Default)
+- **No authentication required** - Direct MCP client connection
+- **Use case**: Claude Desktop, local MCP clients
+- **Security**: Inherits security from the host MCP client
+
+### HTTP Mode (--http)
+- **Bearer Token Authentication** - Required for all HTTP endpoints
+- **Use case**: Remote access, web applications, API integration
+- **Security**: Token-based authentication with secure headers
+
+#### Bearer Token Management
+
+**Generate a new token:**
+```bash
+npx mcp-cisco-support --generate-token
+```
+
+**Use a custom token:**
+```bash
+export MCP_BEARER_TOKEN=your_custom_token_here
+npx mcp-cisco-support --http
+```
+
+**Add to .env file:**
+```bash
+# Custom Bearer token for HTTP authentication
+MCP_BEARER_TOKEN=your_custom_secure_token_here
+```
+
+**Disable authentication (⚠️ NOT RECOMMENDED for production):**
+```bash
+export DANGEROUSLY_OMIT_AUTH=true
+npx mcp-cisco-support --http
+```
+
+#### Authentication Examples
+
+**With Bearer header (recommended):**
+```bash
+curl -H "Authorization: Bearer your_token_here" \
+     -X POST http://localhost:3000/mcp \
+     -H "Content-Type: application/json" \
+     -d '{"jsonrpc":"2.0","method":"ping","id":1}'
+```
+
+**With query parameter (fallback):**
+```bash
+curl -X POST "http://localhost:3000/mcp?token=your_token_here" \
+     -H "Content-Type: application/json" \
+     -d '{"jsonrpc":"2.0","method":"ping","id":1}'
+```
+
+### Security Best Practices
+
+1. **Use strong tokens** - Generate random tokens via `--generate-token`
+2. **Secure storage** - Store tokens in environment variables or `.env` files
+3. **Network security** - Use HTTPS in production deployments
+4. **Token rotation** - Regularly generate new tokens
+5. **Access control** - Only expose HTTP mode to trusted networks
+
 ## Configuration
 
-Create a `.env` file with your credentials:
+### Environment Variables
+
+Create a `.env` file with your configuration:
 
 ```bash
-# Cisco API OAuth2 Configuration
+# 🔑 Cisco API OAuth2 Configuration (REQUIRED)
 CISCO_CLIENT_ID=your_client_id_here
 CISCO_CLIENT_SECRET=your_client_secret_here
 
-# Server Configuration
+# 🌐 Server Configuration
 PORT=3000
 NODE_ENV=development
 
-# API Support Configuration
-# Comma-separated list of APIs to enable: asd,bug,case,eox,product,serial,rma,software
-# Use 'all' to enable all APIs, or 'bug' for Bug API only (default)
-# Note: Users must have appropriate Cisco API access for each enabled API
-SUPPORT_API=bug
+# 🚀 API Support Configuration
+# Enable specific Cisco Support APIs you have access to
+# Options: bug, case, eox (plus planned: product, serial, rma, software, asd)
+SUPPORT_API=bug,case,eox              # Multiple APIs
+# SUPPORT_API=all                     # All available APIs  
+# SUPPORT_API=bug                     # Single API (default)
+
+# 🔐 HTTP Authentication Configuration (HTTP mode only)
+# Custom Bearer token for HTTP authentication (optional - generates random if not set)
+MCP_BEARER_TOKEN=your_custom_secure_token_here
+
+# ⚠️ SECURITY WARNING: Only use in development/testing
+# DANGEROUSLY_OMIT_AUTH=true          # Disables HTTP authentication entirely
+```
+
+### Claude Desktop Integration
+
+**Complete configuration for Claude Desktop:**
+```json
+{
+  "mcpServers": {
+    "cisco-support": {
+      "command": "npx",
+      "args": ["mcp-cisco-support"],
+      "env": {
+        "CISCO_CLIENT_ID": "your_client_id_here",
+        "CISCO_CLIENT_SECRET": "your_client_secret_here",
+        "SUPPORT_API": "bug,case,eox"
+      }
+    }
+  }
+}
+```
+
+### Docker Configuration
+
+**With authentication:**
+```bash
+docker run -p 3000:3000 \
+  -e CISCO_CLIENT_ID=your_client_id \
+  -e CISCO_CLIENT_SECRET=your_client_secret \
+  -e SUPPORT_API=bug,case,eox \
+  -e MCP_BEARER_TOKEN=your_secure_token \
+  ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
+```
+
+**Without authentication (development only):**
+```bash
+docker run -p 3000:3000 \
+  -e CISCO_CLIENT_ID=your_client_id \
+  -e CISCO_CLIENT_SECRET=your_client_secret \
+  -e DANGEROUSLY_OMIT_AUTH=true \
+  ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 ```
 
 ## API Endpoints
