@@ -118,7 +118,7 @@ export class SoftwareApi extends BaseApi {
   }
 
   private formatSoftwareSuggestionResponse(data: any, title: string): ApiResponse {
-    if (!data || (!data.suggestions && !data.productList && !data.products)) {
+    if (!data || !data.productList || !Array.isArray(data.productList)) {
       return {
         error: 'No Software Suggestions Found',
         message: 'No software suggestions found for the specified product IDs.',
@@ -126,73 +126,69 @@ export class SoftwareApi extends BaseApi {
       };
     }
 
-    // Handle different response formats from the Software Suggestion API
-    const suggestions = data.suggestions || data.productList || data.products || [];
-    const formattedSuggestions = suggestions.map((suggestion: any) => this.formatSuggestion(suggestion));
+    // Handle the actual API response structure with productList
+    const formattedProducts = data.productList.map((productItem: any) => this.formatProductSuggestion(productItem));
 
     return {
       data: {
         title,
-        count: suggestions.length,
-        total_results: data.total_results || suggestions.length,
-        suggestions: formattedSuggestions,
-        pagination: data.pagination_info || null
+        count: data.productList.length,
+        total_results: data.paginationResponseRecord?.totalRecords || data.productList.length,
+        products: formattedProducts,
+        pagination: data.paginationResponseRecord || null
       }
+    };
+  }
+
+  private formatProductSuggestion(productItem: any): any {
+    const product = productItem.product || {};
+    const suggestions = productItem.suggestions || [];
+    
+    return {
+      // Basic product identification
+      product_id: product.basePID,
+      product_name: product.productName,
+      mdf_id: product.mdfId,
+      software_type: product.softwareType,
+      
+      // Format all software suggestions for this product
+      suggestions: suggestions.map((suggestion: any) => this.formatSuggestion(suggestion)),
+      
+      // Links
+      software_download_url: this.generateSoftwareDownloadUrl(product.basePID),
+      cisco_url: this.generateCiscoProductUrl(product.basePID)
     };
   }
 
   private formatSuggestion(suggestion: any): any {
     return {
-      // Basic product identification
-      product_id: suggestion.product_id || suggestion.productId || suggestion.basePID,
-      product_name: suggestion.product_name || suggestion.productName || suggestion.name,
+      // Release information
+      is_suggested: suggestion.isSuggested === 'Y',
+      release_format: suggestion.releaseFormat1 || suggestion.releaseFormat2,
+      release_date: suggestion.releaseDate,
+      major_release: suggestion.majorRelease,
+      release_train: suggestion.releaseTrain,
+      release_lifecycle: suggestion.releaseLifeCycle,
+      display_name: suggestion.relDispName,
+      train_display_name: suggestion.trainDispName,
       
-      // Software recommendations
-      recommended_release: suggestion.recommended_release || suggestion.recommendedRelease || suggestion.suggestedRelease,
-      current_release: suggestion.current_release || suggestion.currentRelease,
-      latest_release: suggestion.latest_release || suggestion.latestRelease,
-      
-      // Release details
-      releases: this.formatReleases(suggestion.releases || suggestion.softwareReleases || []),
-      
-      // Image information (if available)
-      images: this.formatImages(suggestion.images || suggestion.softwareImages || []),
-      
-      // Metadata
-      suggestion_type: suggestion.suggestion_type || suggestion.suggestionType || suggestion.type,
-      last_updated: suggestion.last_updated || suggestion.lastUpdated || suggestion.updated_date,
-      
-      // Links
-      software_download_url: this.generateSoftwareDownloadUrl(suggestion.product_id || suggestion.productId || suggestion.basePID),
-      cisco_url: this.generateCiscoProductUrl(suggestion.product_id || suggestion.productId || suggestion.basePID)
+      // Image information
+      images: this.formatImages(suggestion.images || [])
     };
   }
 
-  private formatReleases(releases: any[]): any[] {
-    if (!Array.isArray(releases)) return [];
-    
-    return releases.map((release: any) => ({
-      release_version: release.release_version || release.releaseVersion || release.version,
-      release_date: release.release_date || release.releaseDate || release.date,
-      recommendation_level: release.recommendation_level || release.recommendationLevel || release.level,
-      status: release.status || release.releaseStatus,
-      description: release.description || release.releaseDescription,
-      is_suggested: release.is_suggested || release.isSuggested || release.suggested || false,
-      is_latest: release.is_latest || release.isLatest || release.latest || false
-    }));
-  }
 
   private formatImages(images: any[]): any[] {
     if (!Array.isArray(images)) return [];
     
     return images.map((image: any) => ({
-      image_name: image.image_name || image.imageName || image.name,
-      image_version: image.image_version || image.imageVersion || image.version,
-      image_type: image.image_type || image.imageType || image.type,
-      file_size: image.file_size || image.fileSize || image.size,
-      checksum: image.checksum || image.md5,
-      download_url: image.download_url || image.downloadUrl || image.url,
-      release_notes_url: image.release_notes_url || image.releaseNotesUrl
+      image_name: image.imageName,
+      image_size: image.imageSize,
+      image_size_mb: image.imageSize ? Math.round(parseInt(image.imageSize) / 1024 / 1024) : null,
+      feature_set: image.featureSet,
+      description: image.description,
+      required_dram: image.requiredDRAM,
+      required_flash: image.requiredFlash
     }));
   }
 
@@ -210,14 +206,8 @@ export class SoftwareApi extends BaseApi {
 
   // Override getResultCount for Software API responses
   protected getResultCount(data: ApiResponse): number {
-    if ('suggestions' in data && Array.isArray(data.suggestions)) {
-      return data.suggestions.length;
-    }
-    if ('productList' in data && Array.isArray(data.productList)) {
-      return data.productList.length;
-    }
-    if ('products' in data && Array.isArray(data.products)) {
-      return data.products.length;
+    if (data.data && 'products' in data.data && Array.isArray(data.data.products)) {
+      return data.data.products.length;
     }
     return 0;
   }
