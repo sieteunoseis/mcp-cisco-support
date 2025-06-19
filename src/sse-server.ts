@@ -22,7 +22,7 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
     }
 
     // Skip auth for public endpoints
-    if (req.path === '/health' || req.path === '/' || req.path === '/token') {
+    if (req.path === '/health' || req.path === '/') {
       return next();
     }
 
@@ -65,27 +65,23 @@ export function createSSEServer(mcpServer: Server) {
   const enableAuth = process.env.DANGEROUSLY_OMIT_AUTH !== 'true';
   const authToken = generateAuthToken();
   
-  // Log authentication configuration on startup
+  // Display authentication info prominently like MCP Inspector
   if (enableAuth) {
-    logger.info('🔐 HTTP Bearer token authentication enabled');
-    logger.info(`🔑 Bearer token: ${authToken}`);
-    logger.info('Use this Bearer token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
-    logger.info('');
-    logger.info('🌐 Users can get the token by visiting:');
-    logger.info(`   http://localhost:${process.env.PORT || 3000}/token`);
-    logger.info(`   http://localhost:${process.env.PORT || 3000}/       (server info)`);
-    logger.info('');
-    logger.info('📡 Authentication methods:');
-    logger.info(`   1. Header: Authorization: Bearer ${authToken}`);
-    logger.info(`   2. Query:  ?token=${authToken}`);
-    logger.info('');
-    logger.info('🔗 Example requests:');
-    logger.info(`   curl -H "Authorization: Bearer ${authToken}" http://localhost:${process.env.PORT || 3000}/mcp`);
-    logger.info(`   curl http://localhost:${process.env.PORT || 3000}/mcp?token=${authToken}`);
-    logger.info('');
+    const port = process.env.PORT || 3000;
+    console.log('Starting MCP Cisco Support server...');
+    console.log(`⚙️  Server listening on 127.0.0.1:${port}`);
+    console.log(`🔑 Bearer token: ${authToken}`);
+    console.log('Use this token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
+    console.log('');
+    console.log('🔗 Access with Bearer token:');
+    console.log(`   curl -H "Authorization: Bearer ${authToken}" http://localhost:${port}/mcp`);
+    console.log(`   (Query parameter also supported: ?token=${authToken})`);
+    console.log('');
+    console.log(`🌐 MCP Server is up and running at http://127.0.0.1:${port} 🚀`);
+    console.log('');
   } else {
-    logger.warn('⚠️  HTTP authentication DISABLED (DANGEROUSLY_OMIT_AUTH=true)');
-    logger.warn('   This is not recommended for production use');
+    console.log('⚠️  HTTP authentication DISABLED (DANGEROUSLY_OMIT_AUTH=true)');
+    console.log('   This is not recommended for production use');
   }
 
   // Security middleware
@@ -317,29 +313,6 @@ export function createSSEServer(mcpServer: Server) {
     }
   });
 
-  // Token endpoint - publicly accessible to get the current token
-  app.get('/token', (_req, res) => {
-    if (!enableAuth) {
-      res.json({
-        message: 'Authentication is disabled',
-        token: null,
-        note: 'Set DANGEROUSLY_OMIT_AUTH=false or remove the environment variable to enable authentication'
-      });
-      return;
-    }
-    
-    res.json({
-      token: authToken,
-      header: `Authorization: Bearer ${authToken}`,
-      query: `?token=${authToken}`,
-      examples: {
-        curl: `curl -H "Authorization: Bearer ${authToken}" http://localhost:${process.env.PORT || 3000}/mcp`,
-        curlQuery: `curl http://localhost:${process.env.PORT || 3000}/mcp?token=${authToken}`,
-        javascript: `fetch('http://localhost:${process.env.PORT || 3000}/mcp', { headers: { 'Authorization': 'Bearer ${authToken}' } })`
-      }
-    });
-  });
-
   // Health check endpoint
   app.get('/health', (_req, res) => {
     res.json({
@@ -359,22 +332,18 @@ export function createSSEServer(mcpServer: Server) {
       authentication: {
         enabled: enableAuth,
         type: 'Bearer Token',
-        token: enableAuth ? authToken : null,
-        header: enableAuth ? `Authorization: Bearer ${authToken}` : null,
-        query: enableAuth ? `?token=${authToken}` : null,
-        note: enableAuth ? 'Use Authorization: Bearer <token> header (recommended) or ?token=<token> query parameter' : 'Authentication disabled via DANGEROUSLY_OMIT_AUTH=true'
+        note: enableAuth ? 'Token displayed in console logs on startup. Use Authorization: Bearer <token> header (recommended) or ?token=<token> query parameter' : 'Authentication disabled via DANGEROUSLY_OMIT_AUTH=true'
       },
       endpoints: {
         mcp: '/mcp (POST/GET/DELETE) - MCP StreamableHTTP endpoint',
         sse: '/sse (GET) - Legacy SSE connection',
         messages: '/messages (POST) - Legacy SSE messages',
-        token: '/token (GET) - Get authentication token (no auth required)',
         health: '/health (GET) - Health check (no auth required)'
       },
       examples: enableAuth ? {
-        curl: `curl -H "Authorization: Bearer ${authToken}" http://localhost:${port}/mcp`,
-        curlQuery: `curl http://localhost:${port}/mcp?token=${authToken}`,
-        javascript: `fetch('http://localhost:${port}/mcp', { headers: { 'Authorization': 'Bearer ${authToken}' } })`
+        curl: `curl -H "Authorization: Bearer <token>" http://localhost:${port}/mcp`,
+        curlQuery: `curl http://localhost:${port}/mcp?token=<token>`,
+        javascript: `fetch('http://localhost:${port}/mcp', { headers: { 'Authorization': 'Bearer <token>' } })`
       } : undefined,
       activeTransports: transportMap.size + Object.keys(streamableTransports).length,
       timestamp: new Date().toISOString()
