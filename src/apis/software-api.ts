@@ -103,7 +103,7 @@ export class SoftwareApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.pageIndex = args.page_index;
 
-    const response = await this.makeApiCall(`/suggestions/releases/productIds/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/suggestions/releases/${args.product_ids}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Software Releases for Product IDs: ${args.product_ids}`);
   }
@@ -112,7 +112,7 @@ export class SoftwareApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.pageIndex = args.page_index;
 
-    const response = await this.makeApiCall(`/suggestions/productIds/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/suggestions/${args.product_ids}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Basic Suggestions for Product IDs: ${args.product_ids}`);
   }
