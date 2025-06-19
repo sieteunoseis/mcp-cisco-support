@@ -38,8 +38,8 @@ src/
 |-----|--------|---------|-------|----------|-------|
 | **Bug** | ✅ **COMPLETE** | v2.0 | 8 tools | Critical | Production ready with all endpoints |
 | **Case** | ✅ **COMPLETE** | v3.0 | 4 tools | High | Full Case Management API support |
-| **EoX** | 🔄 **PLANNED** | v1.0 | 0 tools | High | End of Life/Sale information |
-| **Product** | 🔄 **PLANNED** | v1.0 | 0 tools | High | Product details and specifications |
+| **EoX** | ✅ **COMPLETE** | v1.7.0 | 4 tools | High | End of Life/Sale information |
+| **Product** | ✅ **COMPLETE** | v1.8.2 | 3 tools | High | Product details and specifications |
 | **Serial** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Serial number to product mapping |
 | **Software** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Software suggestions and recommendations |
 | **RMA** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Return Merchandise Authorization |
@@ -47,9 +47,9 @@ src/
 
 ### Implementation Summary
 
-- **✅ Implemented**: 4/8 APIs (50% complete)
-- **🔄 Planned**: 4/8 APIs (50% remaining)
-- **Total Tools Available**: 24 tools (8 Bug + 4 Case + 4 EoX + 8 PSIRT)
+- **✅ Implemented**: 5/8 APIs (62.5% complete)
+- **🔄 Planned**: 3/8 APIs (37.5% remaining)
+- **Total Tools Available**: 27 tools (8 Bug + 4 Case + 4 EoX + 8 PSIRT + 3 Product)
 - **Target Tools**: ~40-50 tools when all APIs implemented
 
 ## API Details
@@ -141,6 +141,27 @@ src/
 - ✅ Pagination support for large result sets
 - ✅ Optional summary details and product name inclusion
 - ✅ Comprehensive security vulnerability management
+
+### ✅ Product API (v1.0) - COMPLETE
+
+**Status**: Production Ready  
+**Base URL**: `https://apix.cisco.com/product/v1/information`  
+**Tools**: 3 comprehensive product information tools
+
+**Implemented Tools**:
+1. `get_product_info_by_serial_numbers` - Get product details by device serial numbers (up to 5)
+2. `get_product_info_by_product_ids` - Get product details by product identifiers/PIDs (up to 5)
+3. `get_product_mdf_info_by_product_ids` - Get Manufacturing Data Format (MDF) information by product IDs (up to 5, hardware only)
+
+**Key Features**:
+- ✅ Full Product Information API v1.0 implementation
+- ✅ Multiple lookup methods (serial numbers, product IDs, MDF)
+- ✅ Batch processing support (up to 5 items per request)
+- ✅ Rich product details including specifications, pricing, lifecycle status
+- ✅ Manufacturing Data Format (MDF) support for hardware products
+- ✅ Direct links to Cisco product pages
+- ✅ Comprehensive technical specifications and orderable information
+- ✅ Pagination support for large result sets (up to 500 records per page for MDF)
 
 ## Configuration System
 
