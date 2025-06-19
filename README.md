@@ -4,7 +4,7 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 
 ## 🚀 Current Features
 
-- **Multi-API Support**: Bug, Case, and EoX APIs fully implemented (16 total tools)
+- **Multi-API Support**: 6 Cisco Support APIs fully implemented (33 total tools)
 - **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints  
 - **Configurable API Access**: Enable only the Cisco Support APIs you have access to
 - **Specialized Prompts**: 9 workflow prompts for guided Cisco support scenarios
@@ -31,10 +31,13 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 | **Serial** (`serial`) | 🔄 *Planned* | 0 tools | Serial number to product information mapping |
 | **RMA** (`rma`) | 🔄 *Planned* | 0 tools | Return Merchandise Authorization processes |
 
+**Implementation Status:** 6/8 APIs complete (75%) with 33 total tools
+
 **Configuration Examples:**
-- `SUPPORT_API=bug` - Bug API only
-- `SUPPORT_API=bug,case,eox` - All implemented APIs (recommended)
-- `SUPPORT_API=all` - All available APIs (includes placeholders)
+- `SUPPORT_API=bug` - Bug API only (8 tools)
+- `SUPPORT_API=bug,case,eox,psirt` - Core support APIs (24 tools)
+- `SUPPORT_API=bug,case,eox,psirt,product,software` - All implemented APIs (33 tools) **← Recommended**
+- `SUPPORT_API=all` - All available APIs (includes 2 placeholder APIs)
 
 ## Quick Start
 
@@ -73,7 +76,7 @@ npx mcp-cisco-support --help
    ```bash
    export CISCO_CLIENT_ID=your_client_id_here
    export CISCO_CLIENT_SECRET=your_client_secret_here
-   export SUPPORT_API=bug,case,eox  # Enable multiple APIs
+   export SUPPORT_API=bug,case,eox,psirt,product,software  # All implemented APIs (recommended)
    ```
 
 3. **Start the server:**
