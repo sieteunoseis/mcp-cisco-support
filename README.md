@@ -27,7 +27,7 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 | **EoX** (`eox`) | ✅ **Complete** | 4 tools | End of Life/Sale information and lifecycle planning |
 | **PSIRT** (`psirt`) | ✅ **Complete** | 8 tools | Product Security Incident Response Team vulnerability data |
 | **Product** (`product`) | ✅ **Complete** | 3 tools | Product details, specifications, and technical information |
-| **Software** (`software`) | ✅ **Complete** | 3 tools | Software suggestions, releases, and upgrade recommendations |
+| **Software** (`software`) | ✅ **Complete** | 6 tools | Software suggestions, releases, and upgrade recommendations |
 | **Serial** (`serial`) | 🔄 *Planned* | 0 tools | Serial number to product information mapping |
 | **RMA** (`rma`) | 🔄 *Planned* | 0 tools | Return Merchandise Authorization processes |
 

@@ -79,6 +79,77 @@ export class SoftwareApi extends BaseApi {
           },
           required: ['product_id']
         }
+      },
+      {
+        name: 'get_software_suggestions_by_mdf_ids',
+        title: 'Get Software Suggestions by MDF IDs',
+        description: 'Get software suggestions including recommended releases and images for specified MDF IDs. MDF IDs are Manufacturing Data Format identifiers.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            mdf_ids: {
+              type: 'string',
+              description: 'Comma-separated list of MDF identifiers. Example: 286313994,286313995'
+            },
+            page_index: {
+              type: 'integer',
+              default: 1,
+              minimum: 1,
+              description: 'Page number for pagination (starts at 1)'
+            }
+          },
+          required: ['mdf_ids']
+        }
+      },
+      {
+        name: 'get_software_releases_by_mdf_ids',
+        title: 'Get Software Releases by MDF IDs',
+        description: 'Get suggested software releases (without images) for specified MDF IDs. Focuses on release versions and recommendations without image details.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            mdf_ids: {
+              type: 'string',
+              description: 'Comma-separated list of MDF identifiers. Example: 286313994,286313995'
+            },
+            page_index: {
+              type: 'integer',
+              default: 1,
+              minimum: 1,
+              description: 'Page number for pagination (starts at 1)'
+            }
+          },
+          required: ['mdf_ids']
+        }
+      },
+      {
+        name: 'get_compatible_software_by_mdf_id',
+        title: 'Get Compatible Software by MDF ID',
+        description: 'Get compatible and suggested software releases for a specific MDF ID. Useful for finding upgrade paths from current software versions.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            mdf_id: {
+              type: 'string',
+              description: 'Single MDF identifier. Example: 286313994'
+            },
+            current_image: {
+              type: 'string',
+              description: 'Current software image name (optional). Example: cat9k_iosxe.17.09.04a.SPA.bin'
+            },
+            current_release: {
+              type: 'string',
+              description: 'Current software release (optional). Example: 17.09.04a'
+            },
+            page_index: {
+              type: 'integer',
+              default: 1,
+              minimum: 1,
+              description: 'Page number for pagination (starts at 1)'
+            }
+          },
+          required: ['mdf_id']
+        }
       }
     ];
   }
@@ -93,6 +164,12 @@ export class SoftwareApi extends BaseApi {
         return await this.getSoftwareReleasesByProductIds(processedArgs);
       case 'get_compatible_software_by_product_id':
         return await this.getCompatibleSoftwareByProductId(processedArgs);
+      case 'get_software_suggestions_by_mdf_ids':
+        return await this.getSoftwareSuggestionsByMdfIds(processedArgs);
+      case 'get_software_releases_by_mdf_ids':
+        return await this.getSoftwareReleasesByMdfIds(processedArgs);
+      case 'get_compatible_software_by_mdf_id':
+        return await this.getCompatibleSoftwareByMdfId(processedArgs);
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -125,6 +202,35 @@ export class SoftwareApi extends BaseApi {
     const response = await this.makeApiCall(`/suggestions/compatible/productId/${args.product_id}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Compatible Software for Product ID: ${args.product_id}`);
+  }
+
+  private async getSoftwareSuggestionsByMdfIds(args: ToolArgs): Promise<ApiResponse> {
+    const params: Record<string, any> = {};
+    if (args.page_index) params.pageIndex = args.page_index;
+
+    const response = await this.makeApiCall(`/suggestions/software/mdfIds/${args.mdf_ids}`, params);
+    
+    return this.formatSoftwareSuggestionResponse(response, `Software Suggestions for MDF IDs: ${args.mdf_ids}`);
+  }
+
+  private async getSoftwareReleasesByMdfIds(args: ToolArgs): Promise<ApiResponse> {
+    const params: Record<string, any> = {};
+    if (args.page_index) params.pageIndex = args.page_index;
+
+    const response = await this.makeApiCall(`/suggestions/releases/mdfIds/${args.mdf_ids}`, params);
+    
+    return this.formatSoftwareSuggestionResponse(response, `Software Releases for MDF IDs: ${args.mdf_ids}`);
+  }
+
+  private async getCompatibleSoftwareByMdfId(args: ToolArgs): Promise<ApiResponse> {
+    const params: Record<string, any> = {};
+    if (args.page_index) params.pageIndex = args.page_index;
+    if (args.current_image) params.currentImage = args.current_image;
+    if (args.current_release) params.currentRelease = args.current_release;
+
+    const response = await this.makeApiCall(`/suggestions/compatible/mdfId/${args.mdf_id}`, params);
+    
+    return this.formatSoftwareSuggestionResponse(response, `Compatible Software for MDF ID: ${args.mdf_id}`);
   }
 
   private formatSoftwareSuggestionResponse(data: any, title: string): ApiResponse {
