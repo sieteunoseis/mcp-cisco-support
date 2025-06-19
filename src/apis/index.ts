@@ -5,6 +5,7 @@ import { CaseApi } from './case-api.js';
 import { EoxApi } from './eox-api.js';
 import { PsirtApi } from './psirt-api.js';
 import { ProductApi } from './product-api.js';
+import { SoftwareApi } from './software-api.js';
 import { ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
 
@@ -75,11 +76,11 @@ export class ApiRegistry {
     this.apis.set('eox', new EoxApi());
     this.apis.set('psirt', new PsirtApi());
     this.apis.set('product', new ProductApi());
+    this.apis.set('software', new SoftwareApi());
     
     // Initialize placeholder APIs for unimplemented ones only
     this.apis.set('serial', new PlaceholderApi('Serial'));
     this.apis.set('rma', new PlaceholderApi('RMA'));
-    this.apis.set('software', new PlaceholderApi('Software'));
   }
 
   // Get all tools from enabled APIs

@@ -40,16 +40,16 @@ src/
 | **Case** | ✅ **COMPLETE** | v3.0 | 4 tools | High | Full Case Management API support |
 | **EoX** | ✅ **COMPLETE** | v1.7.0 | 4 tools | High | End of Life/Sale information |
 | **Product** | ✅ **COMPLETE** | v1.8.2 | 3 tools | High | Product details and specifications |
+| **Software** | ✅ **COMPLETE** | v1.8.4 | 3 tools | Medium | Software suggestions and recommendations |
 | **Serial** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Serial number to product mapping |
-| **Software** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Software suggestions and recommendations |
 | **RMA** | 🔄 **PLANNED** | v1.0 | 0 tools | Medium | Return Merchandise Authorization |
 | **PSIRT** | ✅ **COMPLETE** | v1.8.1 | 8 tools | Medium | Product Security Incident Response Team vulnerability data |
 
 ### Implementation Summary
 
-- **✅ Implemented**: 5/8 APIs (62.5% complete)
-- **🔄 Planned**: 3/8 APIs (37.5% remaining)
-- **Total Tools Available**: 27 tools (8 Bug + 4 Case + 4 EoX + 8 PSIRT + 3 Product)
+- **✅ Implemented**: 6/8 APIs (75% complete)
+- **🔄 Planned**: 2/8 APIs (25% remaining)
+- **Total Tools Available**: 30 tools (8 Bug + 4 Case + 4 EoX + 8 PSIRT + 3 Product + 3 Software)
 - **Target Tools**: ~40-50 tools when all APIs implemented
 
 ## API Details
@@ -162,6 +162,27 @@ src/
 - ✅ Direct links to Cisco product pages
 - ✅ Comprehensive technical specifications and orderable information
 - ✅ Pagination support for large result sets (up to 500 records per page for MDF)
+
+### ✅ Software API (v2.0) - COMPLETE
+
+**Status**: Production Ready  
+**Base URL**: `https://apix.cisco.com/software/suggestion/v2`  
+**Tools**: 3 comprehensive software suggestion tools
+
+**Implemented Tools**:
+1. `get_software_suggestions_by_product_ids` - Complete software suggestions including releases and images
+2. `get_software_releases_by_product_ids` - Software releases only (no image details)
+3. `get_basic_suggestions_by_product_ids` - Basic software recommendation information
+
+**Key Features**:
+- ✅ Full Software Suggestion API v2.0 implementation
+- ✅ Multiple suggestion types (complete, releases-only, basic)
+- ✅ Comprehensive software recommendations for upgrade planning
+- ✅ Release version tracking and recommendations
+- ✅ Software image details including download URLs
+- ✅ Direct links to Cisco software download portal
+- ✅ Pagination support for large result sets
+- ✅ Modern v2 API endpoints with enhanced functionality
 
 ## Configuration System
 
