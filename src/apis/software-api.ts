@@ -52,15 +52,23 @@ export class SoftwareApi extends BaseApi {
         }
       },
       {
-        name: 'get_basic_suggestions_by_product_ids',
-        title: 'Get Basic Suggestions by Product IDs',
-        description: 'Get basic software suggestions for specified product IDs. Provides general software recommendation information.',
+        name: 'get_compatible_software_by_product_id',
+        title: 'Get Compatible Software by Product ID',
+        description: 'Get compatible and suggested software releases for a specific product ID. Useful for finding upgrade paths from current software versions.',
         inputSchema: {
           type: 'object',
           properties: {
-            product_ids: {
+            product_id: {
               type: 'string',
-              description: 'Comma-separated list of product identifiers/PIDs. Example: C9300-48P-A,C9300-24P-A'
+              description: 'Single product identifier/PID. Example: C9300-48P-A'
+            },
+            current_image: {
+              type: 'string',
+              description: 'Current software image name (optional). Example: cat9k_iosxe.17.09.04a.SPA.bin'
+            },
+            current_release: {
+              type: 'string',
+              description: 'Current software release (optional). Example: 17.09.04a'
             },
             page_index: {
               type: 'integer',
@@ -69,7 +77,7 @@ export class SoftwareApi extends BaseApi {
               description: 'Page number for pagination (starts at 1)'
             }
           },
-          required: ['product_ids']
+          required: ['product_id']
         }
       }
     ];
@@ -83,8 +91,8 @@ export class SoftwareApi extends BaseApi {
         return await this.getSoftwareSuggestionsByProductIds(processedArgs);
       case 'get_software_releases_by_product_ids':
         return await this.getSoftwareReleasesByProductIds(processedArgs);
-      case 'get_basic_suggestions_by_product_ids':
-        return await this.getBasicSuggestionsByProductIds(processedArgs);
+      case 'get_compatible_software_by_product_id':
+        return await this.getCompatibleSoftwareByProductId(processedArgs);
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -103,18 +111,20 @@ export class SoftwareApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.pageIndex = args.page_index;
 
-    const response = await this.makeApiCall(`/suggestions/releases/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/suggestions/releases/productIds/${args.product_ids}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Software Releases for Product IDs: ${args.product_ids}`);
   }
 
-  private async getBasicSuggestionsByProductIds(args: ToolArgs): Promise<ApiResponse> {
+  private async getCompatibleSoftwareByProductId(args: ToolArgs): Promise<ApiResponse> {
     const params: Record<string, any> = {};
     if (args.page_index) params.pageIndex = args.page_index;
+    if (args.current_image) params.currentImage = args.current_image;
+    if (args.current_release) params.currentRelease = args.current_release;
 
-    const response = await this.makeApiCall(`/suggestions/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/suggestions/compatible/productId/${args.product_id}`, params);
     
-    return this.formatSoftwareSuggestionResponse(response, `Basic Suggestions for Product IDs: ${args.product_ids}`);
+    return this.formatSoftwareSuggestionResponse(response, `Compatible Software for Product ID: ${args.product_id}`);
   }
 
   private formatSoftwareSuggestionResponse(data: any, title: string): ApiResponse {
