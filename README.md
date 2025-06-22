@@ -192,105 +192,19 @@ Once configured, you can ask Claude questions like:
 
 Claude will use the appropriate MCP tools to fetch real-time data from Cisco's Bug API and provide comprehensive responses with the latest information.
 
-## MCP Prompts (v1.4.0+)
+## MCP Prompts
 
-The server includes 5 specialized **MCP prompts** that provide guided workflows for common Cisco support scenarios. These prompts generate structured investigation plans that help you use the bug search tools more effectively.
+The server includes **5 specialized prompts** for guided Cisco support workflows:
 
-### Available Prompts
+- **🚨 cisco-incident-investigation** - Investigate symptoms and errors
+- **🔄 cisco-upgrade-planning** - Research issues before upgrades  
+- **🔧 cisco-maintenance-prep** - Prepare for maintenance windows
+- **🔒 cisco-security-advisory** - Research security vulnerabilities
+- **⚠️ cisco-known-issues** - Check for software release issues
 
-#### 1. **cisco-incident-investigation**
-*Investigate Cisco bugs related to specific incident symptoms and errors*
+Each prompt provides structured investigation plans and expert recommendations.
 
-**Required Arguments:**
-- `symptom` - The error message, symptom, or behavior observed
-- `product` - Cisco product experiencing the issue
-
-**Optional Arguments:**
-- `severity` - Incident severity level (1=Critical, 2=High, 3=Medium)
-- `software_version` - Current software version if known
-
-**Example Usage:**
-```
-Use the cisco-incident-investigation prompt with symptom "device crashes randomly", product "Cisco ASR 1000", and severity "1"
-```
-
-#### 2. **cisco-upgrade-planning**
-*Research known issues and bugs before upgrading Cisco software or hardware*
-
-**Required Arguments:**
-- `current_version` - Current software version (e.g., "15.2(4)S")
-- `target_version` - Target upgrade version (e.g., "15.2(4)S5")
-- `product` - Cisco product being upgraded
-
-**Optional Arguments:**
-- `environment` - Environment type (production, staging, lab)
-
-**Example Usage:**
-```
-Use the cisco-upgrade-planning prompt for upgrading from version "15.2(4)S" to "15.2(4)S5" on "Cisco ASR 9000" in "production"
-```
-
-#### 3. **cisco-maintenance-prep**
-*Prepare for maintenance windows by identifying potential issues and bugs*
-
-**Required Arguments:**
-- `maintenance_type` - Type of maintenance (software upgrade, hardware replacement, configuration change)
-- `product` - Cisco product undergoing maintenance
-
-**Optional Arguments:**
-- `software_version` - Current or target software version
-- `timeline` - Maintenance window timeline
-
-**Example Usage:**
-```
-Use the cisco-maintenance-prep prompt for "software upgrade" maintenance on "Cisco Catalyst 9000" with timeline "next week"
-```
-
-#### 4. **cisco-security-advisory**
-*Research security-related bugs and vulnerabilities for Cisco products*
-
-**Required Arguments:**
-- `product` - Cisco product to check for security issues
-
-**Optional Arguments:**
-- `software_version` - Software version to check
-- `security_focus` - Specific security concern (CVE, vulnerability type, etc.)
-
-**Example Usage:**
-```
-Use the cisco-security-advisory prompt for product "Cisco IOS XE" with security_focus "authentication bypass"
-```
-
-#### 5. **cisco-known-issues**
-*Check for known issues in specific Cisco software releases or products*
-
-**Required Arguments:**
-- `product` - Cisco product to check
-- `software_version` - Specific software version or range
-
-**Optional Arguments:**
-- `issue_type` - Type of issues to focus on (performance, stability, features)
-
-**Example Usage:**
-```
-Use the cisco-known-issues prompt for product "Cisco ASR 1000" version "16.12.04" with issue_type "performance"
-```
-
-### How Prompts Work
-
-1. **Prompt Selection**: Choose the appropriate prompt for your scenario
-2. **Argument Input**: Provide required and optional arguments
-3. **Guided Workflow**: Receive a structured investigation plan
-4. **Tool Execution**: Follow the plan to systematically search for bugs
-5. **Expert Analysis**: Get recommendations based on findings
-
-### Benefits of Using Prompts
-
-- **Structured Approach**: Follow expert-designed workflows for consistent results
-- **Best Practices**: Incorporate years of Cisco support experience
-- **Faster Resolution**: Reduce investigation time with targeted searches
-- **Knowledge Transfer**: Learn effective troubleshooting methodologies
-- **Comprehensive Coverage**: Ensure all relevant angles are investigated
+See **[⚡ MCP Prompts](./wiki/MCP-Prompts.md)** for complete prompt documentation and examples.
 
 ## Screenshots
 
@@ -427,67 +341,21 @@ docker run -p 3000:3000 \
 docker-compose up -d
 ```
 
-## 🔐 Security and Authentication
+## 🔐 Security
 
-### stdio Mode (Default)
-- **No authentication required** - Direct MCP client connection
-- **Use case**: Claude Desktop, local MCP clients
-- **Security**: Inherits security from the host MCP client
+- **stdio mode**: No authentication (Claude Desktop, local clients)
+- **HTTP mode**: Bearer token authentication required
 
-### HTTP Mode (--http)
-- **Bearer Token Authentication** - Required for all HTTP endpoints
-- **Use case**: Remote access, web applications, API integration
-- **Security**: Token-based authentication with secure headers
-
-#### Bearer Token Management
-
-**Generate a new token:**
 ```bash
+# Generate secure token
 npx mcp-cisco-support --generate-token
-```
 
-**Use a custom token:**
-```bash
-export MCP_BEARER_TOKEN=your_custom_token_here
+# Use token for HTTP mode
+export MCP_BEARER_TOKEN=your_token
 npx mcp-cisco-support --http
 ```
 
-**Add to .env file:**
-```bash
-# Custom Bearer token for HTTP authentication
-MCP_BEARER_TOKEN=your_custom_secure_token_here
-```
-
-**Disable authentication (⚠️ NOT RECOMMENDED for production):**
-```bash
-export DANGEROUSLY_OMIT_AUTH=true
-npx mcp-cisco-support --http
-```
-
-#### Authentication Examples
-
-**With Bearer header (recommended):**
-```bash
-curl -H "Authorization: Bearer your_token_here" \
-     -X POST http://localhost:3000/mcp \
-     -H "Content-Type: application/json" \
-     -d '{"jsonrpc":"2.0","method":"ping","id":1}'
-```
-
-**With query parameter (fallback):**
-```bash
-curl -X POST "http://localhost:3000/mcp?token=your_token_here" \
-     -H "Content-Type: application/json" \
-     -d '{"jsonrpc":"2.0","method":"ping","id":1}'
-```
-
-### Security Best Practices
-
-1. **Use strong tokens** - Generate random tokens via `--generate-token`
-2. **Secure storage** - Store tokens in environment variables or `.env` files
-3. **Network security** - Use HTTPS in production deployments
-4. **Token rotation** - Regularly generate new tokens
-5. **Access control** - Only expose HTTP mode to trusted networks
+See **[🔒 Security Guide](./wiki/Security-Guide.md)** for complete security documentation.
 
 ## Configuration
 
@@ -572,272 +440,19 @@ docker run -p 3000:3000 \
 | `/ping` | GET | Simple ping endpoint for connectivity testing |
 | `/health` | GET | Health check with detailed status |
 
-## MCP Tools
+## 📚 Documentation
 
-### 1. get_bug_details
-Get details for up to 5 specific bug IDs.
+For detailed information, see our comprehensive wiki:
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "1",
-  "method": "tools/call",
-  "params": {
-    "name": "get_bug_details",
-    "arguments": {
-      "bug_ids": "CSCab12345,CSCcd67890"
-    }
-  }
-}
-```
-
-### 2. search_bugs_by_keyword
-Search bugs by keywords in descriptions and headlines.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "2",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_keyword",
-    "arguments": {
-      "keyword": "memory leak",
-      "page_index": 1,
-      "status": "open",
-      "severity": "2"
-    }
-  }
-}
-```
-
-### 3. search_bugs_by_product_id
-Search bugs by base product ID.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "3",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_product_id",
-    "arguments": {
-      "base_pid": "C9200-24P"
-    }
-  }
-}
-```
-
-### 4. search_bugs_by_product_and_release
-Search bugs by product ID and software releases.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "4",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_product_and_release",
-    "arguments": {
-      "base_pid": "C9200-24P",
-      "software_releases": "17.5.1,17.5.2"
-    }
-  }
-}
-```
-
-### 5. search_bugs_by_product_series_affected
-Search bugs by product series and affected releases.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "5",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_product_series_affected",
-    "arguments": {
-      "product_series": "Cisco Catalyst 9200 Series Switches",
-      "affected_releases": "17.5.1"
-    }
-  }
-}
-```
-
-### 6. search_bugs_by_product_series_fixed
-Search bugs by product series and fixed releases.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "6",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_product_series_fixed",
-    "arguments": {
-      "product_series": "Cisco Catalyst 9200 Series Switches",
-      "fixed_releases": "17.5.2"
-    }
-  }
-}
-```
-
-### 7. search_bugs_by_product_name_affected
-Search bugs by exact product name and affected releases.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "7",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_product_name_affected",
-    "arguments": {
-      "product_name": "Cisco Catalyst 3560-48PS Switch",
-      "affected_releases": "17.5.1"
-    }
-  }
-}
-```
-
-### 8. search_bugs_by_product_name_fixed
-Search bugs by exact product name and fixed releases.
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "8",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_product_name_fixed",
-    "arguments": {
-      "product_name": "Cisco Catalyst 3560-48PS Switch",
-      "fixed_releases": "17.5.2"
-    }
-  }
-}
-```
-
-## Common Parameters
-
-All search tools support these optional parameters:
-
-- `page_index`: Page number (10 results per page, default: 1)
-- `status`: Bug status filter (`open`, `resolved`, `closed`)
-- `severity`: Bug severity filter (`1`, `2`, `3`, `4`, `5`, `6`)
-- `modified_date`: Date filter (`2023-01-01` or range `2023-01-01..2023-12-31`)
-- `sort_by`: Sort order (`modified_date`, `bug_id`, `severity`)
-
-## Server-Sent Events
-
-### MCP over SSE Protocol
-
-The server implements proper MCP (Model Context Protocol) over SSE with session management:
-
-#### 1. Connect to SSE Endpoint
-```javascript
-const eventSource = new EventSource('http://localhost:3000/sse');
-```
-
-#### 2. Handle Endpoint Event
-On connection, the server sends an `endpoint` event with session information:
-
-```javascript
-eventSource.addEventListener('endpoint', (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Session info:', data);
-  // Example: { sessionId: "abc123", endpoint: "/sse/session/abc123", timestamp: "..." }
-  
-  // Store the session endpoint for making requests
-  window.sessionEndpoint = data.endpoint;
-});
-```
-
-#### 3. Send MCP Messages
-Use the session-specific endpoint to send JSON-RPC messages:
-
-```javascript
-async function listTools() {
-  const response = await fetch(`http://localhost:3000${window.sessionEndpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'tools/list'
-    })
-  });
-  return response.json();
-}
-
-async function callTool(toolName, args) {
-  const response = await fetch(`http://localhost:3000${window.sessionEndpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 2,
-      method: 'tools/call',
-      params: { name: toolName, arguments: args }
-    })
-  });
-  return response.json();
-}
-```
-
-#### 4. Handle Real-time Events
-Listen for real-time updates during tool execution:
-
-```javascript
-eventSource.addEventListener('tool_start', (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Tool execution started:', data);
-});
-
-eventSource.addEventListener('tool_complete', (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Tool execution completed:', data);
-});
-
-eventSource.addEventListener('tool_error', (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Tool execution failed:', data);
-});
-
-eventSource.addEventListener('message', (event) => {
-  const data = JSON.parse(event.data);
-  console.log('MCP response:', data);
-});
-
-eventSource.addEventListener('ping', (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Heartbeat:', data);
-});
-```
-
-### Legacy SSE Support
-
-For backward compatibility, the server also supports direct POST to `/sse`:
-
-```javascript
-// Legacy approach (deprecated)
-const response = await fetch('http://localhost:3000/sse', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'tools/list'
-  })
-});
-```
-
-### N8N Integration
-
-For N8N's MCP client tool, use the SSE endpoint:
-- **URL**: `http://localhost:3000/sse`
-- **Transport Type**: SSE
-- The server automatically handles session management and provides proper MCP protocol support.
+- **[📋 Available Tools](./wiki/Available-Tools.md)** - Complete reference for all 33 MCP tools across 6 APIs
+- **[🔧 Advanced Configuration](./wiki/Advanced-Configuration.md)** - Environment variables and deployment options
+- **[🔒 Security Guide](./wiki/Security-Guide.md)** - Authentication, tokens, and security best practices  
+- **[🚀 Docker Deployment](./wiki/Docker-Deployment.md)** - Containerized deployment and production setup
+- **[🌐 SSE Integration](./wiki/SSE-Integration.md)** - Server-Sent Events and real-time communication
+- **[🧪 Testing Framework](./wiki/Testing-Framework.md)** - Comprehensive testing and validation
+- **[🔧 Development Guide](./wiki/Development-Guide.md)** - Contributing, architecture, and API development
+- **[🚨 Troubleshooting Guide](./wiki/Troubleshooting-Guide.md)** - Common issues and debugging
+- **[⚡ MCP Prompts](./wiki/MCP-Prompts.md)** - Guided workflows for Cisco support scenarios
 
 ## Usage Examples
 
@@ -1151,257 +766,35 @@ Example MCP message:
 }
 ```
 
-## Troubleshooting
+## Health Monitoring
 
-### Common Issues
-
-1. **Authentication Errors**
-   - Verify your `CISCO_CLIENT_ID` and `CISCO_CLIENT_SECRET`
-   - Check that your credentials have access to the Bug API
-   - Review logs for specific OAuth2 error messages
-
-2. **Network Timeouts**
-   - Default timeout is 30 seconds
-   - Check your network connectivity to Cisco APIs
-   - Verify firewall settings allow outbound HTTPS
-
-3. **Test Failures**
-   - Run tests individually to isolate issues: `npx jest tests/auth.test.js`
-   - Check that environment variables are set correctly in test mode
-   - Verify mock setup in test files
-
-4. **SSE Connection Issues**
-   - Check that client properly handles event stream format
-   - Verify CORS settings if connecting from browser
-   - Monitor connection logs for disconnect events
-
-### Debugging
+The server provides a comprehensive health check endpoint:
 
 ```bash
-# Enable debug logging
-NODE_ENV=development npm run dev
-
-# Check health status
 curl http://localhost:3000/health
-
-# View Docker logs
-docker-compose logs -f
-
-# Test specific MCP tool
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":"test","method":"tools/list"}'
 ```
 
-## Testing Framework
+Response includes server status, OAuth2 token status, memory usage, uptime, and active connections.
 
-This project includes a comprehensive Jest-based testing framework that validates all functionality without requiring live API calls during development.
+## Testing
 
-### Test Coverage
-
-✅ **Simple Tests**: 3/3 passing - Basic functionality validation  
-✅ **Bug API Tests**: 17/17 passing - All 8 Bug API tools fully tested  
-✅ **MCP Server Tests**: 11/11 passing - Server functionality and configuration  
-✅ **Integration Tests**: 7/7 passing - Real API validation with live credentials  
-✅ **Error Handling Tests**: Timeout, authentication, and parameter validation
-
-### Running Tests
+Comprehensive Jest-based testing framework with:
+- ✅ **33/33 tools tested** - All MCP tools across 6 APIs  
+- ✅ **Mock & Real API testing** - Unit tests with mocks + integration tests with live APIs
+- ✅ **Individual tool testing** - Standalone test runner for development
 
 ```bash
 # Run all tests
 npm test
 
-# Run specific test suites
-npm test -- --testNamePattern="Bug API"
-npm test -- --testNamePattern="Simple"
-npm test -- --testNamePattern="MCP Server"
+# Test with real API credentials
+CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test
 
-# Run integration tests with real API (requires credentials)
-CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test -- --testNamePattern="Integration"
-
-# Run tests with coverage
-npm test -- --coverage
-```
-
-### Individual Tool Testing
-
-The project includes multiple ways to test individual MCP tools for development and debugging:
-
-#### 1. Standalone Tool Test Runner
-
-Test any tool with both mock and real API modes:
-
-```bash
-# Test with mock data (default)
+# Test individual tools
 npm run test:tool search_bugs_by_keyword
-node test-tool.js search_bugs_by_keyword mock
-
-# Test with real Cisco API
-CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret node test-tool.js search_bugs_by_keyword real
-
-# Test other tools
-node test-tool.js get_bug_details
-node test-tool.js search_bugs_by_product_id real
 ```
 
-**Available Tools:**
-- `get_bug_details`
-- `search_bugs_by_keyword`
-- `search_bugs_by_product_id`
-- `search_bugs_by_product_and_release`
-- `search_bugs_by_product_series_affected`
-- `search_bugs_by_product_series_fixed`
-- `search_bugs_by_product_name_affected`
-- `search_bugs_by_product_name_fixed`
-
-#### 2. Jest-based Tool Testing
-
-Run Jest tests for specific tools:
-
-```bash
-# Test a specific tool with Jest
-npm run test:jest-tool search_bugs_by_keyword
-node scripts/test-specific-tool.js get_bug_details
-
-# This converts tool names to Jest test patterns
-# search_bugs_by_keyword becomes "search.*bugs.*by.*keyword"
-```
-
-#### 3. Tool Test Output
-
-The standalone tool tester provides detailed output:
-
-```bash
-🔧 Testing Tool: search_bugs_by_keyword
-📝 Description: Search bugs by keyword with filters
-🎯 Mode: 🧪 Mock Mode
-📋 Arguments: {
-  "keyword": "CallManager",
-  "severity": "3",
-  "status": "O"
-}
-
-⏳ Executing tool...
-
-✅ Success! (15ms)
-📊 Result: {
-  "bugs": [
-    {
-      "bug_id": "CSCvi12345",
-      "headline": "Test bug for CallManager 12.5 memory leak",
-      "status": "O",
-      "severity": "3"
-    }
-  ],
-  "total_results": 1
-}
-
-📈 Summary:
-  • Found 1 bugs
-  • First bug: CSCvi12345 - Test bug for CallManager 12.5 memory leak...
-```
-
-#### 4. Tool Testing npm Scripts
-
-```bash
-# Available npm scripts for tool testing
-npm run test:tool              # Build and run tool tester
-npm run test:jest-tool         # Jest-based tool testing
-npm run test:integration       # Real API integration tests
-npm run test:coverage          # Test coverage report
-```
-
-### Test Structure
-
-- **`tests/simple.test.ts`** - Basic functionality and tool discovery
-- **`tests/bugApi.test.ts`** - Comprehensive Bug API tool testing with mocks
-- **`tests/mcpServer.test.ts`** - MCP server functionality and prompt testing
-- **`tests/integration.test.ts`** - Real API integration tests (skipped by default)
-- **`tests/errorHandling.test.ts`** - Error scenarios and edge cases
-- **`tests/mockData.ts`** - Mock Cisco API responses for unit tests
-- **`tests/setup.ts`** - Jest configuration and global mocks
-
-### Mock Data and Testing
-
-The test framework uses comprehensive mock data that simulates real Cisco Bug API responses:
-
-```typescript
-// Example mock bug response
-{
-  bugs: [
-    {
-      bug_id: 'CSCvi12345',
-      headline: 'Test bug for CallManager 12.5 memory leak',
-      status: 'O',
-      severity: '3',
-      product: 'Cisco Unified Communications Manager',
-      affected_releases: ['12.5(1)SU1', '12.5(1)SU2'],
-      fixed_releases: ['12.5(1)SU3']
-    }
-  ],
-  total_results: 1
-}
-```
-
-### Real API Testing
-
-Integration tests can be run with real Cisco API credentials to validate:
-
-- OAuth2 authentication flow
-- Parameter validation with live API
-- Error handling with actual API responses
-- Rate limiting and network error scenarios
-
-### Key Test Features
-
-- **Fetch Mocking**: Proper Jest mocking for all HTTP requests
-- **Parameter Validation**: Tests for all required and optional parameters
-- **Error Scenarios**: Comprehensive error handling validation
-- **Schema Validation**: JSON Schema compliance for all tools
-- **Real vs Mock**: Separate unit tests (mocked) and integration tests (real API)
-
-## API Documentation (WADL)
-
-The project includes official Cisco Bug API v2.0 WADL (Web Application Description Language) specification in the `wadl/` directory:
-
-### WADL File Structure
-
-```
-wadl/
-└── Cisco-BUG-API-v2_0.wadl    # Complete API specification
-```
-
-### Key WADL Insights
-
-The WADL file confirms critical API limitations that were implemented in this server:
-
-1. **Single Value Parameters**: The WADL definitively shows that `severity` and `status` parameters only accept single values, not comma-separated lists:
-   ```xml
-   <!-- From WADL: Only one severity value allowed -->
-   <param name="severity" style="query" type="xs:string"/>
-   ```
-
-2. **Parameter Constraints**: Documents valid values for each parameter:
-   - **Severity**: 1, 2, 3, 4, 5, 6 (single values only)
-   - **Status**: O (Open), F (Fixed), T (Terminated), etc.
-   - **Modified Date**: 1, 2, 3, 4, 5 (days/weeks/months)
-
-3. **Endpoint Structure**: Validates the correct URL patterns for all 8 implemented endpoints:
-   - `/bugs/bug_ids/{bug_ids}`
-   - `/bugs/keyword/{keyword}`
-   - `/bugs/products/product_id/{base_pid}`
-   - `/bugs/products/product_id/{base_pid}/software_releases/{software_releases}`
-   - And more...
-
-### Using WADL for Development
-
-The WADL file serves as the authoritative reference for:
-- Parameter validation rules
-- Response format specifications
-- Error code definitions
-- Authentication requirements
-
-This ensures the MCP server implementation matches Cisco's official API specification exactly.
+See **[🧪 Testing Framework](./wiki/Testing-Framework.md)** for complete testing documentation.
 
 ## License
 
@@ -1418,9 +811,15 @@ MIT License - see LICENSE file for details.
 
 ## Support
 
-For detailed documentation, see [CLAUDE.md](./CLAUDE.md).
+### Resources
 
-For issues related to:
-- **Server**: Create an issue in this repository
-- **Cisco API**: Refer to [Cisco Developer Documentation](https://developer.cisco.com/docs/support-apis/)
-- **MCP Protocol**: Check the [Model Context Protocol specification](https://modelcontextprotocol.io/)
+- **[📖 Complete Documentation](./CLAUDE.md)** - Comprehensive project documentation
+- **[📚 Wiki](./wiki/)** - Detailed guides and troubleshooting
+- **[🐛 Issues](https://github.com/sieteunoseis/mcp-cisco-support/issues)** - Report bugs and request features
+
+### External Resources
+
+- **[🔧 Cisco Developer Documentation](https://developer.cisco.com/docs/support-apis/introduction-to-cisco-support-apis/)** - Official API documentation
+- **[🔒 Cisco PSIRT Documentation](https://developer.cisco.com/docs/psirt/)** - Security vulnerability API documentation
+- **[💬 Cisco Services Discussions](https://community.cisco.com/t5/services-discussions/bd-p/j-disc-dev-services)** - Community support and API discussions
+- **[🌐 MCP Protocol](https://modelcontextprotocol.io/)** - Model Context Protocol specification
