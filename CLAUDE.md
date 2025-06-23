@@ -781,3 +781,110 @@ When implementing new API endpoints:
 3. **Test Against Spec**: Compare implementation behavior with WADL definitions
 4. **Update Tests**: Add test cases that validate WADL compliance
 5. **Document Limitations**: Note any API constraints in tool descriptions
+
+## GitHub Wiki Management
+
+The project maintains comprehensive documentation on the GitHub wiki at: https://github.com/sieteunoseis/mcp-cisco-support/wiki
+
+### Available Wiki Pages
+
+Current wiki pages include:
+- **N8n Personal Assistant Integration** - Complete N8n setup guide with system message prompts
+- **Available Tools** - Comprehensive tool reference
+- **Development Guide** - Development and contribution guidelines  
+- **Docker Deployment** - Container deployment instructions
+- **Security Guide** - Security configuration and best practices
+- **Troubleshooting Guide** - Common issues and solutions
+- **Testing Framework** - Testing methodology and examples
+- **SSE Integration** - Server-Sent Events implementation details
+
+### Updating Wiki Pages
+
+To update or add new wiki pages:
+
+#### Method 1: GitHub Web Interface (Recommended)
+1. Navigate to: https://github.com/sieteunoseis/mcp-cisco-support/wiki
+2. Click "Edit" on existing pages or "New Page" for new content
+3. Make changes directly in the web editor
+4. Click "Save Page" to publish changes
+
+#### Method 2: Command Line (Advanced)
+```bash
+# Clone the wiki repository (separate from main repo)
+git clone https://github.com/sieteunoseis/mcp-cisco-support.wiki.git wiki-repo
+
+# Navigate to wiki directory
+cd wiki-repo
+
+# Create or edit markdown files
+# File names become page titles (spaces replaced with hyphens)
+echo "# New Page Content" > New-Page-Title.md
+
+# Commit and push changes
+git add .
+git commit -m "Add/update wiki page: New Page Title"
+git push origin master
+
+# Clean up
+cd .. && rm -rf wiki-repo
+```
+
+#### Method 3: Automated Script
+```bash
+# Create a helper script for wiki updates
+cat > update-wiki.sh << 'EOF'
+#!/bin/bash
+WIKI_PAGE="$1"
+CONTENT_FILE="$2"
+
+if [ -z "$WIKI_PAGE" ] || [ -z "$CONTENT_FILE" ]; then
+    echo "Usage: ./update-wiki.sh 'Page-Title' 'content-file.md'"
+    exit 1
+fi
+
+# Clone wiki repo
+git clone https://github.com/sieteunoseis/mcp-cisco-support.wiki.git temp-wiki
+cd temp-wiki
+
+# Copy content
+cp "../$CONTENT_FILE" "$WIKI_PAGE.md"
+
+# Commit and push
+git add "$WIKI_PAGE.md"
+git commit -m "Update wiki page: $WIKI_PAGE"
+git push origin master
+
+# Clean up
+cd .. && rm -rf temp-wiki
+echo "Wiki page '$WIKI_PAGE' updated successfully!"
+EOF
+
+chmod +x update-wiki.sh
+
+# Usage example:
+# ./update-wiki.sh "New-Feature-Guide" "docs/new-feature.md"
+```
+
+### Wiki Page Naming Conventions
+
+- **File Names**: Use hyphens for spaces (e.g., `N8n-Personal-Assistant.md`)
+- **Page Titles**: Descriptive and searchable (e.g., "N8n Personal Assistant Integration")
+- **Content Structure**: Use consistent markdown formatting with proper headers
+- **Links**: Use relative links between wiki pages when possible
+
+### Wiki Best Practices
+
+1. **Keep Content Current**: Update wiki pages when making significant changes to the codebase
+2. **Cross-Reference**: Link related wiki pages and main project documentation
+3. **Examples**: Include practical examples and code snippets
+4. **Screenshots**: Add screenshots for UI-related documentation (store in main repo's `screenshots/` directory)
+5. **Version Compatibility**: Note version requirements and compatibility information
+6. **Search Optimization**: Use descriptive headers and keywords for better searchability
+
+### Important Notes
+
+- **Separate Repository**: The wiki is stored in a separate Git repository (.wiki.git)
+- **Markdown Format**: All pages use GitHub-flavored Markdown
+- **No Build Process**: Wiki pages are rendered directly by GitHub
+- **Public Access**: Wiki pages are publicly accessible (same as main repository visibility)
+- **History**: Wiki pages maintain full Git history for tracking changes
