@@ -39,6 +39,19 @@ severity_range: "high"
 status: "O"
 ```
 
+### Product Series Search (Supports Full Names!)
+```bash
+# Example 1: Using full product series name with version (Cisco API format - no leading zeros)
+Tool: search_bugs_by_product_series_affected
+product_series: "Cisco 4000 Series Integrated Services Routers"
+affected_releases: "17.9.6"
+
+# Example 2: Cisco Unified Communications Manager
+Tool: search_bugs_by_product_series_affected
+product_series: "Cisco Unified Communications Manager (CallManager)"
+affected_releases: "12.5"
+```
+
 ### Software Version Analysis
 ```bash
 # For version-specific issues

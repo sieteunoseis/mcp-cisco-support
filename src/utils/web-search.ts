@@ -193,6 +193,16 @@ export class WebSearchHelper {
         fullName: 'Cisco ASR 1001-X Series Aggregation Services Router',
         modelUrl: 'https://www.cisco.com/c/en/us/support/routers/asr-1001-x-router/model.html',
         productSeries: 'Cisco ASR 1000 Series'
+      },
+      'CUCM': {
+        fullName: 'Cisco Unified Communications Manager',
+        modelUrl: 'https://www.cisco.com/c/en/us/support/unified-communications/unified-communications-manager-callmanager/series.html',
+        productSeries: 'Cisco Unified Communications Manager (CallManager)'
+      },
+      'CallManager': {
+        fullName: 'Cisco Unified Communications Manager',
+        modelUrl: 'https://www.cisco.com/c/en/us/support/unified-communications/unified-communications-manager-callmanager/series.html',
+        productSeries: 'Cisco Unified Communications Manager (CallManager)'
       }
     };
   }
@@ -230,6 +240,11 @@ export class WebSearchHelper {
     // Pattern-based resolution for ASR series
     if (productId.match(/^ASR10\d+/i)) {
       return 'Cisco ASR 1000 Series';
+    }
+
+    // Pattern-based resolution for UC Manager
+    if (productId.match(/^(CUCM|CallManager|Unified.*Communications.*Manager)/i)) {
+      return 'Cisco Unified Communications Manager (CallManager)';
     }
 
     return null;
