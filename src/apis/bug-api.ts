@@ -233,13 +233,13 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_series_affected',
-        description: 'Search bugs by product series and affected releases',
+        description: 'Search bugs by product series and affected releases. This endpoint accepts full product series names like "Cisco 4000 Series Integrated Services Routers" or "Cisco Catalyst 9200 Series".',
         inputSchema: {
           type: 'object',
           properties: {
             product_series: {
               type: 'string',
-              description: 'Product series name'
+              description: 'Product series name (accepts full names like "Cisco 4000 Series Integrated Services Routers", "Cisco Catalyst 9200 Series", etc.)'
             },
             affected_releases: {
               type: 'string',
@@ -276,13 +276,13 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_series_fixed',
-        description: 'Search bugs by product series and fixed releases',
+        description: 'Search bugs by product series and fixed releases. This endpoint accepts full product series names like "Cisco 4000 Series Integrated Services Routers" or "Cisco Catalyst 9200 Series".',
         inputSchema: {
           type: 'object',
           properties: {
             product_series: {
               type: 'string',
-              description: 'Product series name'
+              description: 'Product series name (accepts full names like "Cisco 4000 Series Integrated Services Routers", "Cisco Catalyst 9200 Series", etc.)'
             },
             fixed_releases: {
               type: 'string',
@@ -319,13 +319,13 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_name_affected',
-        description: 'Search bugs by exact product name and affected releases',
+        description: 'Search bugs by product identifier and affected releases. NOTE: Use product IDs (like ISR4431, WS-C2960-24TC-L) not full marketing names. For full product names, use keyword search instead.',
         inputSchema: {
           type: 'object',
           properties: {
             product_name: {
               type: 'string',
-              description: 'Exact product name'
+              description: 'Product identifier (e.g., ISR4431, WS-C2960-24TC-L) - NOT full marketing names like "Cisco 4431 Integrated Services Router"'
             },
             affected_releases: {
               type: 'string',
@@ -362,13 +362,13 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_name_fixed',
-        description: 'Search bugs by exact product name and fixed releases',
+        description: 'Search bugs by product identifier and fixed releases. NOTE: Use product IDs (like ISR4431, WS-C2960-24TC-L) not full marketing names. For full product names, use keyword search instead.',
         inputSchema: {
           type: 'object',
           properties: {
             product_name: {
               type: 'string',
-              description: 'Exact product name'
+              description: 'Product identifier (e.g., ISR4431, WS-C2960-24TC-L) - NOT full marketing names like "Cisco 4431 Integrated Services Router"'
             },
             fixed_releases: {
               type: 'string',
@@ -822,8 +822,41 @@ export class BugApi extends BaseApi {
     
     logger.info('Starting comprehensive analysis', { productIdentifier, softwareVersion, analysisFocus });
     
+    // Convert full product names to searchable terms for bug database
+    let searchableProductTerm = productIdentifier;
+    let productSeries = null;
+    
+    // Check if we can get the product series for this identifier
+    productSeries = WebSearchHelper.getProductSeries(productIdentifier);
+    
+    if (productIdentifier.toLowerCase().includes('cisco') && productIdentifier.length > 20) {
+      // This looks like a full product name, try to extract the series
+      if (productIdentifier.toLowerCase().includes('4000 series') || productIdentifier.toLowerCase().includes('4431') || productIdentifier.toLowerCase().includes('4451')) {
+        productSeries = 'Cisco 4000 Series Integrated Services Routers';
+        searchableProductTerm = 'ISR4431';
+      } else if (productIdentifier.toLowerCase().includes('catalyst 9200') || productIdentifier.toLowerCase().includes('9200 series')) {
+        productSeries = 'Cisco Catalyst 9200 Series';
+        searchableProductTerm = 'C9200';
+      } else if (productIdentifier.toLowerCase().includes('asr 1000') || productIdentifier.toLowerCase().includes('1000 series')) {
+        productSeries = 'Cisco ASR 1000 Series';
+        searchableProductTerm = 'ASR1000';
+      } else {
+        // Extract model numbers or use keyword search approach
+        const modelMatch = productIdentifier.match(/(\w+\d+)/);
+        if (modelMatch) {
+          searchableProductTerm = modelMatch[1];
+        }
+      }
+      logger.info('Processed product identifier', { 
+        original: productIdentifier, 
+        searchable: searchableProductTerm,
+        productSeries: productSeries 
+      });
+    }
+    
     const analysis = {
       product: productIdentifier,
+      searchable_product_term: searchableProductTerm,
       version: softwareVersion,
       focus: analysisFocus,
       bug_analysis: null as any,
@@ -843,18 +876,44 @@ export class BugApi extends BaseApi {
 
     // Step 2: Bug database analysis
     try {
-      let searchQuery = productIdentifier;
+      let searchQuery = searchableProductTerm;
       if (softwareVersion) {
         searchQuery += ` ${softwareVersion}`;
       }
       
-      analysis.search_strategy_used.push('Progressive bug search with version normalization');
+      analysis.search_strategy_used.push('Progressive bug search with version normalization and product name conversion');
       analysis.bug_analysis = await this.executeProgressiveSearch({
-        primary_search_term: productIdentifier,
+        primary_search_term: searchableProductTerm,
         version: softwareVersion,
         severity_range: analysisFocus === 'security' ? 'high' : 'medium'
       });
       
+      // Add product series search if we have that information and a software version
+      if (productSeries && softwareVersion) {
+        analysis.search_strategy_used.push('Product series search with full product name');
+        try {
+          const productSeriesResult = await this.executeTool('search_bugs_by_product_series_affected', {
+            product_series: productSeries,
+            affected_releases: softwareVersion
+          });
+          
+          if (productSeriesResult.bugs && analysis.bug_analysis.bugs) {
+            const combinedBugs = [...analysis.bug_analysis.bugs, ...productSeriesResult.bugs];
+            const uniqueBugs = combinedBugs.filter((bug, index, self) => 
+              index === self.findIndex(b => b.bug_id === bug.bug_id)
+            );
+            analysis.bug_analysis.bugs = uniqueBugs;
+            analysis.bug_analysis.total_results = uniqueBugs.length;
+            logger.info('Combined product series search results', { 
+              addedBugs: productSeriesResult.bugs.length,
+              totalUnique: uniqueBugs.length 
+            });
+          }
+        } catch (error) {
+          logger.warn('Product series search failed', { productSeries, softwareVersion, error });
+        }
+      }
+
       // Add multi-severity search for critical analysis
       if (analysisFocus === 'security' || analysisFocus === 'comprehensive') {
         analysis.search_strategy_used.push('Multi-severity search for complete coverage');

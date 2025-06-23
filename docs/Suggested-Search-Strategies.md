@@ -299,24 +299,45 @@ keyword: "Cisco 4431 Integrated Services Router 17.09.06"
 - Cisco engineers write bugs using product names customers recognize
 - Broader terminology captures related products in the same series
 
-**Best Practice**: Use `product_name_resolver` first, then search with the resolved full name:
+**Best Practice**: Use the correct tool for your product identifier:
+
+**Option 1 - Product Series Search (Recommended for full names)**:
+```bash
+# Direct product series search with full name and version
+Tool: search_bugs_by_product_series_affected
+product_series: "Cisco 4000 Series Integrated Services Routers"
+affected_releases: "17.09.06"
+```
+
+**Option 2 - Automated Resolution**:
 ```bash
 # Step 1: Resolve the technical ID
 Tool: product_name_resolver
 product_id: "ISR4431/K9"
 
-# Step 2: Use the resolved name for searching
+# Step 2: Use the resolved name for searching  
 Tool: search_bugs_by_keyword
 keyword: "Cisco 4431 Integrated Services Router 17.09.06"
 ```
 
+**Option 3 - Comprehensive Analysis (Best for complex scenarios)**:
+```bash
+# Automatically handles product resolution and multiple search strategies
+Tool: comprehensive_analysis
+product_identifier: "ISR4431/K9"
+software_version: "17.09.06"
+```
+
 **Key Insight**: The query "Search for bugs affecting Cisco 4431 Integrated Services Router running 17.09.06" will typically return **more relevant results** than "Search for bugs affecting Cisco ISR4431/K9 running 17.09.06" because:
 
-1. **Bug report authors** use product marketing names, not part numbers
-2. **Internal Cisco systems** often reference products by their commercial names  
-3. **Customer-facing documentation** uses full product names for clarity
-4. **Related product coverage** - searches capture entire product family variations
-5. **Cross-platform issues** affecting multiple models in the same series
+1. **Product Series Endpoint**: The Cisco Bug API accepts full product series names like "Cisco 4000 Series Integrated Services Routers" in the `product_series` endpoint
+2. **Bug report authors** use product marketing names, not part numbers
+3. **Internal Cisco systems** often reference products by their commercial names  
+4. **Customer-facing documentation** uses full product names for clarity
+5. **Related product coverage** - searches capture entire product family variations
+6. **Cross-platform issues** affecting multiple models in the same series
+
+**API Discovery**: The endpoint `https://apix.cisco.com/bug/v2.0/bugs/product_series/Cisco 4000 Series Integrated Services Routers/affected_releases/17.9.6` works perfectly, confirming that full product series names are accepted by the API.
 
 ### ❌ Less Effective Patterns
 

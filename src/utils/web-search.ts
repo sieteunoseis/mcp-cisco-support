@@ -157,28 +157,72 @@ export class WebSearchHelper {
   /**
    * Known product mappings for common Cisco products
    */
-  private static getKnownProductMappings(): Record<string, { fullName: string; modelUrl: string; }> {
+  private static getKnownProductMappings(): Record<string, { fullName: string; modelUrl: string; productSeries?: string; }> {
     return {
       'ISR4431/K9': {
         fullName: 'Cisco 4431 Integrated Services Router',
-        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4431-integrated-services-router-isr/model.html'
+        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4431-integrated-services-router-isr/model.html',
+        productSeries: 'Cisco 4000 Series Integrated Services Routers'
+      },
+      'ISR4431': {
+        fullName: 'Cisco 4431 Integrated Services Router',
+        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4431-integrated-services-router-isr/model.html',
+        productSeries: 'Cisco 4000 Series Integrated Services Routers'
       },
       'ISR4451/K9': {
         fullName: 'Cisco 4451 Integrated Services Router', 
-        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4451-integrated-services-router-isr/model.html'
+        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4451-integrated-services-router-isr/model.html',
+        productSeries: 'Cisco 4000 Series Integrated Services Routers'
+      },
+      'ISR4451': {
+        fullName: 'Cisco 4451 Integrated Services Router', 
+        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4451-integrated-services-router-isr/model.html',
+        productSeries: 'Cisco 4000 Series Integrated Services Routers'
       },
       'ISR4461/K9': {
         fullName: 'Cisco 4461 Integrated Services Router',
-        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4461-integrated-services-router-isr/model.html'
+        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/4461-integrated-services-router-isr/model.html',
+        productSeries: 'Cisco 4000 Series Integrated Services Routers'
       },
       'C9200-24T': {
         fullName: 'Cisco Catalyst 9200 Series 24-Port Gigabit Switch',
-        modelUrl: 'https://www.cisco.com/c/en/us/support/switches/catalyst-9200-series-switches/series.html'
+        modelUrl: 'https://www.cisco.com/c/en/us/support/switches/catalyst-9200-series-switches/series.html',
+        productSeries: 'Cisco Catalyst 9200 Series'
       },
       'ASR1001-X': {
         fullName: 'Cisco ASR 1001-X Series Aggregation Services Router',
-        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/asr-1001-x-router/model.html'
+        modelUrl: 'https://www.cisco.com/c/en/us/support/routers/asr-1001-x-router/model.html',
+        productSeries: 'Cisco ASR 1000 Series'
       }
     };
+  }
+
+  /**
+   * Get the product series name for bug API searches
+   */
+  static getProductSeries(productId: string): string | null {
+    const mappings = this.getKnownProductMappings();
+    const mapping = mappings[productId.toUpperCase()];
+    
+    if (mapping?.productSeries) {
+      return mapping.productSeries;
+    }
+
+    // Pattern-based resolution for ISR series
+    if (productId.match(/^ISR44\d+/i)) {
+      return 'Cisco 4000 Series Integrated Services Routers';
+    }
+
+    // Pattern-based resolution for Catalyst switches
+    if (productId.match(/^(WS-)?C92\d+/i)) {
+      return 'Cisco Catalyst 9200 Series';
+    }
+
+    // Pattern-based resolution for ASR series
+    if (productId.match(/^ASR10\d+/i)) {
+      return 'Cisco ASR 1000 Series';
+    }
+
+    return null;
   }
 }
