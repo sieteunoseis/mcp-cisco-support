@@ -274,6 +274,49 @@ The system generates specific web search queries:
 3. **Try multiple severity levels** for critical issues
 4. **Combine product ID and keyword searches**
 5. **Include version numbers** in searches when available
+6. **Use full product names over technical IDs** for broader coverage
+
+#### **Product Name vs. Product ID Example**
+
+**❌ Less Effective**:
+```bash
+# Using technical product ID
+Tool: search_bugs_by_keyword
+keyword: "ISR4431/K9 17.09.06"
+```
+
+**✅ More Effective**:
+```bash
+# Using full product name (resolved automatically by product_name_resolver)
+Tool: search_bugs_by_keyword  
+keyword: "Cisco 4431 Integrated Services Router 17.09.06"
+```
+
+**Why This Works Better**:
+- Technical IDs (`ISR4431/K9`) are often too specific for bug database searches
+- Full product names (`Cisco 4431 Integrated Services Router`) match more bug reports
+- Bug descriptions typically use marketing names, not part numbers
+- Cisco engineers write bugs using product names customers recognize
+- Broader terminology captures related products in the same series
+
+**Best Practice**: Use `product_name_resolver` first, then search with the resolved full name:
+```bash
+# Step 1: Resolve the technical ID
+Tool: product_name_resolver
+product_id: "ISR4431/K9"
+
+# Step 2: Use the resolved name for searching
+Tool: search_bugs_by_keyword
+keyword: "Cisco 4431 Integrated Services Router 17.09.06"
+```
+
+**Key Insight**: The query "Search for bugs affecting Cisco 4431 Integrated Services Router running 17.09.06" will typically return **more relevant results** than "Search for bugs affecting Cisco ISR4431/K9 running 17.09.06" because:
+
+1. **Bug report authors** use product marketing names, not part numbers
+2. **Internal Cisco systems** often reference products by their commercial names  
+3. **Customer-facing documentation** uses full product names for clarity
+4. **Related product coverage** - searches capture entire product family variations
+5. **Cross-platform issues** affecting multiple models in the same series
 
 ### ❌ Less Effective Patterns
 
@@ -314,7 +357,35 @@ max_severity: 3
 
 ## 🎯 Real-World Examples
 
-### Example 1: ISR4431 Memory Issue
+### Example 1: Product Name vs. Technical ID Effectiveness
+**Scenario**: Searching for bugs affecting ISR4431 router running version 17.09.06
+
+**❌ Less Effective Search**:
+```bash
+# Using technical product ID - often too specific
+Tool: search_bugs_by_keyword
+keyword: "ISR4431/K9 17.09.06"
+```
+**Result**: Limited results because bug descriptions rarely use exact part numbers
+
+**✅ More Effective Search**:
+```bash
+# Using resolved full product name - broader coverage
+Tool: search_bugs_by_keyword
+keyword: "Cisco 4431 Integrated Services Router 17.09.06"
+```
+**Result**: Better coverage because bug reports use marketing product names
+
+**🚀 Best Approach - Automated Resolution**:
+```bash
+Tool: comprehensive_analysis
+product_identifier: "ISR4431/K9"
+software_version: "17.09.06"
+analysis_focus: "incident_response"
+```
+**Result**: Automatically resolves `ISR4431/K9` → `Cisco 4431 Integrated Services Router` and searches optimally
+
+### Example 2: ISR4431 Memory Issue Deep Dive
 **Query**: "ISR4431 17.09.06 memory constantly increasing"
 
 **Optimal Strategy**:
@@ -332,7 +403,7 @@ analysis_focus: "incident_response"
 - Platforms: Multiple including ISR4400 series
 - Web searches for end-of-life status and migration options
 
-### Example 2: Catalyst Switch Stack Issues
+### Example 3: Catalyst Switch Stack Issues
 **Query**: "Catalyst 2960 stack master election problems"
 
 **Optimal Strategy**:
@@ -343,7 +414,7 @@ severity_range: "high"
 status: "O"
 ```
 
-### Example 3: Security Vulnerability Assessment  
+### Example 4: Security Vulnerability Assessment  
 **Query**: "ISR4431 security vulnerabilities current version"
 
 **Optimal Strategy**:
