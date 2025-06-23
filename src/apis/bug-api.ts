@@ -155,8 +155,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['keyword']
         }
@@ -194,8 +195,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['base_pid']
         }
@@ -237,8 +239,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['base_pid', 'software_releases']
         }
@@ -280,8 +283,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['product_series', 'affected_releases']
         }
@@ -323,8 +327,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['product_series', 'fixed_releases']
         }
@@ -366,8 +371,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['product_name', 'affected_releases']
         }
@@ -409,8 +415,9 @@ export class BugApi extends BaseApi {
             },
             sort_by: {
               type: 'string',
-              description: 'Sort order'
-            }
+              description: 'Sort order for results. Default: modified_date (recent first)',
+              enum: ['status', 'modified_date', 'severity', 'support_case_count', 'modified_date_earliest']
+            },
           },
           required: ['product_name', 'fixed_releases']
         }

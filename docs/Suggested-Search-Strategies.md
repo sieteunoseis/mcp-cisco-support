@@ -5,20 +5,22 @@ This guide provides practical search strategies for the Cisco Support MCP Server
 ## 🎯 Quick Start Strategies
 
 ### High-Severity Bug Search
+**User Question**: *"What are the critical bugs affecting my ISR4431 router?"*
+
 ```bash
-# For immediate incident response - Option 1: Technical ID
+# Option 1: Technical ID (balanced specificity and coverage)
 Tool: multi_severity_search
 search_term: "ISR4431"
 search_type: "keyword" 
 max_severity: 3
 
-# Alternative Option 2: Full product series name (broader coverage)
+# Option 2: Full product series name (broader coverage, finds cross-platform issues)
 Tool: multi_severity_search
 search_term: "Cisco 4000 Series Integrated Services Routers"
 search_type: "keyword" 
 max_severity: 3
 
-# Alternative Option 3: Short model number (fastest search)
+# Option 3: Short model number (fastest search, may include false positives)
 Tool: multi_severity_search
 search_term: "4431"
 search_type: "keyword" 
