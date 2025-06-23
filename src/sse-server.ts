@@ -118,17 +118,82 @@ export function createSSEServer(mcpServer: Server) {
 
   const transportMap = new Map<string, SSEServerTransport>();
   const streamableTransports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+  
+  // Heartbeat configuration
+  const HEARTBEAT_INTERVAL = 30000; // 30 seconds
+  const CONNECTION_TIMEOUT = 120000; // 2 minutes
+  const heartbeatIntervals = new Map<string, NodeJS.Timeout>();
+
+  // Helper function to start heartbeat for SSE connection
+  function startHeartbeat(sessionId: string, res: express.Response): NodeJS.Timeout {
+    return setInterval(() => {
+      try {
+        // Send heartbeat message to keep connection alive
+        res.write('event: heartbeat\n');
+        res.write(`data: {"type":"heartbeat","timestamp":"${new Date().toISOString()}"}\n\n`);
+        logger.info('Heartbeat sent', { sessionId });
+      } catch (error) {
+        logger.warn('Heartbeat failed, cleaning up connection', { sessionId, error });
+        stopHeartbeat(sessionId);
+        cleanupConnection(sessionId, res);
+      }
+    }, HEARTBEAT_INTERVAL);
+  }
+
+  // Helper function to stop heartbeat
+  function stopHeartbeat(sessionId: string) {
+    const interval = heartbeatIntervals.get(sessionId);
+    if (interval) {
+      clearInterval(interval);
+      heartbeatIntervals.delete(sessionId);
+      logger.info('Heartbeat stopped', { sessionId });
+    }
+  }
+
+  // Helper function to cleanup connection
+  function cleanupConnection(sessionId: string, res?: express.Response) {
+    transportMap.delete(sessionId);
+    stopHeartbeat(sessionId);
+    
+    if (res && !res.destroyed) {
+      try {
+        res.end();
+      } catch (error) {
+        logger.info('Response already ended', { sessionId });
+      }
+    }
+    
+    logger.info('SSE connection cleaned up', { 
+      sessionId,
+      remainingConnections: transportMap.size
+    });
+  }
 
   // SSE endpoint - establishes SSE connection and connects to MCP server
   app.get("/sse", async (req, res) => {
+    let sessionId: string | undefined;
+    
     try {
       logger.info('SSE connection request received');
       
+      // Set connection timeout
+      req.setTimeout(CONNECTION_TIMEOUT, () => {
+        logger.warn('SSE connection timeout', { sessionId });
+        if (sessionId) {
+          cleanupConnection(sessionId, res);
+        }
+      });
+      
       // Create SSE transport with proper endpoint - it will set the headers
       const transport = new SSEServerTransport("/messages", res);
+      sessionId = transport.sessionId;
       
       // Store transport for message handling
-      transportMap.set(transport.sessionId, transport);
+      transportMap.set(sessionId, transport);
+      
+      // Start heartbeat to keep connection alive
+      const heartbeatInterval = startHeartbeat(sessionId, res);
+      heartbeatIntervals.set(sessionId, heartbeatInterval);
       
       logger.info('SSE transport created', { sessionId: transport.sessionId });
       
@@ -142,41 +207,73 @@ export function createSSEServer(mcpServer: Server) {
       
       // Set up cleanup handlers before connecting
       transport.onclose = () => {
-        logger.info('SSE connection closed', { sessionId: transport.sessionId });
-        transportMap.delete(transport.sessionId);
+        logger.info('SSE connection closed', { sessionId });
+        if (sessionId) {
+          cleanupConnection(sessionId);
+        }
       };
 
+      // Enhanced error handling with detailed logging
       transport.onerror = (error) => {
         logger.error('SSE transport error', { 
-          sessionId: transport.sessionId,
-          error: error.message 
+          sessionId: sessionId,
+          error: error.message,
+          errorType: typeof error,
+          stack: error instanceof Error ? error.stack : undefined
         });
+        
+        // Clean up on transport error
+        if (sessionId) {
+          cleanupConnection(sessionId, res);
+        }
       };
 
       // Handle cleanup when connection closes
       req.on('close', () => {
-        transportMap.delete(transport.sessionId);
-        logger.info('SSE request closed', { 
-          sessionId: transport.sessionId,
-          totalTransports: transportMap.size
-        });
+        logger.info('SSE request closed by client', { sessionId });
+        if (sessionId) {
+          cleanupConnection(sessionId);
+        }
       });
       
       // Handle errors on response stream
       res.on('error', (error) => {
         logger.error('SSE response stream error', { 
-          sessionId: transport.sessionId,
-          error: error.message 
+          sessionId: sessionId,
+          error: error.message,
+          code: (error as any).code,
+          errno: (error as any).errno
         });
-        transportMap.delete(transport.sessionId);
+        if (sessionId) {
+          cleanupConnection(sessionId);
+        }
+      });
+      
+      // Handle connection timeout
+      res.on('timeout', () => {
+        logger.warn('SSE response timeout', { sessionId });
+        if (sessionId) {
+          cleanupConnection(sessionId, res);
+        }
       });
       
     } catch (error) {
-      logger.error('Failed to establish SSE connection', { error });
+      logger.error('Failed to establish SSE connection', { 
+        sessionId,
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      // Cleanup on error
+      if (sessionId) {
+        cleanupConnection(sessionId, res);
+      }
+      
       if (!res.headersSent) {
         res.status(500).json({ 
           error: 'Failed to establish SSE connection',
-          message: error instanceof Error ? error.message : 'Unknown error'
+          message: error instanceof Error ? error.message : 'Unknown error',
+          retryAfter: '5' // Suggest client retry after 5 seconds
         });
       }
     }
@@ -395,6 +492,31 @@ export function createSSEServer(mcpServer: Server) {
       timestamp: new Date().toISOString()
     });
   });
+
+  // Graceful shutdown handler
+  function gracefulShutdown() {
+    logger.info('Shutting down SSE server, cleaning up connections', { 
+      activeConnections: transportMap.size,
+      activeHeartbeats: heartbeatIntervals.size
+    });
+    
+    // Clean up all connections
+    for (const sessionId of transportMap.keys()) {
+      cleanupConnection(sessionId);
+    }
+    
+    // Clear any remaining heartbeat intervals
+    for (const [sessionId, interval] of heartbeatIntervals.entries()) {
+      clearInterval(interval);
+      heartbeatIntervals.delete(sessionId);
+    }
+    
+    logger.info('SSE server cleanup completed');
+  }
+
+  // Handle process termination
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
 
   return app;
 }
