@@ -355,7 +355,7 @@ export MCP_BEARER_TOKEN=your_token
 npx mcp-cisco-support --http
 ```
 
-See **[🔒 Security Guide](./wiki/Security-Guide.md)** for complete security documentation.
+See **[🔒 Security Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Security-Guide)** for complete security documentation.
 
 ## Configuration
 
@@ -794,7 +794,7 @@ CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test
 npm run test:tool search_bugs_by_keyword
 ```
 
-See **[🧪 Testing Framework](./wiki/Testing-Framework.md)** for complete testing documentation.
+See **[🧪 Testing Framework](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Testing-Framework)** for complete testing documentation.
 
 ## License
 
@@ -814,7 +814,7 @@ MIT License - see LICENSE file for details.
 ### Resources
 
 - **[📖 Complete Documentation](./CLAUDE.md)** - Comprehensive project documentation
-- **[📚 Wiki](./wiki/)** - Detailed guides and troubleshooting
+- **[📚 Wiki](https://github.com/sieteunoseis/mcp-cisco-support/wiki)** - Detailed guides and troubleshooting
 - **[🐛 Issues](https://github.com/sieteunoseis/mcp-cisco-support/issues)** - Report bugs and request features
 
 ### External Resources
