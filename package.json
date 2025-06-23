@@ -1,6 +1,6 @@
 {
   "name": "mcp-cisco-support",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "MCP server for Cisco Support APIs including Bug Search and future tools",
   "main": "dist/src/index.js",
   "bin": {

@@ -476,17 +476,17 @@ export class BugApi extends BaseApi {
       {
         name: 'multi_severity_search',
         title: 'Multi-Severity Search',
-        description: 'Searches multiple severity levels in parallel and combines results. Handles the API limitation of single severity values per search.',
+        description: 'Searches multiple severity levels in parallel and combines results. Handles the API limitation of single severity values per search. NOTE: For long product series names (>50 chars), use search_type="product_series" with affected_releases instead of search_type="keyword".',
         inputSchema: {
           type: 'object',
           properties: {
             search_term: {
               type: 'string',
-              description: 'Search term (keyword or product identifier)'
+              description: 'Search term (keyword or product identifier). For keyword searches, limited to 50 characters. Long product series names will be automatically shortened.'
             },
             search_type: {
               type: 'string',
-              description: 'Type of search to perform',
+              description: 'Type of search to perform. Use "product_series" for full product names like "Cisco 4000 Series Integrated Services Routers"',
               enum: ['keyword', 'product_id', 'product_series']
             },
             max_severity: {
@@ -498,7 +498,7 @@ export class BugApi extends BaseApi {
             },
             additional_params: {
               type: 'object',
-              description: 'Additional parameters specific to search type (e.g., affected_releases for product_series)',
+              description: 'Additional parameters specific to search type (e.g., affected_releases for product_series). Required for product_series searches.',
               additionalProperties: true
             }
           },
@@ -809,7 +809,27 @@ export class BugApi extends BaseApi {
       
       switch (searchType) {
         case 'keyword':
-          return await this.executeTool('search_bugs_by_keyword', { keyword: searchTerm, ...searchArgs });
+          // Handle keyword length limitation (50 characters max)
+          let keywordTerm = searchTerm;
+          if (searchTerm.length > 50) {
+            // For long product series names, extract key terms
+            if (searchTerm.toLowerCase().includes('4000 series')) {
+              keywordTerm = 'ISR4000';
+            } else if (searchTerm.toLowerCase().includes('catalyst 9200')) {
+              keywordTerm = 'Catalyst 9200';
+            } else if (searchTerm.toLowerCase().includes('asr 1000')) {
+              keywordTerm = 'ASR1000';
+            } else {
+              // Generic shortening: take first 47 chars + '...'
+              keywordTerm = searchTerm.substring(0, 47) + '...';
+            }
+            logger.info('Shortened keyword search term', { 
+              original: searchTerm, 
+              shortened: keywordTerm,
+              reason: 'Keyword search 50-character limit'
+            });
+          }
+          return await this.executeTool('search_bugs_by_keyword', { keyword: keywordTerm, ...searchArgs });
         case 'product_id':
           return await this.executeTool('search_bugs_by_product_id', { base_pid: searchTerm, ...searchArgs });
         case 'product_series':
