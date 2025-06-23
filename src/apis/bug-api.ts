@@ -336,13 +336,13 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_name_affected',
-        description: 'Search bugs by product identifier and affected releases. NOTE: Use product IDs (like ISR4431, WS-C2960-24TC-L) not full marketing names. For full product names, use keyword search instead.',
+        description: 'Search bugs by full product name and affected releases. NOTE: Requires FULL descriptive product names (like "Cisco 4431 Integrated Services Router") not product IDs. Use search_bugs_by_product_id for product IDs like ISR4431.',
         inputSchema: {
           type: 'object',
           properties: {
             product_name: {
               type: 'string',
-              description: 'Product identifier (e.g., ISR4431, WS-C2960-24TC-L) - NOT full marketing names like "Cisco 4431 Integrated Services Router"'
+              description: 'Full descriptive product name (e.g., "Cisco 4431 Integrated Services Router", "Cisco 2504 Wireless Controller") - NOT product IDs like ISR4431'
             },
             affected_releases: {
               type: 'string',
@@ -380,13 +380,13 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_name_fixed',
-        description: 'Search bugs by product identifier and fixed releases. NOTE: Use product IDs (like ISR4431, WS-C2960-24TC-L) not full marketing names. For full product names, use keyword search instead.',
+        description: 'Search bugs by full product name and fixed releases. NOTE: Requires FULL descriptive product names (like "Cisco 4431 Integrated Services Router") not product IDs. Use search_bugs_by_product_id for product IDs like ISR4431.',
         inputSchema: {
           type: 'object',
           properties: {
             product_name: {
               type: 'string',
-              description: 'Product identifier (e.g., ISR4431, WS-C2960-24TC-L) - NOT full marketing names like "Cisco 4431 Integrated Services Router"'
+              description: 'Full descriptive product name (e.g., "Cisco 4431 Integrated Services Router", "Cisco 2504 Wireless Controller") - NOT product IDs like ISR4431'
             },
             fixed_releases: {
               type: 'string',
