@@ -267,6 +267,27 @@ const ciscoPrompts: Prompt[] = [
         required: true
       }
     ]
+  },
+  {
+    name: 'cisco-smart-search',
+    description: 'Intelligent search strategy with automatic refinement and comprehensive analysis. Uses multiple search techniques and provides web search guidance.',
+    arguments: [
+      {
+        name: 'search_query',
+        description: 'What you want to search for (e.g., "ISR4431 17.09.06 high severity bugs", "memory leak CallManager")',
+        required: true
+      },
+      {
+        name: 'search_context',
+        description: 'Context for the search to optimize strategy',
+        required: false
+      },
+      {
+        name: 'include_web_guidance',
+        description: 'Include web search recommendations for additional research (true/false)',
+        required: false
+      }
+    ]
   }
 ];
 
@@ -280,7 +301,8 @@ const promptApiMapping: Record<string, SupportedAPI[]> = {
   'cisco-known-issues': ['bug'],
   'cisco-case-investigation': ['case'],
   'cisco-lifecycle-planning': ['eox'],
-  'cisco-eox-research': ['eox']
+  'cisco-eox-research': ['eox'],
+  'cisco-smart-search': ['bug']
 };
 
 // Get available prompts (filtered by enabled APIs)
@@ -541,6 +563,39 @@ ${args.product_focus === 'date_range' ? '1. Search EoX information by Date Range
 - **End of Support:** All technical support ends
 
 Please use the appropriate EoX API tools based on the research focus area.`
+          }
+        }
+      ];
+
+    case 'cisco-smart-search':
+      const includeWebGuidance = args.include_web_guidance !== 'false';
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Please perform an intelligent search analysis for: "${args.search_query}"
+
+**Search Strategy Request:**
+${args.search_context ? `- Context: ${args.search_context}` : ''}
+- Query: ${args.search_query}
+- Include web search guidance: ${includeWebGuidance}
+
+**Recommended Approach:**
+1. **Start with Smart Search Strategy**: Use \`smart_search_strategy\` tool to analyze the query and get optimal search recommendations
+2. **Execute Comprehensive Analysis**: Use \`comprehensive_analysis\` tool with the product identifier and version detected
+3. **Apply Progressive Search**: If initial results are limited, the system will automatically try broader search terms
+4. **Multi-Severity Coverage**: For high-priority searches, automatically search multiple severity levels
+${includeWebGuidance ? '5. **Web Search Guidance**: Get specific web search queries for additional research on Cisco.com' : ''}
+
+**Enhanced Features Available:**
+- **Product ID Resolution**: Converts technical product codes (ISR4431/K9) to full product names
+- **Version Normalization**: Tries multiple version formats (17.09.06 → 17.09 → 17)
+- **Automatic Refinement**: Broadens search scope when specific queries return no results
+- **Parallel Severity Search**: Searches multiple severity levels simultaneously
+- **Lifecycle Integration**: Includes end-of-life status and upgrade recommendations
+
+Please execute this intelligent search strategy using the enhanced tools to provide comprehensive results.`
           }
         }
       ];
