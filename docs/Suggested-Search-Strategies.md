@@ -304,9 +304,10 @@ keyword: "Cisco 4431 Integrated Services Router 17.09.06"
 **Option 1 - Product Series Search (Recommended for full names)**:
 ```bash
 # Direct product series search with full name and version
+# IMPORTANT: Use Cisco API version format (17.9.6 not 17.09.06)
 Tool: search_bugs_by_product_series_affected
 product_series: "Cisco 4000 Series Integrated Services Routers"
-affected_releases: "17.09.06"
+affected_releases: "17.9.6"
 ```
 
 **Option 2 - Automated Resolution**:
@@ -337,7 +338,9 @@ software_version: "17.09.06"
 5. **Related product coverage** - searches capture entire product family variations
 6. **Cross-platform issues** affecting multiple models in the same series
 
-**API Discovery**: The endpoint `https://apix.cisco.com/bug/v2.0/bugs/product_series/Cisco 4000 Series Integrated Services Routers/affected_releases/17.9.6` works perfectly, confirming that full product series names are accepted by the API.
+**API Discovery**: The endpoint `https://apix.cisco.com/bug/v2.0/bugs/product_series/Cisco 4000 Series Integrated Services Routers/affected_releases/17.9.6` works perfectly, confirming that:
+1. Full product series names are accepted by the API
+2. **CRITICAL**: Version format must NOT have leading zeros (`17.9.6` ✅ works, `17.09.06` ❌ returns no results)
 
 ### ❌ Less Effective Patterns
 

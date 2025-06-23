@@ -198,6 +198,15 @@ export class WebSearchHelper {
   }
 
   /**
+   * Convert version to Cisco API format (remove leading zeros)
+   * 17.09.06 -> 17.9.6
+   * 15.01.04 -> 15.1.4
+   */
+  static formatVersionForCiscoAPI(version: string): string {
+    return version.replace(/\.0+(\d)/g, '.$1');
+  }
+
+  /**
    * Get the product series name for bug API searches
    */
   static getProductSeries(productId: string): string | null {

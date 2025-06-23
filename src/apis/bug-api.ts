@@ -12,14 +12,26 @@ export class BugApi extends BaseApi {
   // Utility functions for enhanced search capabilities
   private normalizeVersion(version: string): string[] {
     const versions = [];
-    // Original version
-    versions.push(version);
     
-    // Remove patch versions: 17.09.06 -> 17.09
+    // Convert to Cisco API format first: 17.09.06 -> 17.9.6 (remove leading zeros)
+    const ciscoFormat = version.replace(/\.0+(\d)/g, '.$1');
+    versions.push(ciscoFormat);
+    
+    // Also keep original version in case it's already in correct format
+    if (ciscoFormat !== version) {
+      versions.push(version);
+    }
+    
+    // Create abbreviated versions: 17.09.06 -> 17.09 -> 17.9
     if (version.includes('.')) {
       const parts = version.split('.');
       if (parts.length >= 3) {
-        versions.push(parts.slice(0, 2).join('.'));
+        const shortVersion = parts.slice(0, 2).join('.');
+        const shortCiscoFormat = shortVersion.replace(/\.0+(\d)/g, '.$1');
+        versions.push(shortCiscoFormat);
+        if (shortCiscoFormat !== shortVersion) {
+          versions.push(shortVersion);
+        }
       }
       if (parts.length >= 2) {
         versions.push(parts[0]);
@@ -233,7 +245,7 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_series_affected',
-        description: 'Search bugs by product series and affected releases. This endpoint accepts full product series names like "Cisco 4000 Series Integrated Services Routers" or "Cisco Catalyst 9200 Series".',
+        description: 'Search bugs by product series and affected releases. This endpoint accepts full product series names like "Cisco 4000 Series Integrated Services Routers". IMPORTANT: Use Cisco API version format without leading zeros (17.9.6 not 17.09.06).',
         inputSchema: {
           type: 'object',
           properties: {
@@ -243,7 +255,7 @@ export class BugApi extends BaseApi {
             },
             affected_releases: {
               type: 'string',
-              description: 'Comma-separated affected release versions'
+              description: 'Comma-separated affected release versions in Cisco API format (e.g., "17.9.6" not "17.09.06" - no leading zeros)'
             },
             page_index: {
               type: 'integer',
@@ -276,7 +288,7 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_series_fixed',
-        description: 'Search bugs by product series and fixed releases. This endpoint accepts full product series names like "Cisco 4000 Series Integrated Services Routers" or "Cisco Catalyst 9200 Series".',
+        description: 'Search bugs by product series and fixed releases. This endpoint accepts full product series names like "Cisco 4000 Series Integrated Services Routers". IMPORTANT: Use Cisco API version format without leading zeros (17.9.6 not 17.09.06).',
         inputSchema: {
           type: 'object',
           properties: {
@@ -286,7 +298,7 @@ export class BugApi extends BaseApi {
             },
             fixed_releases: {
               type: 'string',
-              description: 'Comma-separated fixed release versions'
+              description: 'Comma-separated fixed release versions in Cisco API format (e.g., "17.9.6" not "17.09.06" - no leading zeros)'
             },
             page_index: {
               type: 'integer',
@@ -890,11 +902,13 @@ export class BugApi extends BaseApi {
       
       // Add product series search if we have that information and a software version
       if (productSeries && softwareVersion) {
-        analysis.search_strategy_used.push('Product series search with full product name');
+        analysis.search_strategy_used.push('Product series search with full product name and Cisco API version format');
         try {
+          // Convert version to Cisco API format (17.09.06 -> 17.9.6)
+          const ciscoFormattedVersion = WebSearchHelper.formatVersionForCiscoAPI(softwareVersion);
           const productSeriesResult = await this.executeTool('search_bugs_by_product_series_affected', {
             product_series: productSeries,
-            affected_releases: softwareVersion
+            affected_releases: ciscoFormattedVersion
           });
           
           if (productSeriesResult.bugs && analysis.bug_analysis.bugs) {
