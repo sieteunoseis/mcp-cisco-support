@@ -476,7 +476,7 @@ export class BugApi extends BaseApi {
       {
         name: 'multi_severity_search',
         title: 'Multi-Severity Search',
-        description: 'Searches multiple severity levels in parallel and combines results. Handles the API limitation of single severity values per search. NOTE: For long product series names (>50 chars), use search_type="product_series" with affected_releases instead of search_type="keyword".',
+        description: 'Searches multiple severity levels in parallel and combines results. Handles the API limitation of single severity values per search. Supports version parameter for version-specific searches. NOTE: For long product series names (>50 chars), use search_type="product_series" with version parameter.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -496,9 +496,13 @@ export class BugApi extends BaseApi {
               minimum: 1,
               maximum: 6
             },
+            version: {
+              type: 'string',
+              description: 'Software version to search for (e.g., "15.0", "14.0", "17.9.6"). Will be automatically included in search terms and used for product_series searches as affected_releases.'
+            },
             additional_params: {
               type: 'object',
-              description: 'Additional parameters specific to search type (e.g., affected_releases for product_series). Required for product_series searches.',
+              description: 'Additional parameters specific to search type (e.g., affected_releases for product_series). Required for product_series searches unless version parameter is provided.',
               additionalProperties: true
             }
           },
@@ -797,9 +801,18 @@ export class BugApi extends BaseApi {
     const searchTerm = args.search_term as string;
     const searchType = args.search_type as string;
     const maxSeverity = (args.max_severity as number) || 3;
+    const version = args.version as string;
     const additionalParams = (args.additional_params as Record<string, any>) || {};
     
-    logger.info('Starting multi-severity search', { searchTerm, searchType, maxSeverity });
+    // If version is provided, enhance search parameters
+    if (version) {
+      // For product_series searches, use version as affected_releases if not already specified
+      if (searchType === 'product_series' && !additionalParams.affected_releases && !additionalParams.fixed_releases) {
+        additionalParams.affected_releases = version;
+      }
+    }
+    
+    logger.info('Starting multi-severity search', { searchTerm, searchType, maxSeverity, version });
     
     const searchFunc = async (severity: string): Promise<BugApiResponse> => {
       const searchArgs = {
@@ -811,20 +824,28 @@ export class BugApi extends BaseApi {
         case 'keyword':
           // Handle keyword length limitation (50 characters max)
           let keywordTerm = searchTerm;
-          if (searchTerm.length > 50) {
+          
+          // Include version in keyword search if provided
+          if (version) {
+            keywordTerm = `${searchTerm} ${version}`;
+          }
+          
+          if (keywordTerm.length > 50) {
             // For long product series names, extract key terms
             if (searchTerm.toLowerCase().includes('4000 series')) {
-              keywordTerm = 'ISR4000';
+              keywordTerm = version ? `ISR4000 ${version}` : 'ISR4000';
             } else if (searchTerm.toLowerCase().includes('catalyst 9200')) {
-              keywordTerm = 'Catalyst 9200';
+              keywordTerm = version ? `Catalyst 9200 ${version}` : 'Catalyst 9200';
             } else if (searchTerm.toLowerCase().includes('asr 1000')) {
-              keywordTerm = 'ASR1000';
+              keywordTerm = version ? `ASR1000 ${version}` : 'ASR1000';
+            } else if (searchTerm.toLowerCase().includes('callmanager') || searchTerm.toLowerCase().includes('unified communications manager')) {
+              keywordTerm = version ? `CallManager ${version}` : 'CallManager';
             } else {
               // Generic shortening: take first 47 chars + '...'
-              keywordTerm = searchTerm.substring(0, 47) + '...';
+              keywordTerm = keywordTerm.substring(0, 47) + '...';
             }
             logger.info('Shortened keyword search term', { 
-              original: searchTerm, 
+              original: version ? `${searchTerm} ${version}` : searchTerm, 
               shortened: keywordTerm,
               reason: 'Keyword search 50-character limit'
             });
