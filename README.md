@@ -204,7 +204,7 @@ The server includes **5 specialized prompts** for guided Cisco support workflows
 
 Each prompt provides structured investigation plans and expert recommendations.
 
-See **[⚡ MCP Prompts](./wiki/MCP-Prompts.md)** for complete prompt documentation and examples.
+See **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** for complete prompt documentation and examples.
 
 ## Screenshots
 
@@ -442,17 +442,17 @@ docker run -p 3000:3000 \
 
 ## 📚 Documentation
 
-For detailed information, see our comprehensive wiki:
+For detailed information, see our comprehensive [GitHub Wiki](https://github.com/sieteunoseis/mcp-cisco-support/wiki):
 
-- **[📋 Available Tools](./wiki/Available-Tools.md)** - Complete reference for all 33 MCP tools across 6 APIs
-- **[🔧 Advanced Configuration](./wiki/Advanced-Configuration.md)** - Environment variables and deployment options
-- **[🔒 Security Guide](./wiki/Security-Guide.md)** - Authentication, tokens, and security best practices  
-- **[🚀 Docker Deployment](./wiki/Docker-Deployment.md)** - Containerized deployment and production setup
-- **[🌐 SSE Integration](./wiki/SSE-Integration.md)** - Server-Sent Events and real-time communication
-- **[🧪 Testing Framework](./wiki/Testing-Framework.md)** - Comprehensive testing and validation
-- **[🔧 Development Guide](./wiki/Development-Guide.md)** - Contributing, architecture, and API development
-- **[🚨 Troubleshooting Guide](./wiki/Troubleshooting-Guide.md)** - Common issues and debugging
-- **[⚡ MCP Prompts](./wiki/MCP-Prompts.md)** - Guided workflows for Cisco support scenarios
+- **[📋 Available Tools](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Available-Tools)** - Complete reference for all 33 MCP tools across 6 APIs
+- **[🔧 Advanced Configuration](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Advanced-Configuration)** - Environment variables and deployment options
+- **[🔒 Security Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Security-Guide)** - Authentication, tokens, and security best practices  
+- **[🚀 Docker Deployment](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Docker-Deployment)** - Containerized deployment and production setup
+- **[🌐 SSE Integration](https://github.com/sieteunoseis/mcp-cisco-support/wiki/SSE-Integration)** - Server-Sent Events and real-time communication
+- **[🧪 Testing Framework](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Testing-Framework)** - Comprehensive testing and validation
+- **[🔧 Development Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Development-Guide)** - Contributing, architecture, and API development
+- **[🚨 Troubleshooting Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Troubleshooting-Guide)** - Common issues and debugging
+- **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** - Guided workflows for Cisco support scenarios
 
 ## Usage Examples
 
