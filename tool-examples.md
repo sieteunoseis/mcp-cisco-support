@@ -179,12 +179,12 @@ sort_by: severity
 
 *Natural Language:* "Find all severity 2 bugs for the Cisco Catalyst 9200-24P switch to identify urgent issues requiring immediate attention."
 
-**Example 2 - ISR 4000 Router**
+**Example 2 - Cisco 1000 Series Integrated Services Router**
 
 *JSON Format:*
 ```json
 {
-  "base_pid": "ISR4431-V/K9",
+  "base_pid": "C1121-4P",
   "modified_date": "1",
   "sort_by": "modified_date"
 }
@@ -193,35 +193,33 @@ sort_by: severity
 *Text Format:*
 ```
 Tool: search_bugs_by_product_id
-base_pid: ISR4431-V/K9
+base_pid: C1121-4P
 modified_date: 1
 sort_by: modified_date
 ```
 
-*Natural Language:* "Search for recent ISR4331 router bugs modified today to stay current with the latest issues and updates."
+*Natural Language:* "Search for recent C1121-4P router bugs modified today to stay current with the latest issues and updates."
 
-**Example 3 - ASA Firewall**
+**Example 3 - Cisco Secure Firewall 3100**
 
 *JSON Format:*
 ```json
 {
-  "base_pid": "ASA5516-X",
+  "base_pid": "FPR3105-NGFW-K9",
   "status": "F",
   "severity": "2",
-  "page_index": 2
 }
 ```
 
 *Text Format:*
 ```
 Tool: search_bugs_by_product_id
-base_pid: ASA5516-X
+base_pid: FPR3105-NGFW-K9
 status: F
 severity: 2
-page_index: 2
 ```
 
-*Natural Language:* "Find fixed high-severity bugs for ASA5516-X firewall on page 2 to review resolved security and performance issues."
+*Natural Language:* "Find fixed high-severity bugs for FPR3105-NGFW-K9 firewall to review resolved security and performance issues."
 
 **Example 4 - Nexus Switch**
 
@@ -247,13 +245,13 @@ modified_date: 2
 ### 4. search_bugs_by_product_and_release
 Search bugs by product ID and software releases.
 
-**Example 1 - Catalyst with IOS XE**
+**Example 1 - Catalyst C9300-24P with IOS XE**
 
 *JSON Format:*
 ```json
 {
   "base_pid": "C9300-24P",
-  "software_releases": "17.5.1,17.5.2",
+  "software_releases": "17.9.1",
   "severity": "2",
   "status": "O"
 }
@@ -263,12 +261,12 @@ Search bugs by product ID and software releases.
 ```
 Tool: search_bugs_by_product_and_release
 base_pid: C9300-24P
-software_releases: 17.5.1,17.5.2
+software_releases: 17.9.1
 severity: 2
 status: O
 ```
 
-*Natural Language:* "Find high-severity open bugs affecting Catalyst 9300-24P switches running IOS XE 17.5.1 or 17.5.2 to assess upgrade risks."
+*Natural Language:* "Find high-severity open bugs affecting Catalyst 9300-24P switches running IOS XE 17.9.1 to assess upgrade risks."
 
 **Example 2 - ASR Router Specific Release**
 
@@ -298,8 +296,8 @@ sort_by: severity
 *JSON Format:*
 ```json
 {
-  "base_pid": "ISR4451-X",
-  "software_releases": "16.12.08,17.3.5,17.6.3",
+  "base_pid": "C9300-24P",
+  "software_releases": "17.9.1,17.12.3",
   "status": "F"
 }
 ```
@@ -307,12 +305,12 @@ sort_by: severity
 *Text Format:*
 ```
 Tool: search_bugs_by_product_and_release
-base_pid: ISR4451-X
-software_releases: 16.12.08,17.3.5,17.6.3
+base_pid: C9300-24P
+software_releases: 17.9.1,17.12.3
 status: F
 ```
 
-*Natural Language:* "Compare fixed bugs across three ISR4451-X software releases to understand issue resolution patterns and upgrade benefits."
+*Natural Language:* "Compare fixed bugs across C9300-24P software releases 17.9.1 and 17.12.3 to understand issue resolution patterns and upgrade benefits."
 
 ### 5. search_bugs_by_product_series_affected
 Search bugs by product series and affected releases.
@@ -322,9 +320,9 @@ Search bugs by product series and affected releases.
 *JSON Format:*
 ```json
 {
-  "product_series": "Cisco Catalyst 9000 Series",
-  "affected_releases": "17.5.1,17.5.2",
-  "severity": "1",
+  "product_series": "Cisco Catalyst 9300 Series Switches",
+  "affected_releases": "17.12.3,17.9.3,17.9.4",
+  "severity": "2",
   "sort_by": "modified_date"
 }
 ```
@@ -332,21 +330,21 @@ Search bugs by product series and affected releases.
 *Text Format:*
 ```
 Tool: search_bugs_by_product_series_affected
-product_series: Cisco Catalyst 9000 Series
-affected_releases: 17.5.1,17.5.2
-severity: 1
+product_series: Cisco Catalyst 9300 Series Switches
+affected_releases: 17.12.3,17.9.3,17.9.4
+severity: 2
 sort_by: modified_date
 ```
 
-*Natural Language:* "Find critical bugs affecting the entire Catalyst 9000 series in releases 17.5.1 and 17.5.2, sorted by modification date for recent updates."
+*Natural Language:* "Find high-severity bugs affecting the entire Catalyst 9300 Series Switches in releases 17.12.3, 17.9.3, and 17.9.4, sorted by modification date for recent updates."
 
 **Example 2 - ASR 1000 Series Critical Issues**
 
 *JSON Format:*
 ```json
 {
-  "product_series": "Cisco ASR 1000 Series",
-  "affected_releases": "17.3.4a,17.3.5",
+  "product_series": "Cisco ASR 1000 Series Aggregation Services Routers",
+  "affected_releases": "17.12.2,17.12.4,17.15.1",
   "severity": "2",
   "status": "O"
 }
@@ -355,21 +353,21 @@ sort_by: modified_date
 *Text Format:*
 ```
 Tool: search_bugs_by_product_series_affected
-product_series: Cisco ASR 1000 Series
-affected_releases: 17.3.4a,17.3.5
+product_series: Cisco ASR 1000 Series Aggregation Services Routers
+affected_releases: 17.12.2,17.12.4,17.15.1
 severity: 2
 status: O
 ```
 
-*Natural Language:* "Search for high-severity open bugs affecting ASR 1000 series routers in releases 17.3.4a and 17.3.5 to assess deployment risks."
+*Natural Language:* "Search for high-severity open bugs affecting Cisco ASR 1000 Series Aggregation Services Routers in releases 17.12.2, 17.12.4, and 17.15.1 to assess deployment risks."
 
 **Example 3 - ISR 4000 Series Recent Issues**
 
 *JSON Format:*
 ```json
 {
-  "product_series": "Cisco ISR 4000 Series",
-  "affected_releases": "17.6.3,17.6.4",
+  "product_series": "Cisco 4000 Series Integrated Services Routers",
+  "affected_releases": "17.15.2,17.15.2a,17.16.1",
   "modified_date": "1"
 }
 ```
@@ -377,12 +375,12 @@ status: O
 *Text Format:*
 ```
 Tool: search_bugs_by_product_series_affected
-product_series: Cisco ISR 4000 Series
-affected_releases: 17.6.3,17.6.4
+product_series: Cisco 4000 Series Integrated Services Routers
+affected_releases: 17.15.2,17.15.2a,17.16.1
 modified_date: 1
 ```
 
-*Natural Language:* "Find recent ISR 4000 series bugs in releases 17.6.3 and 17.6.4 modified today to stay current with emerging issues."
+*Natural Language:* "Find recent Cisco 4000 Series Integrated Services Routers bugs in releases 17.15.2, 17.15.2a, and 17.16.1 modified today to stay current with emerging issues."
 
 ### 6. search_bugs_by_product_series_fixed
 Search bugs by product series and fixed releases.
@@ -395,17 +393,17 @@ Search bugs by product series and fixed releases.
   "product_series": "Cisco Nexus 9000 Series",
   "fixed_releases": "10.2(3)F,10.2(4)F",
   "severity": "1",
-  "sort_by": "bug_id"
+  "sort_by": "severity"
 }
 ```
 
 *Text Format:*
 ```
 Tool: search_bugs_by_product_series_fixed
-product_series: Cisco Nexus 9000 Series
-fixed_releases: 10.2(3)F,10.2(4)F
-severity: 1
-sort_by: bug_id
+product_series: Cisco Nexus 9000 Series Switches
+fixed_releases: 9.2(2)
+severity: 2
+sort_by: severity
 ```
 
 *Natural Language:* "Find critical bugs fixed in Nexus 9000 series releases 10.2(3)F and 10.2(4)F to understand resolved issues and upgrade benefits."
