@@ -124,7 +124,7 @@ export class BugApi extends BaseApi {
       {
         name: 'search_bugs_by_keyword',
         title: 'Search Bugs by Keyword',
-        description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: Cisco API only accepts ONE severity and ONE status value per search - for "severity 3 or higher" you must make separate searches for each severity level (1, 2, 3).',
+        description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: severity parameter returns ONLY that specific level. For "severity 3 or higher" searches, use multi_severity_search tool instead.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -144,7 +144,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -184,7 +184,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -228,7 +228,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -272,7 +272,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -316,7 +316,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -360,7 +360,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -404,7 +404,7 @@ export class BugApi extends BaseApi {
             },
             severity: {
               type: 'string',
-              description: 'Bug severity filter. IMPORTANT: Only ONE severity level allowed per search. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). To find "severity 3 or higher", make separate searches for severity 1, then severity 2, then severity 3. Do NOT use comma-separated values.',
+              description: 'Bug severity filter. Returns bugs with ONLY the specified severity level. Values: 1=Severity 1 (highest), 2=Severity 2, 3=Severity 3, 4=Severity 4, 5=Severity 5, 6=Severity 6 (lowest). For "severity 3 or higher" bugs, use multi_severity_search tool which handles multiple separate API calls.',
               enum: ['1', '2', '3', '4', '5', '6']
             },
             modified_date: {
@@ -476,7 +476,7 @@ export class BugApi extends BaseApi {
       {
         name: 'multi_severity_search',
         title: 'Multi-Severity Search',
-        description: 'Searches multiple severity levels in parallel and combines results. Handles the API limitation of single severity values per search. Supports version parameter for version-specific searches. NOTE: For long product series names (>50 chars), use search_type="product_series" with version parameter.',
+        description: 'RECOMMENDED for multi-severity searches: Automatically searches multiple severity levels and combines results. Use this when you need "severity 3 or higher", "high severity bugs", or any range of severities. Handles the API limitation that requires separate calls for each severity level.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -512,7 +512,7 @@ export class BugApi extends BaseApi {
       {
         name: 'comprehensive_analysis',
         title: 'Comprehensive Bug and Lifecycle Analysis',
-        description: 'Combines bug database search with web search guidance for EoL information. Provides complete product analysis including known issues, lifecycle status, and actionable recommendations.',
+        description: 'BEST FOR DETAILED ANALYSIS: Combines bug database search with web search guidance for EoL information. Provides complete product analysis including known issues, lifecycle status, and actionable recommendations. Ideal for failover issues, configuration problems, and product reliability concerns.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -580,11 +580,15 @@ export class BugApi extends BaseApi {
         break;
         
       case 'search_bugs_by_product_id':
-        endpoint = `/bugs/products/product_id/${encodeURIComponent(processedArgs.base_pid)}`;
+        // Ensure forward slashes are properly encoded for product IDs like ISR4431-V/K9
+        const encodedBasePid = encodeURIComponent(processedArgs.base_pid).replace(/\//g, '%2F');
+        endpoint = `/bugs/products/product_id/${encodedBasePid}`;
         break;
         
       case 'search_bugs_by_product_and_release':
-        endpoint = `/bugs/products/product_id/${encodeURIComponent(processedArgs.base_pid)}/software_releases/${encodeURIComponent(processedArgs.software_releases)}`;
+        // Ensure forward slashes are properly encoded for product IDs like ISR4431-V/K9
+        const encodedBasePidForRelease = encodeURIComponent(processedArgs.base_pid).replace(/\//g, '%2F');
+        endpoint = `/bugs/products/product_id/${encodedBasePidForRelease}/software_releases/${encodeURIComponent(processedArgs.software_releases)}`;
         break;
         
       case 'search_bugs_by_product_series_affected':
