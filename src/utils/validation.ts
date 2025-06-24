@@ -50,8 +50,8 @@ export function validateToolArgs(tool: Tool, args: ToolArgs): void {
 export function setDefaultValues(args: ToolArgs): ToolArgs {
   const processedArgs = { ...args };
   
-  // Common defaults
-  if (!processedArgs.page_index) processedArgs.page_index = 1;
+  // Common defaults - only set if not explicitly provided
+  // Let the API use its own defaults for page_index
   if (!processedArgs.modified_date) processedArgs.modified_date = '5';
   
   return processedArgs;
