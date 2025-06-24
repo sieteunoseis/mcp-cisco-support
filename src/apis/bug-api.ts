@@ -204,17 +204,17 @@ export class BugApi extends BaseApi {
       },
       {
         name: 'search_bugs_by_product_and_release',
-        description: 'Search bugs by product ID and software releases',
+        description: 'Search bugs by specific product ID and software releases. CRITICAL: Use "software_releases" parameter with comma-separated values like "17.9.1,17.12.3" to search up to 75 versions in ONE API call. NEVER make multiple separate calls for different versions - the API supports multiple versions in a single request. Use this when you have an exact product ID and want to filter by specific software versions. For product series searches, use search_bugs_by_product_series_affected instead.',
         inputSchema: {
           type: 'object',
           properties: {
             base_pid: {
               type: 'string',
-              description: 'Base product ID'
+              description: 'Specific product ID (e.g., "C9300-24P", "ISR4431", "ASA5516-X") - NOT product series names'
             },
             software_releases: {
               type: 'string',
-              description: 'Comma-separated software release versions'
+              description: 'Comma-separated software release versions (e.g., "17.9.1,17.12.3") - can search up to 75 versions in one call. Do NOT make separate API calls for each version.'
             },
             page_index: {
               type: 'integer',
@@ -258,7 +258,7 @@ export class BugApi extends BaseApi {
             },
             affected_releases: {
               type: 'string',
-              description: 'Comma-separated affected release versions in Cisco API format (e.g., "17.9.6" not "17.09.06" - no leading zeros)'
+              description: 'Comma-separated affected release versions in Cisco API format (e.g., "17.9.6,17.12.3" not "17.09.06" - no leading zeros). Can search up to 75 versions in one call.'
             },
             page_index: {
               type: 'integer',
@@ -302,7 +302,7 @@ export class BugApi extends BaseApi {
             },
             fixed_releases: {
               type: 'string',
-              description: 'Comma-separated fixed release versions in Cisco API format (e.g., "17.9.6" not "17.09.06" - no leading zeros)'
+              description: 'Comma-separated fixed release versions in Cisco API format (e.g., "17.9.6,17.12.3" not "17.09.06" - no leading zeros). Can search up to 75 versions in one call.'
             },
             page_index: {
               type: 'integer',
@@ -346,7 +346,7 @@ export class BugApi extends BaseApi {
             },
             affected_releases: {
               type: 'string',
-              description: 'Comma-separated affected release versions'
+              description: 'Comma-separated affected release versions (e.g., "12.5(1)SU5,14.0(1)SU2"). Can search up to 75 versions in one call.'
             },
             page_index: {
               type: 'integer',
@@ -390,7 +390,7 @@ export class BugApi extends BaseApi {
             },
             fixed_releases: {
               type: 'string',
-              description: 'Comma-separated fixed release versions'
+              description: 'Comma-separated fixed release versions (e.g., "12.5(1)SU6,14.0(1)SU3"). Can search up to 75 versions in one call.'
             },
             page_index: {
               type: 'integer',
