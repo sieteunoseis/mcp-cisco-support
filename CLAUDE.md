@@ -262,10 +262,11 @@ The server implements these Cisco Bug API v2.0 endpoints:
 7. **search_bugs_by_product_name_affected** - Search by exact product name + affected releases
 8. **search_bugs_by_product_name_fixed** - Search by exact product name + fixed releases
 
-**IMPORTANT Parameter Limitations (v1.4.1+)**:
-- **Severity**: Only accepts single values (`"3"`) not comma-separated (`"1,2,3"`)
+**IMPORTANT Parameter Limitations (v1.9.5+)**:
+- **Severity**: Returns ONLY the specified level (severity=3 returns only severity 3 bugs, not 1-3)
 - **Status**: Only accepts single values (`"O"`) not comma-separated (`"O,F"`)
-- For searches requiring multiple values, make separate API calls
+- **Multi-severity searches**: Use multi_severity_search tool for "severity 3 or higher" type queries
+- For multiple status values, make separate API calls
 
 ## Server Endpoints
 

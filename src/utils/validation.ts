@@ -59,9 +59,12 @@ export function setDefaultValues(args: ToolArgs): ToolArgs {
 
 // Build API parameters from tool arguments
 export function buildApiParams(args: ToolArgs): Record<string, any> {
-  const apiParams: Record<string, any> = {
-    page_index: args.page_index || 1
-  };
+  const apiParams: Record<string, any> = {};
+  
+  // Add page_index only if explicitly provided, otherwise let API use its default
+  if (args.page_index !== undefined) {
+    apiParams.page_index = args.page_index;
+  }
   
   // Add optional filters - only if explicitly provided
   if (args.status) apiParams.status = args.status;
