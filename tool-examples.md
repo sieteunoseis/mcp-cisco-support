@@ -390,8 +390,8 @@ Search bugs by product series and fixed releases.
 *JSON Format:*
 ```json
 {
-  "product_series": "Cisco Nexus 9000 Series",
-  "fixed_releases": "10.2(3)F,10.2(4)F",
+  "product_series": "Cisco Nexus 9000 Series Switches",
+  "fixed_releases": "9.2(2)",
   "severity": "1",
   "sort_by": "severity"
 }
@@ -406,15 +406,15 @@ severity: 2
 sort_by: severity
 ```
 
-*Natural Language:* "Find critical bugs fixed in Nexus 9000 series releases 10.2(3)F and 10.2(4)F to understand resolved issues and upgrade benefits."
+*Natural Language:* "Find critical bugs fixed in 'Cisco Nexus 9000 Series Switches' releases 9.2(2) to understand resolved issues and upgrade benefits."
 
 **Example 2 - ASA Security Fixes**
 
 *JSON Format:*
 ```json
 {
-  "product_series": "Cisco ASA 5500-X Series",
-  "fixed_releases": "9.17(1)21,9.18(2)4",
+  "product_series": "Cisco ASA 5500-X Series Firewalls",
+  "fixed_releases": "9.16.3,9.16.3.14,9.16.3.15",
   "status": "F"
 }
 ```
@@ -422,12 +422,12 @@ sort_by: severity
 *Text Format:*
 ```
 Tool: search_bugs_by_product_series_fixed
-product_series: Cisco ASA 5500-X Series
-fixed_releases: 9.17(1)21,9.18(2)4
+product_series: Cisco ASA 5500-X Series Firewalls
+fixed_releases: 9.16.3,9.16.3.14,9.16.3.15
 status: F
 ```
 
-*Natural Language:* "Search for fixed bugs in ASA 5500-X series releases 9.17(1)21 and 9.18(2)4 to review security and stability improvements."
+*Natural Language:* "Search for fixed bugs in 'Cisco ASA 5500-X Series Firewalls' releases 9.16.3, 9.16.3.14, and 9.16.3.15 to review security and stability improvements."
 
 **Example 3 - WLC Fixed Features**
 

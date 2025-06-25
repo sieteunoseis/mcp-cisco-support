@@ -597,6 +597,12 @@ export class BugApi extends BaseApi {
         
       case 'search_bugs_by_product_series_fixed':
         endpoint = `/bugs/product_series/${encodeURIComponent(processedArgs.product_series)}/fixed_in_releases/${encodeURIComponent(processedArgs.fixed_releases)}`;
+        logger.info('Product series fixed endpoint', { 
+          product_series: processedArgs.product_series,
+          fixed_releases: processedArgs.fixed_releases,
+          endpoint,
+          fullUrl: `${this.baseUrl}${endpoint}`
+        });
         break;
         
       case 'search_bugs_by_product_name_affected':
