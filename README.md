@@ -22,7 +22,8 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 
 | API | Status | Tools | Description |
 |-----|--------|-------|-------------|
-| **Bug** (`bug`) | ✅ **Complete** | 8 tools | Bug Search, Details, Product-specific searches |
+| **Enhanced Analysis** (`enhanced_analysis`) | ⭐ **RECOMMENDED** | 6 tools | Advanced analysis tools for comprehensive product assessment |
+| **Bug** (`bug`) | ✅ **Complete** | 14 tools | Bug Search, Details, Product-specific searches + Enhanced tools |
 | **Case** (`case`) | ✅ **Complete** | 4 tools | Support case management and operations |
 | **EoX** (`eox`) | ✅ **Complete** | 4 tools | End of Life/Sale information and lifecycle planning |
 | **PSIRT** (`psirt`) | ✅ **Complete** | 8 tools | Product Security Incident Response Team vulnerability data |
@@ -34,9 +35,10 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 **Implementation Status:** 6/8 APIs complete (75%) with 33 total tools
 
 **Configuration Examples:**
-- `SUPPORT_API=bug` - Bug API only (8 tools)
-- `SUPPORT_API=bug,case,eox,psirt` - Core support APIs (24 tools)
-- `SUPPORT_API=bug,case,eox,psirt,product,software` - All implemented APIs (33 tools) **← Recommended**
+- `SUPPORT_API=enhanced_analysis` - Enhanced analysis tools only (6 tools) **← RECOMMENDED for most users**
+- `SUPPORT_API=bug` - All Bug API tools including enhanced analysis (14 tools)
+- `SUPPORT_API=bug,case,eox,psirt` - Core support APIs (28 tools)
+- `SUPPORT_API=bug,case,eox,psirt,product,software` - All implemented APIs (39 tools)
 - `SUPPORT_API=all` - All available APIs (includes 2 placeholder APIs)
 
 ## Quick Start
@@ -134,6 +136,7 @@ npm start
    ```
    
    **Optional**: Configure which APIs to enable with `SUPPORT_API`:
+   - `"enhanced_analysis"` - Enhanced analysis tools only (recommended for most users)
    - `"bug"` - Bug API only (default)
    - `"all"` - All available APIs
    - `"bug,case,eox"` - Multiple specific APIs
@@ -798,7 +801,7 @@ See **[🧪 Testing Framework](https://github.com/sieteunoseis/mcp-cisco-support
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Contributing
 

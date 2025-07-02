@@ -1,6 +1,6 @@
 {
   "name": "mcp-cisco-support",
-  "version": "1.9.8",
+  "version": "1.10.0",
   "description": "MCP server for Cisco Support APIs including Bug Search and future tools",
   "main": "dist/src/index.js",
   "bin": {
@@ -10,6 +10,7 @@
     "dist/**/*",
     "README.md",
     "CLAUDE.md",
+    "LICENSE",
     ".env.example",
     "Dockerfile",
     "docker-compose.yml",
