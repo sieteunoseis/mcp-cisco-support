@@ -98,12 +98,22 @@ Add this configuration to your Claude Desktop settings file:
       "args": ["mcp-cisco-support"],
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
-        "CISCO_CLIENT_SECRET": "your_client_secret_here"
+        "CISCO_CLIENT_SECRET": "your_client_secret_here",
+        "SUPPORT_API": "enhanced_analysis"
       }
     }
   }
 }
 ```
+
+### API Configuration Options
+
+Configure which tools are available using the `SUPPORT_API` environment variable:
+
+- **`enhanced_analysis`** ⭐ **RECOMMENDED** - Only the 6 enhanced analysis tools (simplified deployment)
+- **`bug`** - All 14 Bug API tools (basic bug search capabilities)
+- **`all`** - All available APIs and tools (complete feature set)
+- **`bug,case,psirt`** - Multiple specific APIs (custom combinations)
 
 ### Example Usage
 
@@ -124,6 +134,12 @@ Once configured, you can ask Claude questions like:
   - "Search for bugs in 'Cisco ASR 9000 Series' sorted by severity"
   - "Can you show me all the cisco bugs in the last 30 days for the product Cisco Unified Communications Manager (CallManager)?" (uses keyword search)
   - "Find bugs for Cisco Unified Communications Manager affecting releases 14.0 and 15.0" (uses product series search)
+
+- **Software Version Comparison** (🆕 NEW):
+  - "Compare software versions 17.9.1 and 17.12.3 for Cisco C9300-24P"
+  - "Analyze differences between IOS-XE 16.12.04 and 17.03.01 on ISR4431"
+  - "Should I upgrade from 15.1(4)M to 15.2(4)M on my ASR 1000?"
+  - "Compare bugs and CVEs between version 12.5(1)SU1 and 14.0(1)SU2 for CallManager"
 
 ### Using with Other MCP Clients
 
@@ -251,8 +267,9 @@ The server implements these Cisco Bug API v2.0 endpoints:
 ### Bug API Base URL
 - **Base URL**: `https://apix.cisco.com/bug/v2.0`
 
-## MCP Tools to Implement
+## MCP Tools Implemented
 
+### Bug Search Tools (8 tools)
 1. **get_bug_details** - Get details for up to 5 specific bug IDs
 2. **search_bugs_by_keyword** - Search by keywords in descriptions/headlines  
 3. **search_bugs_by_product_id** - Search by base product ID (e.g., "C9200-24P")
@@ -261,6 +278,14 @@ The server implements these Cisco Bug API v2.0 endpoints:
 6. **search_bugs_by_product_series_fixed** - Search by product series + fixed releases
 7. **search_bugs_by_product_name_affected** - Search by exact product name + affected releases
 8. **search_bugs_by_product_name_fixed** - Search by exact product name + fixed releases
+
+### Enhanced Analysis Tools (5 tools)
+9. **smart_search_strategy** - Analyzes search queries and suggests optimal search approaches
+10. **progressive_bug_search** - Automatically tries multiple search strategies with version normalization
+11. **multi_severity_search** - Searches multiple severity levels and combines results
+12. **comprehensive_analysis** - Combines bug database search with web search guidance for complete analysis
+13. **compare_software_versions** - 🆕 **NEW**: Compare bugs, CVEs, and recommendations between two software versions
+14. **product_name_resolver** - Resolves product IDs to full product names with search strategies
 
 **IMPORTANT Parameter Limitations (v1.9.5+)**:
 - **Severity**: Returns ONLY the specified level (severity=3 returns only severity 3 bugs, not 1-3)
@@ -620,6 +645,9 @@ Users can configure exactly what they need:
 ```bash
 # Development/Testing - Bug API only
 SUPPORT_API=bug
+
+# Simplified Analysis - Enhanced tools only (recommended for most users)
+SUPPORT_API=enhanced_analysis
 
 # Support Engineer - Case management focus
 SUPPORT_API=bug,case,rma

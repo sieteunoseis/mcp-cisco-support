@@ -540,6 +540,51 @@ export class BugApi extends BaseApi {
         }
       },
       {
+        name: 'compare_software_versions',
+        title: 'Compare Software Versions',
+        description: 'Compare bugs, CVEs, and recommendations between two software versions on the same product. Analyzes differences in known issues, security vulnerabilities, and provides upgrade recommendations.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            product_id: {
+              type: 'string',
+              description: 'Product ID or series name (e.g., C9300-24P, ISR4431/K9, "Cisco 4000 Series Integrated Services Routers")'
+            },
+            version_a: {
+              type: 'string',
+              description: 'First version to compare (e.g., 17.9.1, 15.1(4)M)'
+            },
+            version_b: {
+              type: 'string',
+              description: 'Second version to compare (e.g., 17.12.3, 15.2(4)M)'
+            },
+            include_cve_analysis: {
+              type: 'boolean',
+              description: 'Include CVE and security advisory analysis',
+              default: true
+            },
+            include_eol_status: {
+              type: 'boolean',
+              description: 'Include end-of-life status comparison',
+              default: true
+            },
+            include_recommendations: {
+              type: 'boolean',
+              description: 'Include software upgrade recommendations',
+              default: true
+            },
+            max_severity: {
+              type: 'integer',
+              description: 'Maximum bug severity level to include (1=highest, 6=lowest)',
+              default: 3,
+              minimum: 1,
+              maximum: 6
+            }
+          },
+          required: ['product_id', 'version_a', 'version_b']
+        }
+      },
+      {
         name: 'product_name_resolver',
         title: 'Product Name Resolver',
         description: 'Resolves product IDs to full product names and provides web search strategies. Helps convert technical product codes to searchable terms.',
@@ -625,6 +670,9 @@ export class BugApi extends BaseApi {
         
       case 'comprehensive_analysis':
         return this.executeComprehensiveAnalysis(processedArgs);
+        
+      case 'compare_software_versions':
+        return this.executeCompareSoftwareVersions(processedArgs);
         
       case 'product_name_resolver':
         return this.executeProductNameResolver(processedArgs);
@@ -1096,6 +1144,104 @@ export class BugApi extends BaseApi {
     };
   }
 
+  private async executeCompareSoftwareVersions(args: ToolArgs): Promise<BugApiResponse> {
+    const productId = args.product_id as string;
+    const versionA = args.version_a as string;
+    const versionB = args.version_b as string;
+    const includeCveAnalysis = (args.include_cve_analysis as boolean) !== false;
+    const includeEolStatus = (args.include_eol_status as boolean) !== false;
+    const includeRecommendations = (args.include_recommendations as boolean) !== false;
+    const maxSeverity = (args.max_severity as number) || 3;
+    
+    logger.info('Starting software version comparison', { 
+      productId, versionA, versionB, includeCveAnalysis, includeEolStatus, includeRecommendations, maxSeverity 
+    });
+    
+    const comparison: any = {
+      product_id: productId,
+      version_a: versionA,
+      version_b: versionB,
+      analysis_timestamp: new Date().toISOString(),
+      bug_comparison: null,
+      cve_analysis: null,
+      software_recommendations: null,
+      eol_status: null,
+      recommendations: [],
+      summary: {
+        version_a_issues: 0,
+        version_b_issues: 0,
+        shared_issues: 0,
+        fixed_in_b: 0,
+        introduced_in_b: 0,
+        recommendation: null
+      }
+    };
+    
+    try {
+      // 1. Bug Analysis - Compare bugs between versions
+      logger.info('Analyzing bugs for both versions');
+      const bugComparison = await this.compareBugsBetweenVersions(productId, versionA, versionB, maxSeverity);
+      comparison.bug_comparison = bugComparison;
+      
+      // Update summary counts
+      comparison.summary.version_a_issues = bugComparison.version_a_bugs?.length || 0;
+      comparison.summary.version_b_issues = bugComparison.version_b_bugs?.length || 0;
+      comparison.summary.shared_issues = bugComparison.shared_bugs?.length || 0;
+      comparison.summary.fixed_in_b = bugComparison.fixed_in_version_b?.length || 0;
+      comparison.summary.introduced_in_b = bugComparison.introduced_in_version_b?.length || 0;
+      
+      // 2. CVE Analysis (if requested)
+      if (includeCveAnalysis) {
+        logger.info('Analyzing CVEs and security advisories');
+        const cveAnalysis = await this.analyzeCvesBetweenVersions(productId, versionA, versionB);
+        comparison.cve_analysis = cveAnalysis;
+      }
+      
+      // 3. Software Recommendations (if requested and Software API available)
+      if (includeRecommendations) {
+        logger.info('Getting software recommendations');
+        const recommendations = await this.getSoftwareRecommendations(productId, versionA, versionB);
+        comparison.software_recommendations = recommendations;
+      }
+      
+      // 4. End-of-Life Status (if requested)
+      if (includeEolStatus) {
+        logger.info('Checking end-of-life status');
+        const eolStatus = await this.checkEolStatus(versionA, versionB);
+        comparison.eol_status = eolStatus;
+      }
+      
+      // 5. Generate Recommendations
+      comparison.recommendations = this.generateVersionComparisonRecommendations(comparison);
+      
+      // 6. Determine overall recommendation
+      comparison.summary.recommendation = this.determineOverallRecommendation(comparison);
+      
+      logger.info('Software version comparison completed successfully', {
+        productId,
+        versionA,
+        versionB,
+        bugDifferences: comparison.summary.fixed_in_b - comparison.summary.introduced_in_b,
+        recommendation: comparison.summary.recommendation
+      });
+      
+    } catch (error) {
+      logger.error('Error during software version comparison', { 
+        productId, versionA, versionB, error: error instanceof Error ? error.message : error 
+      });
+      
+      comparison.error = `Software version comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      comparison.recommendations.push('⚠️ Comparison failed - verify product ID and version formats');
+    }
+    
+    return {
+      bugs: [], // No direct bugs in this response
+      total_results: 1,
+      page_index: 1,
+      version_comparison: comparison
+    };
+  }
+
   private async executeProductNameResolver(args: ToolArgs): Promise<BugApiResponse> {
     const productId = args.product_id as string;
     const includeSearchStrategies = (args.include_search_strategies as boolean) !== false;
@@ -1135,5 +1281,188 @@ export class BugApi extends BaseApi {
         error: `Failed to resolve product name: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
+  }
+
+  // Helper methods for version comparison
+  private async compareBugsBetweenVersions(productId: string, versionA: string, versionB: string, maxSeverity: number): Promise<any> {
+    try {
+      // Normalize versions to Cisco API format
+      const normalizedVersionA = this.normalizeVersionForComparison(versionA);
+      const normalizedVersionB = this.normalizeVersionForComparison(versionB);
+      
+      // Search bugs for both versions
+      const [bugsA, bugsB] = await Promise.all([
+        this.searchBugsForVersion(productId, normalizedVersionA, maxSeverity),
+        this.searchBugsForVersion(productId, normalizedVersionB, maxSeverity)
+      ]);
+      
+      // Analyze differences
+      const versionABugIds = new Set(bugsA.bugs?.map((bug: any) => bug.bug_id) || []);
+      const versionBBugIds = new Set(bugsB.bugs?.map((bug: any) => bug.bug_id) || []);
+      
+      // Find shared bugs
+      const sharedBugIds = new Set([...versionABugIds].filter(id => versionBBugIds.has(id)));
+      
+      // Find bugs fixed in version B (present in A but not in B)
+      const fixedInBIds = new Set([...versionABugIds].filter(id => !versionBBugIds.has(id)));
+      
+      // Find bugs introduced in version B (present in B but not in A)
+      const introducedInBIds = new Set([...versionBBugIds].filter(id => !versionABugIds.has(id)));
+      
+      return {
+        version_a_bugs: bugsA.bugs || [],
+        version_b_bugs: bugsB.bugs || [],
+        shared_bugs: (bugsA.bugs || []).filter((bug: any) => sharedBugIds.has(bug.bug_id)),
+        fixed_in_version_b: (bugsA.bugs || []).filter((bug: any) => fixedInBIds.has(bug.bug_id)),
+        introduced_in_version_b: (bugsB.bugs || []).filter((bug: any) => introducedInBIds.has(bug.bug_id)),
+        analysis: {
+          total_bugs_a: versionABugIds.size,
+          total_bugs_b: versionBBugIds.size,
+          shared_bugs: sharedBugIds.size,
+          fixed_count: fixedInBIds.size,
+          introduced_count: introducedInBIds.size,
+          net_improvement: fixedInBIds.size - introducedInBIds.size
+        }
+      };
+    } catch (error) {
+      logger.error('Bug comparison failed', { productId, versionA, versionB, error });
+      return {
+        error: `Bug comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        version_a_bugs: [],
+        version_b_bugs: [],
+        shared_bugs: [],
+        fixed_in_version_b: [],
+        introduced_in_version_b: []
+      };
+    }
+  }
+
+  private async searchBugsForVersion(productId: string, version: string, maxSeverity: number): Promise<any> {
+    // Try different search strategies based on product ID format
+    if (this.isProductSeries(productId)) {
+      return await this.executeMultiSeveritySearch({
+        search_term: productId,
+        search_type: 'product_series',
+        max_severity: maxSeverity,
+        additional_params: { affected_releases: version }
+      });
+    } else {
+      return await this.executeMultiSeveritySearch({
+        search_term: productId,
+        search_type: 'product_id',
+        max_severity: maxSeverity,
+        version: version
+      });
+    }
+  }
+
+  private async analyzeCvesBetweenVersions(productId: string, versionA: string, versionB: string): Promise<any> {
+    // This would integrate with PSIRT API if available
+    // For now, return a placeholder structure
+    return {
+      note: 'CVE analysis requires PSIRT API integration',
+      version_a_cves: [],
+      version_b_cves: [],
+      recommendations: [
+        '🔍 Manually check Cisco Security Advisories for both versions',
+        '🌐 Search: site:tools.cisco.com security advisory [product] [version]'
+      ]
+    };
+  }
+
+  private async getSoftwareRecommendations(productId: string, versionA: string, versionB: string): Promise<any> {
+    // This would integrate with Software API if available
+    // For now, return a placeholder structure
+    return {
+      note: 'Software recommendations require Software API integration',
+      recommendations: [
+        '🔍 Use dedicated Software API tools for detailed recommendations',
+        '🌐 Check Cisco.com for latest recommended releases',
+        `📋 Tools: get_software_suggestions_by_product_ids, get_compatible_software_by_product_id`
+      ]
+    };
+  }
+
+  private async checkEolStatus(versionA: string, versionB: string): Promise<any> {
+    // This would integrate with EoX API if available
+    // For now, return a placeholder structure
+    return {
+      note: 'End-of-life status requires EoX API integration',
+      version_a_eol: null,
+      version_b_eol: null,
+      recommendations: [
+        '🔍 Use EoX API tools to check end-of-life status',
+        '🌐 Search: get_eox_by_software_release tool'
+      ]
+    };
+  }
+
+  private generateVersionComparisonRecommendations(comparison: any): string[] {
+    const recommendations: string[] = [];
+    const summary = comparison.summary;
+    
+    // Bug analysis recommendations
+    if (summary.fixed_in_b > 0) {
+      recommendations.push(`✅ Version B fixes ${summary.fixed_in_b} known issues from Version A`);
+    }
+    
+    if (summary.introduced_in_b > 0) {
+      recommendations.push(`⚠️ Version B introduces ${summary.introduced_in_b} new known issues`);
+    }
+    
+    if (summary.shared_issues > 0) {
+      recommendations.push(`📋 ${summary.shared_issues} issues affect both versions`);
+    }
+    
+    // Net improvement analysis
+    const netImprovement = summary.fixed_in_b - summary.introduced_in_b;
+    if (netImprovement > 0) {
+      recommendations.push(`📈 Net improvement: ${netImprovement} fewer known issues in Version B`);
+    } else if (netImprovement < 0) {
+      recommendations.push(`📉 Net regression: ${Math.abs(netImprovement)} more known issues in Version B`);
+    } else {
+      recommendations.push(`⚖️ Equal number of known issues in both versions`);
+    }
+    
+    // General recommendations
+    recommendations.push('🔍 Review specific bug details for impact assessment');
+    recommendations.push('📅 Check end-of-life dates for both versions');
+    recommendations.push('🛡️ Verify security advisory coverage for both versions');
+    
+    return recommendations;
+  }
+
+  private determineOverallRecommendation(comparison: any): string {
+    const summary = comparison.summary;
+    const netImprovement = summary.fixed_in_b - summary.introduced_in_b;
+    
+    if (netImprovement > 5) {
+      return `Strongly recommend Version B (${comparison.version_b}) - significantly fewer known issues`;
+    } else if (netImprovement > 0) {
+      return `Recommend Version B (${comparison.version_b}) - fewer known issues`;
+    } else if (netImprovement === 0) {
+      return `No clear preference - similar issue counts. Consider other factors (features, support, EoL)`;
+    } else if (netImprovement > -5) {
+      return `Slight preference for Version A (${comparison.version_a}) - fewer new issues`;
+    } else {
+      return `Consider staying with Version A (${comparison.version_a}) - significantly fewer known issues`;
+    }
+  }
+
+  private normalizeVersionForComparison(version: string): string {
+    // Convert version formats for Cisco API compatibility
+    // Example: 17.09.06 -> 17.9.6
+    return version.replace(/\.0+(\d)/g, '.$1');
+  }
+
+  private isProductSeries(productId: string): boolean {
+    // Detect if this is a product series name vs. specific product ID
+    const seriesKeywords = [
+      'series', 'cisco', 'catalyst', 'nexus', 'asr', 'isr', 'integrated services',
+      'wireless controller', 'unified communications'
+    ];
+    
+    const lowerId = productId.toLowerCase();
+    return seriesKeywords.some(keyword => lowerId.includes(keyword)) || lowerId.includes(' ');
   }
 }

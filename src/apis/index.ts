@@ -6,13 +6,14 @@ import { EoxApi } from './eox-api.js';
 import { PsirtApi } from './psirt-api.js';
 import { ProductApi } from './product-api.js';
 import { SoftwareApi } from './software-api.js';
+import { EnhancedAnalysisApi } from './enhanced-analysis-api.js';
 import { ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
 
 // Supported API types
-export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software';
+export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis';
 
-export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software'];
+export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software', 'enhanced_analysis'];
 
 // Placeholder API class for unimplemented APIs
 class PlaceholderApi extends BaseApi {
@@ -77,6 +78,7 @@ export class ApiRegistry {
     this.apis.set('psirt', new PsirtApi());
     this.apis.set('product', new ProductApi());
     this.apis.set('software', new SoftwareApi());
+    this.apis.set('enhanced_analysis', new EnhancedAnalysisApi());
     
     // Initialize placeholder APIs for unimplemented ones only
     this.apis.set('serial', new PlaceholderApi('Serial'));
@@ -132,7 +134,11 @@ export function getEnabledAPIs(): SupportedAPI[] {
   const supportApiEnv = process.env.SUPPORT_API || 'bug';
   
   if (supportApiEnv.toLowerCase() === 'all') {
-    return SUPPORTED_APIS;
+    return SUPPORTED_APIS.filter(api => api !== 'enhanced_analysis'); // Exclude enhanced_analysis from 'all'
+  }
+  
+  if (supportApiEnv.toLowerCase() === 'enhanced_analysis') {
+    return ['enhanced_analysis']; // Only return enhanced analysis tools
   }
   
   const requestedAPIs = supportApiEnv.toLowerCase().split(',').map(api => api.trim()) as SupportedAPI[];

@@ -77,3 +77,4 @@ pids
 # Serverless directories
 .serverless
 EOF < /dev/null
+/net-commander

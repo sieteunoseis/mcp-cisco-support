@@ -199,7 +199,7 @@ export class PsirtApi extends BaseApi {
             year: {
               type: 'integer',
               minimum: 2000,
-              maximum: new Date().getFullYear(),
+              maximum: 2025,
               description: 'Year to filter advisories (e.g., 2023)'
             },
             page_index: {
@@ -305,8 +305,8 @@ export class PsirtApi extends BaseApi {
 
   private async getAllSecurityAdvisories(args: ToolArgs): Promise<ApiResponse> {
     const params: Record<string, any> = {};
-    if (args.page_index) params.pageIndex = args.page_index;
-    if (args.page_size) params.pageSize = args.page_size;
+    if (args.page_index !== undefined) params.pageIndex = args.page_index;
+    if (args.page_size !== undefined) params.pageSize = args.page_size;
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
@@ -337,8 +337,8 @@ export class PsirtApi extends BaseApi {
 
   private async getSecurityAdvisoriesBySeverity(args: ToolArgs): Promise<ApiResponse> {
     const params: Record<string, any> = {};
-    if (args.page_index) params.pageIndex = args.page_index;
-    if (args.page_size) params.pageSize = args.page_size;
+    if (args.page_index !== undefined) params.pageIndex = args.page_index;
+    if (args.page_size !== undefined) params.pageSize = args.page_size;
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
@@ -369,8 +369,8 @@ export class PsirtApi extends BaseApi {
 
   private async getSecurityAdvisoriesByYear(args: ToolArgs): Promise<ApiResponse> {
     const params: Record<string, any> = {};
-    if (args.page_index) params.pageIndex = args.page_index;
-    if (args.page_size) params.pageSize = args.page_size;
+    if (args.page_index !== undefined) params.pageIndex = args.page_index;
+    if (args.page_size !== undefined) params.pageSize = args.page_size;
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
@@ -384,8 +384,8 @@ export class PsirtApi extends BaseApi {
       startDate: args.start_date,
       endDate: args.end_date
     };
-    if (args.page_index) params.pageIndex = args.page_index;
-    if (args.page_size) params.pageSize = args.page_size;
+    if (args.page_index !== undefined) params.pageIndex = args.page_index;
+    if (args.page_size !== undefined) params.pageSize = args.page_size;
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
