@@ -59,3 +59,7 @@ Thumbs.db
 
 # Linux
 *~
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

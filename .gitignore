@@ -78,3 +78,8 @@ pids
 .serverless
 EOF < /dev/null
 /net-commander
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
