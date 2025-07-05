@@ -290,6 +290,22 @@ const ciscoPrompts: Prompt[] = [
         required: false
       }
     ]
+  },
+  {
+    name: 'cisco-interactive-search',
+    description: 'Interactive search with elicitation requests for missing parameters. Demonstrates elicitationRequest feature by asking users for search refinement.',
+    arguments: [
+      {
+        name: 'initial_query',
+        description: 'Initial search query (optional - if not provided, will use elicitation to gather)',
+        required: false
+      },
+      {
+        name: 'use_elicitation',
+        description: 'Whether to use elicitation to gather additional search parameters (true/false)',
+        required: false
+      }
+    ]
   }
 ];
 
@@ -304,7 +320,8 @@ const promptApiMapping: Record<string, SupportedAPI[]> = {
   'cisco-case-investigation': ['case'],
   'cisco-lifecycle-planning': ['eox'],
   'cisco-eox-research': ['eox'],
-  'cisco-smart-search': ['bug']
+  'cisco-smart-search': ['bug'],
+  'cisco-interactive-search': ['bug']
 };
 
 // Get available prompts (filtered by enabled APIs)
@@ -598,6 +615,47 @@ ${includeWebGuidance ? '5. **Web Search Guidance**: Get specific web search quer
 - **Lifecycle Integration**: Includes end-of-life status and upgrade recommendations
 
 Please execute this intelligent search strategy using the enhanced tools to provide comprehensive results.`
+          }
+        }
+      ];
+
+    case 'cisco-interactive-search':
+      const useElicitation = args.use_elicitation !== 'false';
+      return [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Please perform an interactive search that demonstrates the elicitationRequest feature:
+
+**Interactive Search Configuration:**
+${args.initial_query ? `- Initial Query: ${args.initial_query}` : '- No initial query provided'}
+- Use Elicitation: ${useElicitation}
+
+**Demonstration Approach:**
+1. **Start with Basic Search**: Use the provided initial query or ask for one
+2. **Elicitation Demo**: Use elicitationRequest to gather additional search parameters:
+   - Ask for search refinement (severity, status, date range)
+   - Request user confirmation for search strategy
+   - Collect product selection if multiple matches found
+3. **Interactive Refinement**: Based on initial results, use elicitation to:
+   - Refine search scope if too many results
+   - Request confirmation before broad searches
+   - Ask for product-specific details if needed
+4. **Enhanced Results**: Provide comprehensive results with context
+
+**Available Elicitation Schemas:**
+- \`searchRefinement\`: Request severity, status, and date range parameters
+- \`userConfirmation\`: Request confirmation for search strategy
+- \`productSelection\`: Request specific product selection from options
+
+**Example Elicitation Flow:**
+1. If no initial query: "What would you like to search for in Cisco bugs?"
+2. If broad results: "I found many results. Would you like to refine by severity level?"
+3. If multiple products: "I found several products. Which specific one interests you?"
+4. If potentially impactful: "This search will query multiple APIs. Proceed?"
+
+This interactive approach showcases how elicitationRequest can make tools more user-friendly and context-aware.`
           }
         }
       ];
