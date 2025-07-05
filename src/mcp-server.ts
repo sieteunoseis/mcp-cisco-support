@@ -7,7 +7,9 @@ import {
   PingRequestSchema,
   Prompt,
   PromptMessage,
-  TextContent
+  TextContent,
+  ElicitRequestSchema,
+  ElicitResult
 } from '@modelcontextprotocol/sdk/types.js';
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
@@ -605,6 +607,91 @@ Please execute this intelligent search strategy using the enhanced tools to prov
   }
 }
 
+// Helper function to create elicitation requests
+export function createElicitationRequest(message: string, schema: any) {
+  return {
+    method: 'elicitation/create',
+    params: {
+      message,
+      requestedSchema: schema
+    }
+  };
+}
+
+// Common elicitation schemas for Cisco Support scenarios
+export const ElicitationSchemas = {
+  // Request missing API credentials
+  apiCredentials: {
+    type: 'object',
+    properties: {
+      clientId: {
+        type: 'string',
+        description: 'Cisco API Client ID'
+      },
+      confirm: {
+        type: 'boolean',
+        description: 'Confirm you want to provide credentials'
+      }
+    },
+    required: ['clientId', 'confirm']
+  },
+
+  // Request search refinement parameters
+  searchRefinement: {
+    type: 'object',
+    properties: {
+      severity: {
+        type: 'string',
+        enum: ['1', '2', '3', '4', '5', '6'],
+        description: 'Bug severity level (1=highest, 6=lowest)'
+      },
+      status: {
+        type: 'string',
+        enum: ['O', 'F', 'T', 'R'],
+        description: 'Bug status (O=Open, F=Fixed, T=Terminated, R=Resolved)'
+      },
+      dateRange: {
+        type: 'string',
+        enum: ['1', '2', '3', '4', '5'],
+        description: 'Modified date range (1=last 7 days, 2=last 30 days, etc.)'
+      }
+    },
+    required: []
+  },
+
+  // Request user confirmation for potentially destructive actions
+  userConfirmation: {
+    type: 'object',
+    properties: {
+      confirmed: {
+        type: 'boolean',
+        description: 'Confirm you want to proceed'
+      },
+      reason: {
+        type: 'string',
+        description: 'Optional reason for confirmation'
+      }
+    },
+    required: ['confirmed']
+  },
+
+  // Request product details when multiple matches found
+  productSelection: {
+    type: 'object',
+    properties: {
+      selectedProduct: {
+        type: 'string',
+        description: 'Select the specific product'
+      },
+      version: {
+        type: 'string',
+        description: 'Product version (if applicable)'
+      }
+    },
+    required: ['selectedProduct']
+  }
+};
+
 // Format results based on API type
 function formatResults(result: ApiResponse, apiName: string, toolName: string, args: Record<string, any>): string {
   const searchContext = { toolName, args };
@@ -632,6 +719,7 @@ export function createMCPServer(): Server {
       capabilities: {
         tools: {},
         prompts: {},
+        elicitation: {},
       },
     }
   );
@@ -640,6 +728,43 @@ export function createMCPServer(): Server {
   server.setRequestHandler(PingRequestSchema, async () => {
     logger.info('Ping request received');
     return {};
+  });
+
+  // Elicitation request handler
+  server.setRequestHandler(ElicitRequestSchema, async (request) => {
+    const { message, requestedSchema } = request.params;
+    
+    try {
+      logger.info('Elicitation request received', { 
+        message: message?.substring(0, 100) + (message?.length > 100 ? '...' : ''),
+        schemaProperties: Object.keys(requestedSchema?.properties || {})
+      });
+      
+      // For demonstration purposes, we'll create a sample elicitation request
+      // In a real implementation, this would interact with the client
+      const result: ElicitResult = {
+        action: 'accept',
+        content: {
+          // This is a placeholder - in practice, the client would provide this data
+          sample: 'This is a sample elicitation response'
+        }
+      };
+      
+      logger.info('Elicitation request completed', { 
+        action: result.action,
+        hasContent: !!result.content
+      });
+      
+      return result;
+    } catch (error) {
+      logger.error('Elicitation request failed', { 
+        error: error instanceof Error ? error.message : error 
+      });
+      
+      return {
+        action: 'cancel'
+      };
+    }
   });
 
   // List tools handler
