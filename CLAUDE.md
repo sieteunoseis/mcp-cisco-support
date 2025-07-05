@@ -7,6 +7,7 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 This TypeScript server features:
 - **Dual Transport Support**: stdio (local MCP) and HTTP (remote server)
 - **Extensible Architecture**: Designed to support multiple Cisco Support APIs
+- **ElicitationRequest Support**: ✨ NEW - Dynamic user interaction for missing parameters
 - OAuth2 authentication with Cisco API (client credentials flow)
 - 8 MCP-compliant tools for comprehensive bug searching (with more tools planned)
 - Real-time updates via Server-Sent Events (HTTP mode)
@@ -302,6 +303,29 @@ The server implements these Cisco Bug API v2.0 endpoints:
 - `GET /health` - Health check endpoint
 
 ## Key Features
+
+### ElicitationRequest Support ✨ NEW
+- **Dynamic User Interaction**: Request missing parameters from users at runtime
+- **Predefined Schemas**: Ready-to-use schemas for common Cisco Support scenarios
+- **Security-First Design**: Never requests sensitive information like credentials
+- **Interactive Workflows**: Enable complex multi-step processes requiring user input
+
+#### Available Elicitation Schemas
+- **`apiCredentials`**: Request API credentials (with user confirmation)
+- **`searchRefinement`**: Request search parameter refinement (severity, status, date range)
+- **`userConfirmation`**: Request user confirmation for actions
+- **`productSelection`**: Request product selection from multiple options
+
+#### Usage Example
+```typescript
+import { createElicitationRequest, ElicitationSchemas } from './mcp-server.js';
+
+// Request search refinement
+const request = createElicitationRequest(
+  'Please refine your search parameters for better results',
+  ElicitationSchemas.searchRefinement
+);
+```
 
 ### OAuth2 Authentication
 - Automatic token management with refresh
@@ -669,7 +693,8 @@ This project includes a comprehensive Jest-based testing framework that validate
 ✅ **Bug API Tests**: 17/17 passing - All 8 Bug API tools fully tested  
 ✅ **MCP Server Tests**: 11/11 passing - Server functionality and configuration  
 ✅ **Integration Tests**: 7/7 passing - Real API validation with live credentials  
-✅ **Error Handling Tests**: Timeout, authentication, and parameter validation
+✅ **Error Handling Tests**: Timeout, authentication, and parameter validation  
+✅ **Elicitation Tests**: 7/7 passing - ElicitationRequest feature and schema validation
 
 ### Test Commands
 
@@ -681,6 +706,7 @@ npm test
 npm test -- --testNamePattern="Bug API"
 npm test -- --testNamePattern="Simple" 
 npm test -- --testNamePattern="MCP Server"
+npm test -- --testNamePattern="Elicitation"
 
 # Run integration tests with real API (requires credentials)
 CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test -- --testNamePattern="Integration"
@@ -699,6 +725,7 @@ npx tsc --noEmit
 - **`tests/mcpServer.test.ts`** - MCP server functionality and prompt testing
 - **`tests/integration.test.ts`** - Real API integration tests (skipped by default)
 - **`tests/errorHandling.test.ts`** - Error scenarios and edge cases
+- **`tests/elicitation.test.ts`** - ElicitationRequest feature testing
 - **`tests/mockData.ts`** - Mock Cisco API responses for unit tests
 - **`tests/setup.ts`** - Jest configuration and global mocks
 
