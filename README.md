@@ -5,7 +5,8 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 ## 🚀 Current Features
 
 - **Multi-API Support**: 6 Cisco Support APIs fully implemented (33 total tools)
-- **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints  
+- **ElicitationRequest Support**: ✨ Dynamic user interaction for gathering missing parameters
+- **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints
 - **Configurable API Access**: Enable only the Cisco Support APIs you have access to
 - **Specialized Prompts**: 9 workflow prompts for guided Cisco support scenarios
 - **Dual Transport**: stdio (local MCP clients) and HTTP (remote server with auth)
@@ -197,17 +198,29 @@ Claude will use the appropriate MCP tools to fetch real-time data from Cisco's B
 
 ## MCP Prompts
 
-The server includes **5 specialized prompts** for guided Cisco support workflows:
+The server includes **6 specialized prompts** for guided Cisco support workflows:
 
 - **🚨 cisco-incident-investigation** - Investigate symptoms and errors
-- **🔄 cisco-upgrade-planning** - Research issues before upgrades  
+- **🔄 cisco-upgrade-planning** - Research issues before upgrades
 - **🔧 cisco-maintenance-prep** - Prepare for maintenance windows
 - **🔒 cisco-security-advisory** - Research security vulnerabilities
 - **⚠️ cisco-known-issues** - Check for software release issues
+- **✨ cisco-interactive-search** - NEW: Interactive search with elicitation for missing parameters
 
 Each prompt provides structured investigation plans and expert recommendations.
 
-See **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** for complete prompt documentation and examples.
+### Interactive Search with Elicitation
+
+The **cisco-interactive-search** prompt demonstrates MCP's elicitation feature, allowing the server to dynamically request additional information from users during tool execution. This makes searches more natural and helps gather missing parameters without restarting requests.
+
+**Example Usage:**
+```
+Use the "cisco-interactive-search" prompt with:
+- initial_query: "memory leak"
+- use_elicitation: true
+```
+
+See **[examples/elicitation-example.md](examples/elicitation-example.md)** for detailed usage examples and **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** for complete prompt documentation.
 
 ## Screenshots
 
