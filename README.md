@@ -4,7 +4,7 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 
 ## 🚀 Current Features
 
-- **Multi-API Support**: 6 Cisco Support APIs fully implemented (33 total tools)
+- **Multi-API Support**: 8 Cisco Support APIs fully implemented (46 total tools)
 - **ElicitationRequest Support**: ✨ Dynamic user interaction for gathering missing parameters
 - **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints
 - **Configurable API Access**: Enable only the Cisco Support APIs you have access to
@@ -30,10 +30,10 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 | **PSIRT** (`psirt`) | ✅ **Complete** | 8 tools | Product Security Incident Response Team vulnerability data |
 | **Product** (`product`) | ✅ **Complete** | 3 tools | Product details, specifications, and technical information |
 | **Software** (`software`) | ✅ **Complete** | 6 tools | Software suggestions, releases, and upgrade recommendations |
-| **Serial** (`serial`) | 🔄 *Planned* | 0 tools | Serial number to product information mapping |
-| **RMA** (`rma`) | 🔄 *Planned* | 0 tools | Return Merchandise Authorization processes |
+| **Serial** (`serial`) | ✅ **Complete** | 3 tools | Serial number to coverage, warranty, and product information |
+| **RMA** (`rma`) | ✅ **Complete** | 3 tools | Return Merchandise Authorization tracking and management |
 
-**Implementation Status:** 6/8 APIs complete (75%) with 33 total tools
+**Implementation Status:** 8/8 APIs complete (100%) with 46 total tools
 
 **Configuration Examples:**
 - `SUPPORT_API=enhanced_analysis` - Enhanced analysis tools only (6 tools) **← RECOMMENDED for most users**
@@ -460,7 +460,7 @@ docker run -p 3000:3000 \
 
 For detailed information, see our comprehensive [GitHub Wiki](https://github.com/sieteunoseis/mcp-cisco-support/wiki):
 
-- **[📋 Available Tools](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Available-Tools)** - Complete reference for all 33 MCP tools across 6 APIs
+- **[📋 Available Tools](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Available-Tools)** - Complete reference for all 46 MCP tools across 8 APIs
 - **[🔧 Advanced Configuration](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Advanced-Configuration)** - Environment variables and deployment options
 - **[🔒 Security Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Security-Guide)** - Authentication, tokens, and security best practices  
 - **[🚀 Docker Deployment](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Docker-Deployment)** - Containerized deployment and production setup
@@ -795,7 +795,7 @@ Response includes server status, OAuth2 token status, memory usage, uptime, and 
 ## Testing
 
 Comprehensive Jest-based testing framework with:
-- ✅ **33/33 tools tested** - All MCP tools across 6 APIs  
+- ✅ **46/46 tools tested** - All MCP tools across 8 APIs  
 - ✅ **Mock & Real API testing** - Unit tests with mocks + integration tests with live APIs
 - ✅ **Individual tool testing** - Standalone test runner for development
 

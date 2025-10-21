@@ -598,8 +598,8 @@ Key log messages to monitor:
 | **EoX** | 🔄 **Planned** | 0 tools | End of Life/Sale information and notifications |
 | **Product** | ✅ **Complete** | 3 tools | Product details, specifications, and technical information |
 | **Software** | ✅ **Complete** | 6 tools | Software suggestions, releases, and upgrade recommendations |
-| **Serial** | 🔄 **Planned** | 0 tools | Serial number to product information mapping |
-| **RMA** | 🔄 **Planned** | 0 tools | Return Merchandise Authorization processes |
+| **Serial** | ✅ **Complete** | 3 tools | Serial number to coverage, warranty, and product information |
+| **RMA** | ✅ **Complete** | 3 tools | Return Merchandise Authorization tracking and management |
 | **PSIRT** | ✅ **Complete** | 8 tools | Product Security Incident Response Team vulnerability data |
 
 ### Next Implementation Priorities
