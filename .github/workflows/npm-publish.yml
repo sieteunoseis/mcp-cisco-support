@@ -37,11 +37,12 @@ jobs:
       
       - name: Run type checking
         run: npx tsc --noEmit
-      
-      - name: Update package version (release only)
-        if: github.event_name == 'release'
-        run: npm version --no-git-tag-version ${{ github.event.release.tag_name }}
-      
+
+      # Version is managed manually in package.json before release
+      # - name: Update package version (release only)
+      #   if: github.event_name == 'release'
+      #   run: npm version --no-git-tag-version ${{ github.event.release.tag_name }}
+
       - name: Publish to NPM (dry run)
         if: github.event.inputs.dry_run == 'true'
         run: npm publish --dry-run --provenance
