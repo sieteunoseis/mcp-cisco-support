@@ -31,7 +31,12 @@ export abstract class BaseApi {
     const url = `${this.baseUrl}${endpoint}${queryString ? '?' + queryString : ''}`;
     
     try {
-      logger.info(`Making ${this.apiName} API call`, { endpoint, params });
+      logger.info(`Making ${this.apiName} API call`, {
+        endpoint,
+        params,
+        fullUrl: url,
+        queryString: queryString || '(none)'
+      });
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
@@ -78,7 +83,14 @@ export abstract class BaseApi {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`${this.apiName} API call failed: ${response.status} ${response.statusText} - ${errorText}`);
+        logger.error(`${this.apiName} API call failed`, {
+          status: response.status,
+          statusText: response.statusText,
+          url: url,
+          params: params,
+          errorText: errorText.substring(0, 500)
+        });
+        throw new Error(`${this.apiName} API call failed: ${response.status} ${response.statusText} - URL: ${url} - ${errorText}`);
       }
 
       const data = await response.json() as ApiResponse;

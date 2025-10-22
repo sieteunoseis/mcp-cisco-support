@@ -124,13 +124,13 @@ export class BugApi extends BaseApi {
       {
         name: 'search_bugs_by_keyword',
         title: 'Search Bugs by Keyword',
-        description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: severity parameter returns ONLY that specific level. For "severity 3 or higher" searches, use multi_severity_search tool instead.',
+        description: 'Search for bugs using keywords in descriptions and headlines. Use this when searching by general terms, symptoms, or when product-specific tools are not applicable. IMPORTANT: severity parameter returns ONLY that specific level. For "severity 3 or higher" searches, use multi_severity_search tool instead. NOTE: Do NOT use product IDs (like ISR4431/K9) as keywords - use search_bugs_by_product_id instead.',
         inputSchema: {
           type: 'object',
           properties: {
             keyword: {
               type: 'string',
-              description: 'Keywords to search for'
+              description: 'Keywords to search for (general terms, symptoms, error messages - NOT product IDs)'
             },
             page_index: {
               type: 'integer',

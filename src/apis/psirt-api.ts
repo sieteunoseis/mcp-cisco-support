@@ -12,7 +12,7 @@ export class PsirtApi extends BaseApi {
       {
         name: 'get_all_security_advisories',
         title: 'Get All Security Advisories',
-        description: 'Get all published security advisories with optional pagination and filtering',
+        description: 'Get all published security advisories with optional pagination and filtering. NOTE: PSIRT API does not support searching by product series or product name directly - use severity, year, or date range filters instead.',
         inputSchema: {
           type: 'object',
           properties: {

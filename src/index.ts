@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+console.error('[MCP DEBUG] Starting imports...');
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { mcpServer, setLogging, logger } from './mcp-server.js';
 import { createSSEServer } from './sse-server.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'node:crypto';
+console.error('[MCP DEBUG] Imports complete');
 
 // Get version from package.json (handle different working directories)
 function findPackageJson() {
@@ -130,9 +132,13 @@ setLogging(!isStdioMode);
 
 // Main function
 async function main() {
-  const args = process.argv.slice(2);
-  const isHTTP = args.includes('--http') || args.includes('--sse');
-  
+  try {
+    console.error('[MCP DEBUG] Main function started');
+    const args = process.argv.slice(2);
+    console.error('[MCP DEBUG] Args:', args);
+    const isHTTP = args.includes('--http') || args.includes('--sse');
+    console.error('[MCP DEBUG] Mode:', isHTTP ? 'HTTP' : 'STDIO');
+
   if (isHTTP) {
     // Run as SSE HTTP server
     const PORT = process.env.PORT || 3000;
@@ -156,19 +162,28 @@ async function main() {
     });
   } else {
     // Run as MCP server over stdio (default)
+    console.error('[MCP DEBUG] Starting stdio mode');
     logger.info('Starting Cisco Support MCP Server in stdio mode');
-    
+
+    console.error('[MCP DEBUG] Creating StdioServerTransport');
     const transport = new StdioServerTransport();
+    console.error('[MCP DEBUG] Connecting to transport');
     await mcpServer.connect(transport);
-    
+
+    console.error('[MCP DEBUG] Connected successfully');
     logger.info('Cisco Support MCP Server connected via stdio');
+  }
+  } catch (error) {
+    console.error('[MCP DEBUG] Error in main:', error);
+    throw error;
   }
 }
 
-// Run if called directly
-if (require.main === module) {
-  main().catch((error) => {
-    logger.error('Failed to start server', error);
-    process.exit(1);
-  });
-}
+// Run main function
+console.error('[MCP DEBUG] About to call main()');
+main().catch((error) => {
+  console.error('[MCP DEBUG] main() threw error:', error);
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
+console.error('[MCP DEBUG] main() called (async)');
