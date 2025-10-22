@@ -491,7 +491,7 @@ export class BugApi extends BaseApi {
       {
         name: 'multi_severity_search',
         title: 'Multi-Severity Search',
-        description: 'RECOMMENDED for multi-severity searches: Automatically searches multiple severity levels and combines results. Use this when you need "severity 3 or higher", "high severity bugs", or any range of severities. Handles the API limitation that requires separate calls for each severity level.',
+        description: 'RECOMMENDED for multi-severity searches: Automatically searches multiple severity levels and combines results. Use this when you need "severity 3 or higher", "high severity bugs", or any range of severities. Handles the API limitation that requires separate calls for each severity level. SMART FALLBACK: When product_id search with version returns no results, automatically falls back to keyword search for better coverage.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -501,7 +501,7 @@ export class BugApi extends BaseApi {
             },
             search_type: {
               type: 'string',
-              description: 'Type of search to perform. Use "product_series" for full product names like "Cisco 4000 Series Integrated Services Routers"',
+              description: 'Type of search to perform. Use "product_series" for full product names like "Cisco 4000 Series Integrated Services Routers". For product IDs like "ISR4431", use "product_id" which will automatically fallback to keyword search if needed.',
               enum: ['keyword', 'product_id', 'product_series']
             },
             max_severity: {
@@ -513,7 +513,7 @@ export class BugApi extends BaseApi {
             },
             version: {
               type: 'string',
-              description: 'Software version to search for (e.g., "15.0", "14.0", "17.9.6"). Will be automatically included in search terms and used for product_series searches as affected_releases.'
+              description: 'Software version to search for (e.g., "15.0", "14.0", "17.9.6"). Will be automatically included in search terms and used for product_series searches as affected_releases. For product_id searches, enables automatic keyword fallback if no results found.'
             }
           },
           required: ['search_term', 'search_type']
@@ -886,7 +886,7 @@ export class BugApi extends BaseApi {
     const maxSeverity = (args.max_severity as number) || 3;
     const version = args.version as string | undefined;
     const additionalParams = (args.additional_params as Record<string, any>) || {};
-    
+
     // If version is provided, enhance search parameters
     if (version) {
       // For product_series searches, use version as affected_releases if not already specified
@@ -894,25 +894,25 @@ export class BugApi extends BaseApi {
         additionalParams.affected_releases = version;
       }
     }
-    
+
     logger.info('Starting multi-severity search', { searchTerm, searchType, maxSeverity, version });
-    
+
     const searchFunc = async (severity: string): Promise<BugApiResponse> => {
       const searchArgs = {
         severity,
         ...additionalParams
       };
-      
+
       switch (searchType) {
         case 'keyword':
           // Handle keyword length limitation (50 characters max)
           let keywordTerm = searchTerm;
-          
+
           // Include version in keyword search if provided
           if (version) {
             keywordTerm = `${searchTerm} ${version}`;
           }
-          
+
           if (keywordTerm.length > 50) {
             // For long product series names, extract key terms
             if (searchTerm.toLowerCase().includes('4000 series')) {
@@ -927,15 +927,34 @@ export class BugApi extends BaseApi {
               // Generic shortening: take first 47 chars + '...'
               keywordTerm = keywordTerm.substring(0, 47) + '...';
             }
-            logger.info('Shortened keyword search term', { 
-              original: version ? `${searchTerm} ${version}` : searchTerm, 
+            logger.info('Shortened keyword search term', {
+              original: version ? `${searchTerm} ${version}` : searchTerm,
               shortened: keywordTerm,
               reason: 'Keyword search 50-character limit'
             });
           }
           return await this.executeTool('search_bugs_by_keyword', { keyword: keywordTerm, ...searchArgs });
         case 'product_id':
-          return await this.executeTool('search_bugs_by_product_id', { base_pid: searchTerm, ...searchArgs });
+          // Try product_id search first
+          const productIdResult = await this.executeTool('search_bugs_by_product_id', { base_pid: searchTerm, ...searchArgs });
+
+          // If product_id search returns no results and version is provided, fallback to keyword search
+          if ((!productIdResult.bugs || productIdResult.bugs.length === 0) && version) {
+            logger.info('Product ID search returned no results, falling back to keyword search', {
+              searchTerm,
+              version,
+              severity
+            });
+
+            let keywordTerm = `${searchTerm} ${version}`;
+            if (keywordTerm.length > 50) {
+              keywordTerm = keywordTerm.substring(0, 47) + '...';
+            }
+
+            return await this.executeTool('search_bugs_by_keyword', { keyword: keywordTerm, ...searchArgs });
+          }
+
+          return productIdResult;
         case 'product_series':
           const affectedReleases = additionalParams.affected_releases || (version ? version : undefined);
           const fixedReleases = additionalParams.fixed_releases;
@@ -957,7 +976,7 @@ export class BugApi extends BaseApi {
           throw new Error(`Unsupported search type: ${searchType}`);
       }
     };
-    
+
     return await this.searchMultipleSeverities(searchFunc, maxSeverity);
   }
 
