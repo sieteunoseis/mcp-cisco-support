@@ -88,8 +88,7 @@ A **production-ready TypeScript server** that connects AI assistants (like Claud
 #### After: Natural Language Queries
 ```
 Engineer asks Claude:
-"Check serial number FJC2341A0TN running version 17.09.06 for high severity bugs,
-security issues, and let me know if this version is approaching end-of-life"
+"Check serial number FJC2341A0TN running version 17.09.06 for high severity bugs, security issues, and let me know if this version is approaching end-of-life. Also let's check current contract, coverage and suggested software version."
 
 ⏱️ Time: 30 seconds
 ✅ Comprehensive: All APIs queried automatically
@@ -1775,7 +1774,73 @@ ROLLBACK PLAN: ...
 
 ---
 
-### Demo 6: Proactive Maintenance Query (2 minutes)
+### Demo 6: Log Message Investigation (3 minutes)
+
+**Say to Claude Desktop:**
+```
+"I found the following in the logs of our C9300 series switch:
+'%SCRIPT_INSTALL-3-SCRPT_UNABLE_TO_OPEN_FILE: Unable to open file'.
+Can you tell me more about it?"
+```
+
+**What to Highlight:**
+- 🔍 Keyword-based bug search from log messages
+- 🎯 Claude understands syslog format and severity
+- 📋 Finds related bugs even with partial error messages
+- 💡 Provides context, workarounds, and fixes
+- 🔗 Links to relevant bug IDs and documentation
+
+**Watch Claude Execute:**
+1. `search_bugs_by_keyword` with error message keywords
+2. Filters by product (C9300 series)
+3. Searches PSIRT for security implications
+4. Synthesizes bug findings with context
+
+**Expected Response Format:**
+```
+ERROR ANALYSIS: SCRIPT_INSTALL-3-SCRPT_UNABLE_TO_OPEN_FILE
+
+IDENTIFIED BUGS:
+• Bug CSCvx12345: EEM script file access failure
+  - Severity: 3 (Medium)
+  - Status: Fixed in 17.09.04
+  - Cause: Permission issue with EEM script directory
+  - Workaround: Correct file permissions on flash:/scripts/
+
+ROOT CAUSE:
+This error occurs when IOS-XE EEM (Embedded Event Manager) scripts
+cannot access files due to:
+1. Incorrect file permissions
+2. Missing script file
+3. Flash filesystem corruption
+
+RECOMMENDED ACTIONS:
+1. Verify file exists: dir flash:/scripts/
+2. Check permissions: show file systems
+3. Re-upload script if missing
+4. Upgrade to 17.09.04+ if persistent
+
+IMPACT:
+- Low: EEM automation may fail
+- No impact on switching/routing
+- No security implications
+
+Would you like me to check for other script-related bugs?
+```
+
+**Audience Commentary:**
+"This is incredibly practical. Engineers spend hours googling error messages, searching forums, and reading through outdated documentation. Claude just analyzed the log message, found the relevant bug, explained the cause, and gave actionable steps - in 30 seconds."
+
+**Follow-up Demo:**
+```
+"Are there any other script-related bugs I should know about for C9300?"
+
+"What version should we be running to avoid this issue?"
+```
+
+---
+
+### Demo 7: Proactive Maintenance Query (2 minutes)
 
 **Say to Claude Desktop:**
 ```

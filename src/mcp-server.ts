@@ -293,7 +293,7 @@ const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-interactive-search',
-    description: 'Interactive search with elicitation requests for missing parameters. Demonstrates elicitationRequest feature by asking users for search refinement.',
+    description: '⚠️ EXPERIMENTAL: Interactive search with elicitation requests for missing parameters. Note: ElicitationRequest support is limited in current MCP clients (Claude Desktop uses conversational follow-ups instead). Kept for future client support.',
     arguments: [
       {
         name: 'initial_query',
@@ -664,6 +664,30 @@ This interactive approach showcases how elicitationRequest can make tools more u
       throw new Error(`Unknown prompt: ${name}`);
   }
 }
+
+// ============================================================================
+// ELICITATION REQUEST SUPPORT - FUTURE/EXPERIMENTAL
+// ============================================================================
+// Note: ElicitationRequest is part of MCP spec (2025-06-18) but client support
+// is limited as of January 2025. No major MCP clients (including Claude Desktop)
+// have confirmed full implementation yet.
+//
+// Current Status:
+// - ❌ Claude Desktop: No confirmed support
+// - ❌ MCP Inspector: Unknown support
+// - ✅ Spec compliant: Code follows MCP 2025-06-18 specification
+//
+// Alternative: Claude Desktop handles missing parameters through natural
+// conversational follow-up questions, which works better than rigid schemas.
+//
+// This code is kept for:
+// - Future client support (when available)
+// - Custom MCP client implementations
+// - HTTP mode with custom UI
+// - Reference implementation
+//
+// Last Updated: January 2025 (v1.11.3)
+// ============================================================================
 
 // Helper function to create elicitation requests
 export function createElicitationRequest(message: string, schema: any) {

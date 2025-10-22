@@ -7,7 +7,7 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 This TypeScript server features:
 - **Dual Transport Support**: stdio (local MCP) and HTTP (remote server)
 - **Extensible Architecture**: Designed to support multiple Cisco Support APIs
-- **ElicitationRequest Support**: ✨ NEW - Dynamic user interaction for missing parameters
+- **ElicitationRequest Support**: ⚠️ EXPERIMENTAL - Future feature for dynamic user interaction (limited client support)
 - OAuth2 authentication with Cisco API (client credentials flow)
 - 8 MCP-compliant tools for comprehensive bug searching (with more tools planned)
 - Real-time updates via Server-Sent Events (HTTP mode)
@@ -304,28 +304,50 @@ The server implements these Cisco Bug API v2.0 endpoints:
 
 ## Key Features
 
-### ElicitationRequest Support ✨ NEW
-- **Dynamic User Interaction**: Request missing parameters from users at runtime
-- **Predefined Schemas**: Ready-to-use schemas for common Cisco Support scenarios
-- **Security-First Design**: Never requests sensitive information like credentials
-- **Interactive Workflows**: Enable complex multi-step processes requiring user input
+### ElicitationRequest Support ⚠️ EXPERIMENTAL / FUTURE
 
-#### Available Elicitation Schemas
+**Current Status (January 2025):**
+- ❌ **Limited Client Support**: No major MCP clients (including Claude Desktop) have confirmed full ElicitationRequest implementation
+- ✅ **Spec Compliant**: Code follows MCP specification (2025-06-18)
+- ✅ **Alternative Available**: Claude Desktop handles missing parameters through natural conversational follow-up questions
+
+**What Is ElicitationRequest?**
+- Part of MCP spec for requesting user input at runtime
+- Allows servers to pause and ask for missing parameters
+- Uses structured schemas (flat objects with primitives only)
+
+**Why Keep It?**
+- Future client support (when available)
+- Custom MCP client implementations
+- HTTP mode with custom UI
+- Reference implementation
+
+**Available Elicitation Schemas** (for future use):
 - **`apiCredentials`**: Request API credentials (with user confirmation)
 - **`searchRefinement`**: Request search parameter refinement (severity, status, date range)
 - **`userConfirmation`**: Request user confirmation for actions
 - **`productSelection`**: Request product selection from multiple options
 
-#### Usage Example
+**Usage Example** (for custom clients):
 ```typescript
 import { createElicitationRequest, ElicitationSchemas } from './mcp-server.js';
 
-// Request search refinement
+// Request search refinement (when client supports elicitation)
 const request = createElicitationRequest(
   'Please refine your search parameters for better results',
   ElicitationSchemas.searchRefinement
 );
 ```
+
+**For Claude Desktop Users:**
+Claude handles this naturally through conversation:
+```
+User: "Find bugs for ISR4431"
+Claude: "I'll search for bugs on the ISR4431. Would you like me to focus on
+         high/critical severity, or search all levels? Also, should I check
+         any specific software version?"
+```
+This conversational approach works better than rigid schemas and is already supported.
 
 ### OAuth2 Authentication
 - Automatic token management with refresh
