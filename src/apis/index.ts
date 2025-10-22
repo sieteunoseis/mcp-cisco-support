@@ -9,6 +9,8 @@ import { SoftwareApi } from './software-api.js';
 import { EnhancedAnalysisApi } from './enhanced-analysis-api.js';
 import { ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
+import { SerialApi } from './serial-api.js';
+import { RmaApi } from './rma-api.js';
 
 // Supported API types
 export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis';
@@ -78,11 +80,9 @@ export class ApiRegistry {
     this.apis.set('psirt', new PsirtApi());
     this.apis.set('product', new ProductApi());
     this.apis.set('software', new SoftwareApi());
+    this.apis.set('serial', new SerialApi());
+    this.apis.set('rma', new RmaApi());
     this.apis.set('enhanced_analysis', new EnhancedAnalysisApi());
-    
-    // Initialize placeholder APIs for unimplemented ones only
-    this.apis.set('serial', new PlaceholderApi('Serial'));
-    this.apis.set('rma', new PlaceholderApi('RMA'));
   }
 
   // Get all tools from enabled APIs
