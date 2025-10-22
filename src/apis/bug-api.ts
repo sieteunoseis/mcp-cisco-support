@@ -10,24 +10,39 @@ export class BugApi extends BaseApi {
   protected apiName = 'Bug';
 
   // Utility functions for enhanced search capabilities
+
+  /**
+   * Normalize a single version string to Cisco API format
+   * Converts "17.09.06" to "17.9.6" by removing leading zeros
+   */
+  private normalizeVersionString(version: string): string {
+    if (!version) return version;
+    // Remove leading zeros from each version segment: 17.09.06 -> 17.9.6
+    return version.replace(/\.0+(\d)/g, '.$1');
+  }
+
+  /**
+   * Generate multiple version variations for progressive search
+   * Returns array of normalized versions for fallback attempts
+   */
   private normalizeVersion(version: string): string[] {
     const versions = [];
-    
+
     // Convert to Cisco API format first: 17.09.06 -> 17.9.6 (remove leading zeros)
-    const ciscoFormat = version.replace(/\.0+(\d)/g, '.$1');
+    const ciscoFormat = this.normalizeVersionString(version);
     versions.push(ciscoFormat);
-    
+
     // Also keep original version in case it's already in correct format
     if (ciscoFormat !== version) {
       versions.push(version);
     }
-    
+
     // Create abbreviated versions: 17.09.06 -> 17.09 -> 17.9
     if (version.includes('.')) {
       const parts = version.split('.');
       if (parts.length >= 3) {
         const shortVersion = parts.slice(0, 2).join('.');
-        const shortCiscoFormat = shortVersion.replace(/\.0+(\d)/g, '.$1');
+        const shortCiscoFormat = this.normalizeVersionString(shortVersion);
         versions.push(shortCiscoFormat);
         if (shortCiscoFormat !== shortVersion) {
           versions.push(shortVersion);
@@ -37,7 +52,7 @@ export class BugApi extends BaseApi {
         versions.push(parts[0]);
       }
     }
-    
+
     // Remove duplicates and return
     return [...new Set(versions)];
   }
@@ -499,11 +514,6 @@ export class BugApi extends BaseApi {
             version: {
               type: 'string',
               description: 'Software version to search for (e.g., "15.0", "14.0", "17.9.6"). Will be automatically included in search terms and used for product_series searches as affected_releases.'
-            },
-            additional_params: {
-              type: 'object',
-              description: 'Additional parameters specific to search type (e.g., affected_releases for product_series). Required for product_series searches unless version parameter is provided.',
-              additionalProperties: true
             }
           },
           required: ['search_term', 'search_type']
@@ -609,12 +619,27 @@ export class BugApi extends BaseApi {
 
   async executeTool(name: string, args: ToolArgs): Promise<BugApiResponse> {
     const { processedArgs } = this.validateTool(name, args);
-    
+
+    // Normalize version strings to remove leading zeros (17.09.06 -> 17.9.6)
+    // This ensures Cisco API compatibility across all tools
+    if (processedArgs.software_releases) {
+      processedArgs.software_releases = this.normalizeVersionString(processedArgs.software_releases as string);
+    }
+    if (processedArgs.affected_releases) {
+      processedArgs.affected_releases = this.normalizeVersionString(processedArgs.affected_releases as string);
+    }
+    if (processedArgs.fixed_releases) {
+      processedArgs.fixed_releases = this.normalizeVersionString(processedArgs.fixed_releases as string);
+    }
+    if (processedArgs.version) {
+      processedArgs.version = this.normalizeVersionString(processedArgs.version as string);
+    }
+
     // Build API parameters
     const apiParams = this.buildStandardParams(processedArgs);
-    
+
     let endpoint: string;
-    
+
     switch (name) {
       case 'get_bug_details':
         endpoint = `/bugs/bug_ids/${encodeURIComponent(processedArgs.bug_ids)}`;
@@ -859,7 +884,7 @@ export class BugApi extends BaseApi {
     const searchTerm = args.search_term as string;
     const searchType = args.search_type as string;
     const maxSeverity = (args.max_severity as number) || 3;
-    const version = args.version as string;
+    const version = args.version as string | undefined;
     const additionalParams = (args.additional_params as Record<string, any>) || {};
     
     // If version is provided, enhance search parameters
@@ -912,16 +937,20 @@ export class BugApi extends BaseApi {
         case 'product_id':
           return await this.executeTool('search_bugs_by_product_id', { base_pid: searchTerm, ...searchArgs });
         case 'product_series':
-          if (!additionalParams.affected_releases && !additionalParams.fixed_releases) {
-            throw new Error('product_series search requires affected_releases or fixed_releases in additional_params');
+          const affectedReleases = additionalParams.affected_releases || (version ? version : undefined);
+          const fixedReleases = additionalParams.fixed_releases;
+
+          if (!affectedReleases && !fixedReleases) {
+            throw new Error('product_series search requires a version parameter or affected_releases/fixed_releases');
           }
-          const toolName = additionalParams.fixed_releases ? 
-            'search_bugs_by_product_series_fixed' : 
+
+          const toolName = fixedReleases ?
+            'search_bugs_by_product_series_fixed' :
             'search_bugs_by_product_series_affected';
-          const releaseParam = additionalParams.fixed_releases || additionalParams.affected_releases;
+          const releaseParam = fixedReleases || affectedReleases;
           return await this.executeTool(toolName, {
             product_series: searchTerm,
-            [additionalParams.fixed_releases ? 'fixed_releases' : 'affected_releases']: releaseParam,
+            [fixedReleases ? 'fixed_releases' : 'affected_releases']: releaseParam,
             ...searchArgs
           });
         default:
