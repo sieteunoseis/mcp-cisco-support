@@ -58,69 +58,179 @@ export class SmartBondingApi extends SmartBondingBaseApi {
         }
       },
       {
-        name: 'push_smart_bonding_ticket',
-        description: '⚠️ EXPERIMENTAL/UNTESTED: Create or update a support ticket in Cisco Smart Bonding system. Requires complete ticket information including customer ID, description, and caller details. Requires SMART_BONDING_CLIENT_ID and SMART_BONDING_CLIENT_SECRET environment variables (contact Cisco Account Manager to obtain).',
+        name: 'create_smart_bonding_ticket',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Create a new support ticket in Cisco Smart Bonding system. Requires complete ticket information including customer ID, description, caller details, and component information. Requires SMART_BONDING_CLIENT_ID and SMART_BONDING_CLIENT_SECRET environment variables (contact Cisco Account Manager to obtain).',
         inputSchema: {
           type: 'object',
           properties: {
-            ticket_data: {
+            CustCallID: {
+              type: 'string',
+              description: 'Customer ticket ID (required) - your internal ticket reference'
+            },
+            ShortDescription: {
+              type: 'string',
+              description: 'Brief description of the issue (required)'
+            },
+            DetailedDescription: {
+              type: 'string',
+              description: 'Full description of the issue with all relevant details'
+            },
+            Caller: {
               type: 'object',
-              description: 'Complete ticket information',
+              description: 'Information about the person reporting the issue (required)',
               properties: {
-                CustCallID: {
-                  type: 'string',
-                  description: 'Customer ticket ID (required) - your internal ticket reference'
-                },
-                ShortDescription: {
-                  type: 'string',
-                  description: 'Brief description of the issue (required)'
-                },
-                DetailedDescription: {
-                  type: 'string',
-                  description: 'Full description of the issue with all relevant details'
-                },
-                Caller: {
-                  type: 'object',
-                  description: 'Information about the person reporting the issue',
-                  properties: {
-                    Name: {
-                      type: 'string',
-                      description: 'Full name of the caller'
-                    },
-                    Email: {
-                      type: 'string',
-                      description: 'Email address of the caller'
-                    },
-                    Phone: {
-                      type: 'string',
-                      description: 'Phone number of the caller'
-                    }
-                  },
-                  required: ['Name', 'Email']
-                },
-                Priority: {
-                  type: 'string',
-                  description: 'Priority level of the ticket',
-                  enum: ['Low', 'Medium', 'High', 'Critical']
-                },
-                Severity: {
-                  type: 'string',
-                  description: 'Severity level (1=Critical, 2=High, 3=Medium, 4=Low)',
-                  enum: ['1', '2', '3', '4']
-                },
-                Status: {
-                  type: 'string',
-                  description: 'Current status of the ticket (New, Open, Pending, Resolved, Closed)'
-                }
+                Name: { type: 'string', description: 'Full name of the caller' },
+                Email: { type: 'string', description: 'Email address of the caller' },
+                Phone: { type: 'string', description: 'Phone number of the caller' }
               },
-              required: ['CustCallID', 'ShortDescription', 'Caller']
+              required: ['Name', 'Email']
+            },
+            Priority: {
+              type: 'string',
+              description: 'Priority level of the ticket',
+              enum: ['Low', 'Medium', 'High', 'Critical', 'Escalated']
+            },
+            Severity: {
+              type: 'string',
+              description: 'Severity level (1=Critical, 2=High, 3=Medium, 4=Low)',
+              enum: ['1', '2', '3', '4']
             },
             correlation_id: {
               type: 'string',
               description: 'Optional tracking identifier for end-to-end traceability'
             }
           },
-          required: ['ticket_data']
+          required: ['CustCallID', 'ShortDescription', 'Caller']
+        }
+      },
+      {
+        name: 'update_smart_bonding_ticket',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Update an existing support ticket with work notes and status changes. Use this to add updates, notes, or modify ticket information.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            CustCallID: {
+              type: 'string',
+              description: 'Customer ticket ID to update (required)'
+            },
+            Remarks: {
+              type: 'string',
+              description: 'Work notes or update comments to add to the ticket'
+            },
+            Status: {
+              type: 'string',
+              description: 'New status for the ticket',
+              enum: ['Update', 'Open', 'Pending', 'In Progress']
+            },
+            correlation_id: {
+              type: 'string',
+              description: 'Optional tracking identifier for end-to-end traceability'
+            }
+          },
+          required: ['CustCallID']
+        }
+      },
+      {
+        name: 'add_smart_bonding_attachment',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Add file attachments to an existing support ticket. Supports Base64-encoded file data for documents, screenshots, logs, etc.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            CustCallID: {
+              type: 'string',
+              description: 'Customer ticket ID to attach files to (required)'
+            },
+            Attachment: {
+              type: 'object',
+              description: 'File attachment details',
+              properties: {
+                FileName: { type: 'string', description: 'Name of the file being attached' },
+                DataBase64: { type: 'string', description: 'Base64-encoded file content' },
+                NR: { type: 'string', description: 'Attachment sequence number' }
+              },
+              required: ['FileName', 'DataBase64']
+            },
+            correlation_id: {
+              type: 'string',
+              description: 'Optional tracking identifier'
+            }
+          },
+          required: ['CustCallID', 'Attachment']
+        }
+      },
+      {
+        name: 'escalate_smart_bonding_ticket',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Escalate a support ticket to Cisco by changing priority to "Escalated". Use this for critical issues requiring immediate Cisco attention.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            CustCallID: {
+              type: 'string',
+              description: 'Customer ticket ID to escalate (required)'
+            },
+            Remarks: {
+              type: 'string',
+              description: 'Escalation reason and details'
+            },
+            Severity: {
+              type: 'string',
+              description: 'Escalated severity level (typically 1 for critical escalations)',
+              enum: ['1', '2', '3', '4']
+            },
+            correlation_id: {
+              type: 'string',
+              description: 'Optional tracking identifier'
+            }
+          },
+          required: ['CustCallID', 'Remarks']
+        }
+      },
+      {
+        name: 'resolve_smart_bonding_ticket',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Mark a support ticket as "Resolved" with resolution notes. Use this when the issue has been fixed but before final closure.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            CustCallID: {
+              type: 'string',
+              description: 'Customer ticket ID to resolve (required)'
+            },
+            Remarks: {
+              type: 'string',
+              description: 'Resolution details and work notes (required)'
+            },
+            correlation_id: {
+              type: 'string',
+              description: 'Optional tracking identifier'
+            }
+          },
+          required: ['CustCallID', 'Remarks']
+        }
+      },
+      {
+        name: 'close_smart_bonding_ticket',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Close a completed support ticket with diagnosis and solution. This is the final state for a ticket after resolution and customer confirmation.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            CustCallID: {
+              type: 'string',
+              description: 'Customer ticket ID to close (required)'
+            },
+            Solution: {
+              type: 'string',
+              description: 'Final solution description (required)'
+            },
+            Diagnosis: {
+              type: 'string',
+              description: 'Problem diagnosis details'
+            },
+            correlation_id: {
+              type: 'string',
+              description: 'Optional tracking identifier'
+            }
+          },
+          required: ['CustCallID', 'Solution']
         }
       }
     ];
@@ -136,8 +246,23 @@ export class SmartBondingApi extends SmartBondingBaseApi {
       case 'pull_smart_bonding_tickets':
         return await this.pullTickets(processedArgs);
 
-      case 'push_smart_bonding_ticket':
-        return await this.pushTicket(processedArgs);
+      case 'create_smart_bonding_ticket':
+        return await this.createTicket(processedArgs);
+
+      case 'update_smart_bonding_ticket':
+        return await this.updateTicket(processedArgs);
+
+      case 'add_smart_bonding_attachment':
+        return await this.addAttachment(processedArgs);
+
+      case 'escalate_smart_bonding_ticket':
+        return await this.escalateTicket(processedArgs);
+
+      case 'resolve_smart_bonding_ticket':
+        return await this.resolveTicket(processedArgs);
+
+      case 'close_smart_bonding_ticket':
+        return await this.closeTicket(processedArgs);
 
       default:
         throw new Error(`Unknown Smart Bonding tool: ${name}`);
@@ -201,28 +326,27 @@ export class SmartBondingApi extends SmartBondingBaseApi {
   }
 
   /**
-   * Push (create/update) ticket to Cisco Smart Bonding
+   * Create a new ticket in Cisco Smart Bonding
    * POST /push/call
    */
-  private async pushTicket(args: ToolArgs): Promise<ApiResponse> {
-    const ticketData = args.ticket_data as Record<string, any>;
+  private async createTicket(args: ToolArgs): Promise<ApiResponse> {
     const correlationId = args.correlation_id as string | undefined;
 
-    if (!ticketData) {
-      throw new Error('ticket_data is required for push_smart_bonding_ticket');
-    }
+    // Build ticket creation payload
+    const ticketData: Record<string, any> = {
+      CustCallID: args.CustCallID,
+      ShortDescription: args.ShortDescription,
+      Caller: args.Caller
+    };
 
-    // Validate required fields
-    if (!ticketData.CustCallID) {
-      throw new Error('ticket_data.CustCallID is required');
+    if (args.DetailedDescription) {
+      ticketData.DetailedDescription = args.DetailedDescription;
     }
-
-    if (!ticketData.ShortDescription) {
-      throw new Error('ticket_data.ShortDescription is required');
+    if (args.Priority) {
+      ticketData.Priority = args.Priority;
     }
-
-    if (!ticketData.Caller || !ticketData.Caller.Name || !ticketData.Caller.Email) {
-      throw new Error('ticket_data.Caller with Name and Email is required');
+    if (args.Severity) {
+      ticketData.Severity = args.Severity;
     }
 
     const result = await this.makeApiCall(
@@ -233,11 +357,171 @@ export class SmartBondingApi extends SmartBondingBaseApi {
       correlationId
     );
 
-    // Add experimental warning to response
     return {
       ...result,
       _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature. Smart Bonding API requires credentials from Cisco Account Manager.',
-      _environment: process.env.SMART_BONDING_ENV || 'production'
+      _environment: process.env.SMART_BONDING_ENV || 'production',
+      _operation: 'create_ticket'
+    };
+  }
+
+  /**
+   * Update an existing ticket with work notes
+   * POST /push/call
+   */
+  private async updateTicket(args: ToolArgs): Promise<ApiResponse> {
+    const correlationId = args.correlation_id as string | undefined;
+
+    const ticketData: Record<string, any> = {
+      CustCallID: args.CustCallID
+    };
+
+    if (args.Remarks) {
+      ticketData.Remarks = args.Remarks;
+    }
+    if (args.Status) {
+      ticketData.CallStates = args.Status;
+    }
+
+    const result = await this.makeApiCall(
+      '/push/call',
+      'POST',
+      ticketData,
+      {},
+      correlationId
+    );
+
+    return {
+      ...result,
+      _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
+      _environment: process.env.SMART_BONDING_ENV || 'production',
+      _operation: 'update_ticket'
+    };
+  }
+
+  /**
+   * Add attachment to an existing ticket
+   * POST /push/call
+   */
+  private async addAttachment(args: ToolArgs): Promise<ApiResponse> {
+    const correlationId = args.correlation_id as string | undefined;
+    const attachment = args.Attachment as Record<string, any>;
+
+    const ticketData: Record<string, any> = {
+      CustCallID: args.CustCallID,
+      Attachments: [attachment]
+    };
+
+    const result = await this.makeApiCall(
+      '/push/call',
+      'POST',
+      ticketData,
+      {},
+      correlationId
+    );
+
+    return {
+      ...result,
+      _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
+      _environment: process.env.SMART_BONDING_ENV || 'production',
+      _operation: 'add_attachment'
+    };
+  }
+
+  /**
+   * Escalate ticket to Cisco
+   * POST /push/call
+   */
+  private async escalateTicket(args: ToolArgs): Promise<ApiResponse> {
+    const correlationId = args.correlation_id as string | undefined;
+
+    const ticketData: Record<string, any> = {
+      CustCallID: args.CustCallID,
+      Priorities: 'Escalated'
+    };
+
+    if (args.Remarks) {
+      ticketData.Remarks = args.Remarks;
+    }
+    if (args.Severity) {
+      ticketData.Severities = args.Severity;
+    }
+
+    const result = await this.makeApiCall(
+      '/push/call',
+      'POST',
+      ticketData,
+      {},
+      correlationId
+    );
+
+    return {
+      ...result,
+      _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
+      _environment: process.env.SMART_BONDING_ENV || 'production',
+      _operation: 'escalate_ticket'
+    };
+  }
+
+  /**
+   * Resolve ticket with resolution notes
+   * POST /push/call
+   */
+  private async resolveTicket(args: ToolArgs): Promise<ApiResponse> {
+    const correlationId = args.correlation_id as string | undefined;
+
+    const ticketData: Record<string, any> = {
+      CustCallID: args.CustCallID,
+      CallStates: 'Resolved',
+      Remarks: args.Remarks
+    };
+
+    const result = await this.makeApiCall(
+      '/push/call',
+      'POST',
+      ticketData,
+      {},
+      correlationId
+    );
+
+    return {
+      ...result,
+      _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
+      _environment: process.env.SMART_BONDING_ENV || 'production',
+      _operation: 'resolve_ticket'
+    };
+  }
+
+  /**
+   * Close ticket with diagnosis and solution
+   * POST /push/call
+   */
+  private async closeTicket(args: ToolArgs): Promise<ApiResponse> {
+    const correlationId = args.correlation_id as string | undefined;
+
+    const ticketData: Record<string, any> = {
+      CustCallID: args.CustCallID,
+      CallStates: 'Closed',
+      Solution: args.Solution
+    };
+
+    if (args.Diagnosis) {
+      ticketData.Diagnosis = args.Diagnosis;
+    }
+
+    const result = await this.makeApiCall(
+      '/push/call',
+      'POST',
+      ticketData,
+      {},
+      correlationId
+    );
+
+    return {
+      ...result,
+      _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
+      _environment: process.env.SMART_BONDING_ENV || 'production',
+      _operation: 'close_ticket'
     };
   }
 }

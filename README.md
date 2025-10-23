@@ -32,9 +32,9 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 | **Software** (`software`) | ✅ **Complete** | 6 tools | Software suggestions, releases, and upgrade recommendations |
 | **Serial** (`serial`) | ✅ **Complete** | 3 tools | Serial number to coverage, warranty, and product information |
 | **RMA** (`rma`) | ✅ **Complete** | 3 tools | Return Merchandise Authorization tracking and management |
-| **Smart Bonding** (`smart_bonding`) | ⚠️ **EXPERIMENTAL** | 3 tools | Ticket management and TSP code retrieval (UNTESTED - requires special credentials) |
+| **Smart Bonding** (`smart_bonding`) | ⚠️ **EXPERIMENTAL** | 8 tools | Complete ticket lifecycle management and TSP codes (UNTESTED - requires special credentials) |
 
-**Implementation Status:** 8/8 Core APIs complete (100%) with 46 total tools + 1 experimental API (3 tools)
+**Implementation Status:** 8/8 Core APIs complete (100%) with 46 total tools + 1 experimental API (8 tools)
 
 **Configuration Examples:**
 - `SUPPORT_API=enhanced_analysis` - Enhanced analysis tools only (6 tools) **← RECOMMENDED for most users**
@@ -229,10 +229,15 @@ The server includes **experimental support** for Cisco's Smart Bonding Customer 
 
 ### Smart Bonding Features
 
-**Available Tools:**
+**Available Tools (8 total):**
 - `get_smart_bonding_tsp_codes` - Retrieve TSP (Technology, Sub-Technology, Problem Code) details for ticket classification
 - `pull_smart_bonding_tickets` - Retrieve ticket updates from Cisco that haven't been pulled yet
-- `push_smart_bonding_ticket` - Create or update support tickets in Cisco Smart Bonding system
+- `create_smart_bonding_ticket` - Create a new support ticket with complete details
+- `update_smart_bonding_ticket` - Add work notes and update ticket status
+- `add_smart_bonding_attachment` - Attach files to existing tickets (Base64-encoded)
+- `escalate_smart_bonding_ticket` - Escalate critical issues to Cisco
+- `resolve_smart_bonding_ticket` - Mark tickets as resolved with resolution notes
+- `close_smart_bonding_ticket` - Close completed tickets with diagnosis and solution
 
 ### Authentication Differences
 
