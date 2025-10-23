@@ -1,10 +1,12 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { 
+import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
   PingRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
   Prompt,
   PromptMessage,
   TextContent,
@@ -777,6 +779,7 @@ export function createMCPServer(): Server {
       capabilities: {
         tools: {},
         prompts: {},
+        resources: {},
         elicitation: {},
       },
     }
@@ -903,23 +906,255 @@ export function createMCPServer(): Server {
   // Get prompt handler
   server.setRequestHandler(GetPromptRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    
+
     try {
       logger.info('Get prompt request', { name, args });
-      
+
       const messages = generatePrompt(name, args || {});
-      
+
       logger.info('Prompt generated', { name, messageCount: messages.length });
-      
+
       return {
         messages,
       };
     } catch (error) {
-      logger.error('Prompt generation failed', { 
-        name, 
-        error: error instanceof Error ? error.message : error 
+      logger.error('Prompt generation failed', {
+        name,
+        error: error instanceof Error ? error.message : error
       });
-      
+
+      throw error;
+    }
+  });
+
+  // List resources handler
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    logger.info('List resources request received');
+
+    const resources = [];
+    const resourceTemplates = [];
+
+    // Bug resources (if bug API is enabled)
+    if (ENABLED_APIS.includes('bug')) {
+      // Static resources
+      resources.push(
+        {
+          uri: 'cisco://bugs/recent/critical',
+          name: 'Recent Critical Bugs',
+          description: 'High-severity bugs from the last 7 days',
+          mimeType: 'application/json'
+        },
+        {
+          uri: 'cisco://bugs/recent/high',
+          name: 'Recent High-Severity Bugs',
+          description: 'Severity 1-3 bugs from the last 30 days',
+          mimeType: 'application/json'
+        }
+      );
+
+      // Dynamic resource template
+      resourceTemplates.push({
+        uriTemplate: 'cisco://bugs/{bug_id}',
+        name: 'Cisco Bug Report',
+        description: 'Access any Cisco bug by its ID (e.g., CSCvi12345)',
+        mimeType: 'application/json'
+      });
+    }
+
+    // Product resources (if product API is enabled)
+    if (ENABLED_APIS.includes('product')) {
+      // Static resource
+      resources.push({
+        uri: 'cisco://products/catalog',
+        name: 'Product Catalog',
+        description: 'Product catalog overview',
+        mimeType: 'application/json'
+      });
+
+      // Dynamic resource template
+      resourceTemplates.push({
+        uriTemplate: 'cisco://products/{product_id}',
+        name: 'Cisco Product Information',
+        description: 'Get product details by product ID (e.g., C9300-24P, ISR4431)',
+        mimeType: 'application/json'
+      });
+    }
+
+    // Security resources (if PSIRT API is enabled)
+    if (ENABLED_APIS.includes('psirt')) {
+      // Static resources
+      resources.push(
+        {
+          uri: 'cisco://security/advisories/recent',
+          name: 'Recent Security Advisories',
+          description: 'Latest 20 security advisories from Cisco PSIRT',
+          mimeType: 'application/json'
+        },
+        {
+          uri: 'cisco://security/advisories/critical',
+          name: 'Critical Security Advisories',
+          description: 'Critical severity security advisories',
+          mimeType: 'application/json'
+        }
+      );
+
+      // Dynamic resource templates
+      resourceTemplates.push(
+        {
+          uriTemplate: 'cisco://security/advisories/{advisory_id}',
+          name: 'Cisco Security Advisory',
+          description: 'Get security advisory by ID (e.g., cisco-sa-20180221-ucdm)',
+          mimeType: 'application/json'
+        },
+        {
+          uriTemplate: 'cisco://security/cve/{cve_id}',
+          name: 'Security Advisory by CVE',
+          description: 'Get security advisory by CVE identifier (e.g., CVE-2018-0101)',
+          mimeType: 'application/json'
+        }
+      );
+    }
+
+    logger.info('Returning resources and templates', {
+      resourceCount: resources.length,
+      templateCount: resourceTemplates.length
+    });
+
+    return {
+      resources,
+      resourceTemplates
+    };
+  });
+
+  // Read resource handler
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const { uri } = request.params;
+    logger.info('Read resource request', { uri });
+
+    try {
+      let result: any;
+      let description = '';
+
+      // Bug resources
+      if (uri === 'cisco://bugs/recent/critical') {
+        description = 'Recent critical bugs (severity 1-2) from last 7 days';
+        const bugs1 = await apiRegistry.executeTool('search_bugs_by_keyword', {
+          keyword: 'crash OR failure OR outage',
+          severity: '1',
+          modified_date: '1'
+        });
+        const bugs2 = await apiRegistry.executeTool('search_bugs_by_keyword', {
+          keyword: 'crash OR failure OR outage',
+          severity: '2',
+          modified_date: '1'
+        });
+        result = {
+          description,
+          severity1: bugs1.result,
+          severity2: bugs2.result
+        };
+      } else if (uri === 'cisco://bugs/recent/high') {
+        description = 'Recent high-severity bugs (severity 1-3) from last 30 days';
+        const bugs1 = await apiRegistry.executeTool('search_bugs_by_keyword', {
+          keyword: 'bug',
+          severity: '1',
+          modified_date: '2'
+        });
+        const bugs2 = await apiRegistry.executeTool('search_bugs_by_keyword', {
+          keyword: 'bug',
+          severity: '2',
+          modified_date: '2'
+        });
+        const bugs3 = await apiRegistry.executeTool('search_bugs_by_keyword', {
+          keyword: 'bug',
+          severity: '3',
+          modified_date: '2'
+        });
+        result = {
+          description,
+          severity1: bugs1.result,
+          severity2: bugs2.result,
+          severity3: bugs3.result
+        };
+      } else if (uri.startsWith('cisco://bugs/')) {
+        // Dynamic bug lookup: cisco://bugs/{bug_id}
+        const bugId = uri.replace('cisco://bugs/', '');
+        description = `Bug details for ${bugId}`;
+        const bugResult = await apiRegistry.executeTool('get_bug_details', {
+          bug_ids: bugId
+        });
+        result = bugResult.result;
+      } else if (uri.startsWith('cisco://products/')) {
+        // Dynamic product lookup: cisco://products/{product_id}
+        const productId = uri.replace('cisco://products/', '');
+        if (productId === 'catalog') {
+          result = {
+            description: 'Use cisco://products/{product_id} to access specific product information',
+            examples: [
+              'cisco://products/C9300-24P',
+              'cisco://products/ISR4431',
+              'cisco://products/ASA5516-X'
+            ]
+          };
+        } else {
+          description = `Product information for ${productId}`;
+          const productResult = await apiRegistry.executeTool('get_product_info_by_product_ids', {
+            product_ids: productId
+          });
+          result = productResult.result;
+        }
+      } else if (uri === 'cisco://security/advisories/recent') {
+        description = 'Latest 20 security advisories';
+        const advisories = await apiRegistry.executeTool('get_latest_security_advisories', {
+          number: 20,
+          summary_details: true
+        });
+        result = advisories.result;
+      } else if (uri === 'cisco://security/advisories/critical') {
+        description = 'Critical severity security advisories';
+        const advisories = await apiRegistry.executeTool('get_security_advisories_by_severity', {
+          severity: 'critical',
+          page_size: 20,
+          summary_details: true
+        });
+        result = advisories.result;
+      } else if (uri.startsWith('cisco://security/advisories/')) {
+        // Dynamic advisory lookup: cisco://security/advisories/{advisory_id}
+        const advisoryId = uri.replace('cisco://security/advisories/', '');
+        description = `Security advisory ${advisoryId}`;
+        const advisory = await apiRegistry.executeTool('get_security_advisory_by_id', {
+          advisory_id: advisoryId,
+          summary_details: true
+        });
+        result = advisory.result;
+      } else if (uri.startsWith('cisco://security/cve/')) {
+        // CVE lookup: cisco://security/cve/{cve_id}
+        const cveId = uri.replace('cisco://security/cve/', '');
+        description = `Security advisory for ${cveId}`;
+        const advisory = await apiRegistry.executeTool('get_security_advisory_by_cve', {
+          cve_id: cveId,
+          summary_details: true
+        });
+        result = advisory.result;
+      } else {
+        throw new Error(`Unknown resource URI: ${uri}`);
+      }
+
+      logger.info('Resource read completed', { uri });
+
+      return {
+        contents: [{
+          uri,
+          mimeType: 'application/json',
+          text: JSON.stringify({ description, data: result }, null, 2)
+        }]
+      };
+    } catch (error) {
+      logger.error('Resource read failed', {
+        uri,
+        error: error instanceof Error ? error.message : error
+      });
+
       throw error;
     }
   });

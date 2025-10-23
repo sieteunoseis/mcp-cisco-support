@@ -12,7 +12,7 @@
 | **Prompts** | ✅ Implemented | - | Workflow templates | Complete |
 | **ElicitationRequest** | ✅ Implemented | - | User interaction | Complete |
 | **Ping** | ✅ Implemented | - | Connectivity test | Complete |
-| **Resources** | ❌ Missing | 🔴 HIGH | 50% fewer API calls | 2-3 days |
+| **Resources** | ✅ Implemented ✨ NEW | - | 50% fewer API calls | Complete |
 | **Progress Notifications** | ❌ Missing | 🔴 HIGH | Better UX | 1-2 days |
 | **Sampling** | ❌ Missing | 🟡 MEDIUM | AI-powered features | 2-3 days |
 | **Logging** | ❌ Missing | 🟡 MEDIUM | Better debugging | 1 day |
@@ -103,31 +103,56 @@ createElicitationRequest(
 
 ---
 
-### ❌ Missing Features (To Be Implemented)
+#### 5. Resources ✨ NEW
 
-#### 1. Resources 🌟 HIGH PRIORITY
-**What it does:** Expose structured data as readable resources
+**What it does:** Expose structured data as readable MCP resources
 
-**Proposed Implementation:**
+**Our Implementation:**
+
+**Static Resources:**
+
+- `cisco://bugs/recent/critical` - Critical bugs (severity 1-2) from last 7 days
+- `cisco://bugs/recent/high` - High-severity bugs (severity 1-3) from last 30 days
+- `cisco://products/catalog` - Product catalog overview
+- `cisco://security/advisories/recent` - Latest 20 security advisories
+- `cisco://security/advisories/critical` - Critical severity advisories
+
+**Resource Templates (Dynamic URIs):**
+
+- `cisco://bugs/{bug_id}` - Any bug by ID (e.g., CSCvi12345)
+- `cisco://products/{product_id}` - Any product by ID (e.g., C9300-24P)
+- `cisco://security/advisories/{advisory_id}` - Any advisory by ID
+- `cisco://security/cve/{cve_id}` - Advisory by CVE identifier
+
+**Example:**
+
+```typescript
+// List resources
+const { resources, resourceTemplates } = await mcpServer.request({
+  method: 'resources/list'
+});
+
+// Read using template pattern
+const bugData = await mcpServer.request({
+  method: 'resources/read',
+  params: { uri: 'cisco://bugs/CSCvi12345' }
+});
 ```
-cisco://bugs/{bug_id}                    - Bug report
-cisco://bugs/recent?severity=1&days=7    - Recent critical bugs
-cisco://products/{product_id}/specs      - Product specifications
-cisco://security/advisories/{id}         - Security advisories
-cisco://cache/search/{id}                - Cached search results
-```
 
-**Use Cases:**
-- Direct bug report access without tool calls
-- Real-time security advisory subscriptions
-- Cached search results for faster access
-- Product information as resources
+**Benefits:**
+
+- Direct data access without tool calls
+- Real-time information from Cisco APIs
+- Resource templates for dynamic URIs
+- Reduced API overhead
 
 **ROI:** 🚀 **50% reduction in duplicate API calls**
 
 ---
 
-#### 2. Progress Notifications 📊 HIGH PRIORITY
+### ❌ Missing Features (To Be Implemented)
+
+#### 1. Progress Notifications 📊 HIGH PRIORITY
 **What it does:** Real-time updates for long-running operations
 
 **Proposed Implementation:**
