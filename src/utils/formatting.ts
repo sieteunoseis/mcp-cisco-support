@@ -440,3 +440,156 @@ function formatSearchContext(searchContext: { toolName: string; args: ToolArgs }
   
   return formatted;
 }
+// Smart Bonding-specific response interface
+export interface SmartBondingTicket {
+  SDCallID?: string;
+  CustCallID?: string;
+  ShortDescription?: string;
+  DetailedDescription?: string;
+  CallerInfo?: any;
+  ComponentInfo?: any;
+  Status?: string;
+  Priority?: string;
+  Severity?: string;
+  CreatedDate?: string;
+  ModifiedDate?: string;
+  [key: string]: any;
+}
+
+export interface SmartBondingApiResponse extends ApiResponse {
+  tickets?: SmartBondingTicket[];
+  total_results?: number;
+  status?: string;
+  message?: string;
+  SDCallID?: string;
+  CustCallID?: string;
+  correlation_id?: string;
+  _experimental_warning?: string;
+  _environment?: string;
+}
+
+/**
+ * ⚠️ EXPERIMENTAL: Format Smart Bonding API results
+ * UNTESTED - Requires Smart Bonding credentials to validate
+ */
+export function formatSmartBondingResults(data: SmartBondingApiResponse, searchContext?: { toolName: string; args: ToolArgs }): string {
+  // Add experimental warning
+  let formatted = `# ⚠️ EXPERIMENTAL/UNTESTED: Smart Bonding API Results\n\n`;
+
+  if (data._experimental_warning) {
+    formatted += `> ${data._experimental_warning}\n\n`;
+  }
+
+  if (data._environment) {
+    formatted += `**Environment:** ${data._environment}\n\n`;
+  }
+
+  // Add search context if available
+  if (searchContext) {
+    formatted += `## Search Context\n\n`;
+    formatted += `**Tool:** ${searchContext.toolName}\n\n`;
+    if (searchContext.args.correlation_id) {
+      formatted += `**Correlation ID:** ${searchContext.args.correlation_id}\n\n`;
+    }
+  }
+
+  // Handle push ticket response (create/update)
+  if (data.status && data.SDCallID) {
+    formatted += `## Ticket Operation Result\n\n`;
+    formatted += `**Status:** ${data.status}\n\n`;
+    if (data.message) {
+      formatted += `**Message:** ${data.message}\n\n`;
+    }
+    formatted += `**Cisco Ticket ID (SDCallID):** ${data.SDCallID}\n\n`;
+    if (data.CustCallID) {
+      formatted += `**Customer Ticket ID:** ${data.CustCallID}\n\n`;
+    }
+    if (data.correlation_id) {
+      formatted += `**Correlation ID:** ${data.correlation_id}\n\n`;
+    }
+    return formatted;
+  }
+
+  // Handle pull tickets response (retrieve updates)
+  if (data.tickets && Array.isArray(data.tickets)) {
+    if (data.tickets.length === 0) {
+      formatted += `**No ticket updates available.**\n\n`;
+      return formatted;
+    }
+
+    formatted += `**Total Tickets:** ${data.total_results || data.tickets.length}\n\n`;
+
+    data.tickets.forEach((ticket, index) => {
+      formatted += `## ${index + 1}. Ticket: ${ticket.SDCallID || 'Unknown'}\n\n`;
+
+      if (ticket.CustCallID) {
+        formatted += `**Customer Ticket ID:** ${ticket.CustCallID}\n\n`;
+      }
+
+      if (ticket.ShortDescription) {
+        formatted += `**Summary:** ${ticket.ShortDescription}\n\n`;
+      }
+
+      if (ticket.DetailedDescription) {
+        formatted += `**Description:** ${ticket.DetailedDescription}\n\n`;
+      }
+
+      if (ticket.Status) {
+        formatted += `**Status:** ${ticket.Status}\n\n`;
+      }
+
+      if (ticket.Priority) {
+        formatted += `**Priority:** ${ticket.Priority}\n\n`;
+      }
+
+      if (ticket.Severity) {
+        formatted += `**Severity:** ${ticket.Severity}\n\n`;
+      }
+
+      if (ticket.CreatedDate) {
+        formatted += `**Created:** ${ticket.CreatedDate}\n\n`;
+      }
+
+      if (ticket.ModifiedDate) {
+        formatted += `**Last Modified:** ${ticket.ModifiedDate}\n\n`;
+      }
+
+      // Add caller information if available
+      if (ticket.CallerInfo) {
+        formatted += `**Caller Information:**\n`;
+        if (typeof ticket.CallerInfo === 'object') {
+          Object.entries(ticket.CallerInfo).forEach(([key, value]) => {
+            if (value) {
+              formatted += `  - ${key}: ${value}\n`;
+            }
+          });
+          formatted += `\n`;
+        } else {
+          formatted += `  ${ticket.CallerInfo}\n\n`;
+        }
+      }
+
+      // Add component information if available
+      if (ticket.ComponentInfo) {
+        formatted += `**Component Information:**\n`;
+        if (typeof ticket.ComponentInfo === 'object') {
+          Object.entries(ticket.ComponentInfo).forEach(([key, value]) => {
+            if (value) {
+              formatted += `  - ${key}: ${value}\n`;
+            }
+          });
+          formatted += `\n`;
+        } else {
+          formatted += `  ${ticket.ComponentInfo}\n\n`;
+        }
+      }
+
+      formatted += `---\n\n`;
+    });
+
+    return formatted;
+  }
+
+  // Fallback: return JSON
+  return JSON.stringify(data, null, 2);
+}

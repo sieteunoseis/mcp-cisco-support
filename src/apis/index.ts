@@ -11,11 +11,12 @@ import { ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
 import { SerialApi } from './serial-api.js';
 import { RmaApi } from './rma-api.js';
+import { SmartBondingApi } from './smart-bonding-api.js';
 
 // Supported API types
-export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis';
+export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis' | 'smart_bonding';
 
-export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software', 'enhanced_analysis'];
+export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software', 'enhanced_analysis', 'smart_bonding'];
 
 // Placeholder API class for unimplemented APIs
 class PlaceholderApi extends BaseApi {
@@ -83,6 +84,7 @@ export class ApiRegistry {
     this.apis.set('serial', new SerialApi());
     this.apis.set('rma', new RmaApi());
     this.apis.set('enhanced_analysis', new EnhancedAnalysisApi());
+    this.apis.set('smart_bonding', new SmartBondingApi() as any); // Cast needed due to different base class
   }
 
   // Get all tools from enabled APIs
@@ -134,7 +136,7 @@ export function getEnabledAPIs(): SupportedAPI[] {
   const supportApiEnv = process.env.SUPPORT_API || 'bug';
   
   if (supportApiEnv.toLowerCase() === 'all') {
-    return SUPPORTED_APIS.filter(api => api !== 'enhanced_analysis'); // Exclude enhanced_analysis from 'all'
+    return SUPPORTED_APIS.filter(api => api !== 'enhanced_analysis' && api !== 'smart_bonding'); // Exclude enhanced_analysis and smart_bonding from 'all'
   }
   
   if (supportApiEnv.toLowerCase() === 'enhanced_analysis') {

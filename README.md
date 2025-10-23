@@ -32,8 +32,9 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 | **Software** (`software`) | ✅ **Complete** | 6 tools | Software suggestions, releases, and upgrade recommendations |
 | **Serial** (`serial`) | ✅ **Complete** | 3 tools | Serial number to coverage, warranty, and product information |
 | **RMA** (`rma`) | ✅ **Complete** | 3 tools | Return Merchandise Authorization tracking and management |
+| **Smart Bonding** (`smart_bonding`) | ⚠️ **EXPERIMENTAL** | 3 tools | Ticket management and TSP code retrieval (UNTESTED - requires special credentials) |
 
-**Implementation Status:** 8/8 APIs complete (100%) with 46 total tools
+**Implementation Status:** 8/8 Core APIs complete (100%) with 46 total tools + 1 experimental API (3 tools)
 
 **Configuration Examples:**
 - `SUPPORT_API=enhanced_analysis` - Enhanced analysis tools only (6 tools) **← RECOMMENDED for most users**
@@ -221,6 +222,76 @@ Use the "cisco-interactive-search" prompt with:
 ```
 
 See **[examples/elicitation-example.md](examples/elicitation-example.md)** for detailed usage examples and **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** for complete prompt documentation.
+
+## ⚠️ Smart Bonding Customer API (EXPERIMENTAL/UNTESTED)
+
+The server includes **experimental support** for Cisco's Smart Bonding Customer API for ticket management and problem code classification. **This feature is UNTESTED** and requires special credentials obtained through your Cisco Account Manager.
+
+### Smart Bonding Features
+
+**Available Tools:**
+- `get_smart_bonding_tsp_codes` - Retrieve TSP (Technology, Sub-Technology, Problem Code) details for ticket classification
+- `pull_smart_bonding_tickets` - Retrieve ticket updates from Cisco that haven't been pulled yet
+- `push_smart_bonding_ticket` - Create or update support tickets in Cisco Smart Bonding system
+
+### Authentication Differences
+
+Smart Bonding API uses a **different authentication system** than standard Cisco Support APIs:
+
+| Feature | Standard Support APIs | Smart Bonding API |
+|---------|----------------------|-------------------|
+| **OAuth2 Endpoint** | `https://id.cisco.com/oauth2/default/v1/token` | `https://cloudsso.cisco.com/as/token.oauth2` |
+| **Token Validity** | 12 hours | 1 hour |
+| **Credentials** | Self-service via Cisco Developer Portal | Contact Cisco Account Manager |
+| **Environment Variables** | `CISCO_CLIENT_ID`, `CISCO_CLIENT_SECRET` | `SMART_BONDING_CLIENT_ID`, `SMART_BONDING_CLIENT_SECRET` |
+
+### Configuration
+
+1. **Obtain Credentials** - Contact your Cisco Account Manager to request Smart Bonding API access
+
+2. **Set Environment Variables:**
+   ```bash
+   export SMART_BONDING_CLIENT_ID=your_smart_bonding_client_id
+   export SMART_BONDING_CLIENT_SECRET=your_smart_bonding_client_secret
+   export SMART_BONDING_ENV=production  # or 'staging' for test environment
+   export SUPPORT_API=smart_bonding     # Enable Smart Bonding API
+   ```
+
+3. **Use Smart Bonding Tools:**
+   - Get TSP codes for ticket classification
+   - Pull new ticket updates
+   - Create/update tickets with standardized problem categorization
+
+### Important Notes
+
+- ⚠️ **EXPERIMENTAL/UNTESTED** - This implementation has not been tested with live Smart Bonding credentials
+- ⚠️ **Separate Credentials Required** - Smart Bonding uses different OAuth2 credentials than standard Support APIs
+- ⚠️ **Not Included in `SUPPORT_API=all`** - Must be explicitly enabled with `SUPPORT_API=smart_bonding`
+- ⚠️ **Special Access Required** - Contact Cisco Account Manager for credential provisioning
+- Base URLs differ for staging vs production environments
+- Supports correlation IDs for end-to-end request traceability
+
+### Example Usage
+
+```bash
+# With Claude Desktop - add to claude_desktop_config.json
+{
+  "mcpServers": {
+    "cisco-smart-bonding": {
+      "command": "npx",
+      "args": ["mcp-cisco-support"],
+      "env": {
+        "SMART_BONDING_CLIENT_ID": "your_id",
+        "SMART_BONDING_CLIENT_SECRET": "your_secret",
+        "SMART_BONDING_ENV": "production",
+        "SUPPORT_API": "smart_bonding"
+      }
+    }
+  }
+}
+```
+
+For complete implementation details and API architecture, see **[SMART_BONDING_IMPLEMENTATION.md](SMART_BONDING_IMPLEMENTATION.md)**.
 
 ## Screenshots
 
