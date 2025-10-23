@@ -507,6 +507,43 @@ export function formatSmartBondingResults(data: SmartBondingApiResponse, searchC
     if (data.correlation_id) {
       formatted += `**Correlation ID:** ${data.correlation_id}\n\n`;
     }
+
+    // Extract and highlight file upload credentials if present (for create operations)
+    if (data.ExtTableValues) {
+      const extValues = data.ExtTableValues;
+      if (extValues.Field80 || extValues.Field81 || extValues.Field82) {
+        formatted += `## 📎 File Upload Credentials\n\n`;
+        formatted += `> ⚠️ **SAVE THESE CREDENTIALS** - They cannot be retrieved later!\n\n`;
+
+        if (extValues.Field80) {
+          formatted += `**Upload Domain (Field80):** ${extValues.Field80}\n\n`;
+        }
+        if (extValues.Field81) {
+          formatted += `**Upload Token (Field81):** ${extValues.Field81}\n\n`;
+        }
+        if (extValues.Field82) {
+          formatted += `**Token Expires (Field82):** ${new Date(parseInt(extValues.Field82) * 1000).toISOString()} (Unix: ${extValues.Field82})\n\n`;
+        }
+
+        formatted += `**Upload Instructions:**\n`;
+        formatted += `Use the \`upload_file_to_smart_bonding_ticket\` tool with:\n`;
+        formatted += `- ticket_number: ${data.SDCallID}\n`;
+        formatted += `- upload_token: ${extValues.Field81 || '(from Field81)'}\n`;
+        if (extValues.Field80) {
+          formatted += `- upload_domain: ${extValues.Field80}\n`;
+        }
+        formatted += `- filename: your file name\n`;
+        formatted += `- file_content: Base64-encoded file data\n\n`;
+
+        formatted += `**Alternative (curl):**\n`;
+        formatted += `\`\`\`bash\n`;
+        formatted += `curl -X PUT "https://${extValues.Field80 || 'cxd.cisco.com'}/home/yourfile.txt" \\\n`;
+        formatted += `  -u "${data.SDCallID}:${extValues.Field81 || 'TOKEN'}" \\\n`;
+        formatted += `  --data-binary @yourfile.txt\n`;
+        formatted += `\`\`\`\n\n`;
+      }
+    }
+
     return formatted;
   }
 

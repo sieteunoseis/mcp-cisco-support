@@ -635,15 +635,16 @@ Key log messages to monitor:
    - **Tools:** 8 (complete ticket lifecycle management)
      - get_smart_bonding_tsp_codes - TSP code retrieval for classification
      - pull_smart_bonding_tickets - Pull new ticket updates
-     - create_smart_bonding_ticket - Create new tickets
+     - create_smart_bonding_ticket - Create new tickets (returns upload credentials)
      - update_smart_bonding_ticket - Add work notes and updates
-     - add_smart_bonding_attachment - Attach files (Base64)
+     - upload_file_to_smart_bonding_ticket - Upload files via HTTPS PUT to cxd.cisco.com
      - escalate_smart_bonding_ticket - Escalate to Cisco
      - resolve_smart_bonding_ticket - Mark as resolved
      - close_smart_bonding_ticket - Close with diagnosis/solution
    - **Auth:** Separate OAuth2 system (cloudsso.cisco.com) with 1-hour token validity
+   - **File Uploads:** Separate HTTPS PUT to cxd.cisco.com using credentials from ticket creation (Field80-82)
    - **Environment:** `SMART_BONDING_CLIENT_ID`, `SMART_BONDING_CLIENT_SECRET`, `SMART_BONDING_ENV`
-   - **Endpoints:** GET /tspcodes, GET /pull/call, POST /push/call (all operations)
+   - **Endpoints:** GET /tspcodes, GET /pull/call, POST /push/call, PUT https://cxd.cisco.com/home/*
    - **Note:** Not included in `SUPPORT_API=all` - must be explicitly enabled
 
 **Completed Implementations:**

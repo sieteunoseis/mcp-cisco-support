@@ -232,12 +232,28 @@ The server includes **experimental support** for Cisco's Smart Bonding Customer 
 **Available Tools (8 total):**
 - `get_smart_bonding_tsp_codes` - Retrieve TSP (Technology, Sub-Technology, Problem Code) details for ticket classification
 - `pull_smart_bonding_tickets` - Retrieve ticket updates from Cisco that haven't been pulled yet
-- `create_smart_bonding_ticket` - Create a new support ticket with complete details
+- `create_smart_bonding_ticket` - Create a new support ticket (returns upload credentials in response)
 - `update_smart_bonding_ticket` - Add work notes and update ticket status
-- `add_smart_bonding_attachment` - Attach files to existing tickets (Base64-encoded)
+- `upload_file_to_smart_bonding_ticket` - Upload files using credentials from ticket creation (HTTPS PUT to cxd.cisco.com)
 - `escalate_smart_bonding_ticket` - Escalate critical issues to Cisco
 - `resolve_smart_bonding_ticket` - Mark tickets as resolved with resolution notes
 - `close_smart_bonding_ticket` - Close completed tickets with diagnosis and solution
+
+### File Upload Process
+
+Smart Bonding uses a **separate upload mechanism** from the REST API:
+
+1. **Create ticket** → Response includes upload credentials (Field80-82)
+2. **Save credentials** → Cannot be retrieved later!
+3. **Upload files** → Use `upload_file_to_smart_bonding_ticket` tool or curl
+4. **72-day expiration** → Token expires 72 days after creation
+
+Upload credentials provided in ticket creation response:
+- **Field80**: Upload domain (e.g., cxd.cisco.com)
+- **Field81**: Authentication token (password)
+- **Field82**: Token expiration timestamp
+
+Files cannot be modified after upload - submit new files for corrections.
 
 ### Authentication Differences
 

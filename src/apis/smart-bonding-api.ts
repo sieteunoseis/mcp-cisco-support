@@ -131,31 +131,34 @@ export class SmartBondingApi extends SmartBondingBaseApi {
         }
       },
       {
-        name: 'add_smart_bonding_attachment',
-        description: '⚠️ EXPERIMENTAL/UNTESTED: Add file attachments to an existing support ticket. Supports Base64-encoded file data for documents, screenshots, logs, etc.',
+        name: 'upload_file_to_smart_bonding_ticket',
+        description: '⚠️ EXPERIMENTAL/UNTESTED: Upload a file to a Smart Bonding ticket using credentials from ticket creation response. Upload credentials (Field80-82) are provided when creating a ticket and must be saved. Uses HTTPS PUT to Cisco upload domain (cxd.cisco.com). Files cannot be modified after upload - submit new files for corrections.',
         inputSchema: {
           type: 'object',
           properties: {
-            CustCallID: {
+            ticket_number: {
               type: 'string',
-              description: 'Customer ticket ID to attach files to (required)'
+              description: 'Cisco SR ticket number (username for upload authentication)'
             },
-            Attachment: {
-              type: 'object',
-              description: 'File attachment details',
-              properties: {
-                FileName: { type: 'string', description: 'Name of the file being attached' },
-                DataBase64: { type: 'string', description: 'Base64-encoded file content' },
-                NR: { type: 'string', description: 'Attachment sequence number' }
-              },
-              required: ['FileName', 'DataBase64']
-            },
-            correlation_id: {
+            upload_token: {
               type: 'string',
-              description: 'Optional tracking identifier'
+              description: 'Upload token from Field81 of ticket creation response (password for authentication)'
+            },
+            upload_domain: {
+              type: 'string',
+              description: 'Upload domain from Field80 (e.g., cxd.cisco.com). Optional - defaults to cxd.cisco.com',
+              default: 'cxd.cisco.com'
+            },
+            filename: {
+              type: 'string',
+              description: 'Name of the file to upload (e.g., "showtech.txt", "screenshot.png")'
+            },
+            file_content: {
+              type: 'string',
+              description: 'Base64-encoded file content to upload'
             }
           },
-          required: ['CustCallID', 'Attachment']
+          required: ['ticket_number', 'upload_token', 'filename', 'file_content']
         }
       },
       {
@@ -252,8 +255,8 @@ export class SmartBondingApi extends SmartBondingBaseApi {
       case 'update_smart_bonding_ticket':
         return await this.updateTicket(processedArgs);
 
-      case 'add_smart_bonding_attachment':
-        return await this.addAttachment(processedArgs);
+      case 'upload_file_to_smart_bonding_ticket':
+        return await this.uploadFile(processedArgs);
 
       case 'escalate_smart_bonding_ticket':
         return await this.escalateTicket(processedArgs);
@@ -400,32 +403,67 @@ export class SmartBondingApi extends SmartBondingBaseApi {
   }
 
   /**
-   * Add attachment to an existing ticket
-   * POST /push/call
+   * Upload file to Smart Bonding ticket using credentials from ticket creation
+   * HTTPS PUT to cxd.cisco.com (separate from Smart Bonding API)
    */
-  private async addAttachment(args: ToolArgs): Promise<ApiResponse> {
-    const correlationId = args.correlation_id as string | undefined;
-    const attachment = args.Attachment as Record<string, any>;
+  private async uploadFile(args: ToolArgs): Promise<ApiResponse> {
+    const ticketNumber = args.ticket_number as string;
+    const uploadToken = args.upload_token as string;
+    const uploadDomain = (args.upload_domain as string) || 'cxd.cisco.com';
+    const filename = args.filename as string;
+    const fileContent = args.file_content as string;
 
-    const ticketData: Record<string, any> = {
-      CustCallID: args.CustCallID,
-      Attachments: [attachment]
-    };
+    // Decode Base64 file content
+    let fileBuffer: Buffer;
+    try {
+      fileBuffer = Buffer.from(fileContent, 'base64');
+    } catch (error) {
+      throw new Error('Invalid Base64 file content');
+    }
 
-    const result = await this.makeApiCall(
-      '/push/call',
-      'POST',
-      ticketData,
-      {},
-      correlationId
-    );
+    const uploadUrl = `https://${uploadDomain}/home/${filename}`;
+    const credentials = Buffer.from(`${ticketNumber}:${uploadToken}`).toString('base64');
 
-    return {
-      ...result,
-      _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
-      _environment: process.env.SMART_BONDING_ENV || 'production',
-      _operation: 'add_attachment'
-    };
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for file uploads
+
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': fileBuffer.length.toString()
+        },
+        body: fileBuffer,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.status === 201) {
+        return {
+          status: 'success',
+          message: 'File uploaded successfully',
+          filename: filename,
+          upload_url: uploadUrl,
+          http_status: 201,
+          _experimental_warning: '⚠️ This is an EXPERIMENTAL/UNTESTED feature.',
+          _operation: 'file_upload',
+          _note: 'Files cannot be modified after upload. Submit new files for corrections.'
+        };
+      } else {
+        const errorText = await response.text();
+        throw new Error(`File upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('File upload timed out after 2 minutes. Please try with a smaller file.');
+        }
+      }
+      throw error;
+    }
   }
 
   /**
