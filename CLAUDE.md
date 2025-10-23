@@ -361,9 +361,15 @@ This tells MCP clients: "I can handle ANY bug ID, product ID, advisory ID, or CV
 
 #### Resource Usage Example
 ```typescript
-// List available resources and templates
-const { resources, resourceTemplates } = await mcpServer.request({
+// List static resources
+const { resources } = await mcpServer.request({
   method: 'resources/list',
+  params: {}
+});
+
+// List resource templates (separate endpoint per MCP spec)
+const { resourceTemplates } = await mcpServer.request({
+  method: 'resources/templates/list',
   params: {}
 });
 

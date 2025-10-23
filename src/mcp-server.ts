@@ -13,9 +13,16 @@ import {
   ElicitRequestSchema,
   ElicitResult
 } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
+// Create schema for resources/templates/list (MCP spec 2025-06-18)
+const ListResourceTemplatesRequestSchema = z.object({
+  method: z.literal('resources/templates/list'),
+  params: z.object({}).optional()
+});
 
 // Import modular API system
 import { createApiRegistry, ApiRegistry, SupportedAPI, getEnabledAPIs } from './apis/index.js';
@@ -1031,7 +1038,7 @@ export function createMCPServer(): Server {
 
   // List resource templates handler (separate method per MCP spec 2025-06-18)
   server.setRequestHandler(
-    { method: 'resources/templates/list' } as any,
+    ListResourceTemplatesRequestSchema,
     async () => {
       logger.info('List resource templates request received');
 
