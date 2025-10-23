@@ -698,10 +698,10 @@ export class BugApi extends BaseApi {
         return this.executeMultiSeveritySearch(processedArgs, meta);
         
       case 'comprehensive_analysis':
-        return this.executeComprehensiveAnalysis(processedArgs);
+        return this.executeComprehensiveAnalysis(processedArgs, meta);
         
       case 'compare_software_versions':
-        return this.executeCompareSoftwareVersions(processedArgs);
+        return this.executeCompareSoftwareVersions(processedArgs, meta);
         
       case 'product_name_resolver':
         return this.executeProductNameResolver(processedArgs);
@@ -984,12 +984,12 @@ export class BugApi extends BaseApi {
     return await this.searchMultipleSeverities(searchFunc, maxSeverity, meta);
   }
 
-  private async executeComprehensiveAnalysis(args: ToolArgs): Promise<BugApiResponse> {
+  private async executeComprehensiveAnalysis(args: ToolArgs, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const productIdentifier = args.product_identifier as string;
     const softwareVersion = args.software_version as string;
     const analysisFocus = (args.analysis_focus as string) || 'comprehensive';
     const includeWebSearchGuidance = (args.include_web_search_guidance as boolean) !== false;
-    
+
     logger.info('Starting comprehensive analysis', { productIdentifier, softwareVersion, analysisFocus });
     
     // Convert full product names to searchable terms for bug database
@@ -1037,6 +1037,10 @@ export class BugApi extends BaseApi {
     };
     
     // Step 1: Product name resolution
+    const { sendProgress } = await import('../mcp-server.js');
+    const totalSteps = 5;
+    sendProgress(meta?.progressToken, 0, totalSteps);
+
     try {
       analysis.product_resolution = await WebSearchHelper.resolveProductName(productIdentifier);
       analysis.search_strategy_used.push('Product ID resolution via known mappings and patterns');
@@ -1045,12 +1049,14 @@ export class BugApi extends BaseApi {
     }
 
     // Step 2: Bug database analysis
+    sendProgress(meta?.progressToken, 1, totalSteps);
+
     try {
       let searchQuery = searchableProductTerm;
       if (softwareVersion) {
         searchQuery += ` ${softwareVersion}`;
       }
-      
+
       analysis.search_strategy_used.push('Progressive bug search with version normalization and product name conversion');
       analysis.bug_analysis = await this.executeProgressiveSearch({
         primary_search_term: searchableProductTerm,
@@ -1059,6 +1065,8 @@ export class BugApi extends BaseApi {
       });
       
       // Add product series search if we have that information and a software version
+      sendProgress(meta?.progressToken, 2, totalSteps);
+
       if (productSeries && softwareVersion) {
         analysis.search_strategy_used.push('Product series search with full product name and Cisco API version format');
         try {
@@ -1087,6 +1095,8 @@ export class BugApi extends BaseApi {
       }
 
       // Add multi-severity search for critical analysis
+      sendProgress(meta?.progressToken, 3, totalSteps);
+
       if (analysisFocus === 'security' || analysisFocus === 'comprehensive') {
         analysis.search_strategy_used.push('Multi-severity search for complete coverage');
         const multiSevResult = await this.executeMultiSeveritySearch({
@@ -1111,6 +1121,8 @@ export class BugApi extends BaseApi {
     }
 
     // Step 3: Generate web search guidance
+    sendProgress(meta?.progressToken, 4, totalSteps);
+
     if (includeWebSearchGuidance) {
       try {
         analysis.web_search_guidance = {
@@ -1196,7 +1208,7 @@ export class BugApi extends BaseApi {
     };
   }
 
-  private async executeCompareSoftwareVersions(args: ToolArgs): Promise<BugApiResponse> {
+  private async executeCompareSoftwareVersions(args: ToolArgs, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const productId = args.product_id as string;
     const versionA = args.version_a as string;
     const versionB = args.version_b as string;
@@ -1204,9 +1216,9 @@ export class BugApi extends BaseApi {
     const includeEolStatus = (args.include_eol_status as boolean) !== false;
     const includeRecommendations = (args.include_recommendations as boolean) !== false;
     const maxSeverity = (args.max_severity as number) || 3;
-    
-    logger.info('Starting software version comparison', { 
-      productId, versionA, versionB, includeCveAnalysis, includeEolStatus, includeRecommendations, maxSeverity 
+
+    logger.info('Starting software version comparison', {
+      productId, versionA, versionB, includeCveAnalysis, includeEolStatus, includeRecommendations, maxSeverity
     });
     
     const comparison: any = {
@@ -1229,8 +1241,12 @@ export class BugApi extends BaseApi {
       }
     };
     
+    const { sendProgress } = await import('../mcp-server.js');
+    const totalSteps = 6;
+
     try {
       // 1. Bug Analysis - Compare bugs between versions
+      sendProgress(meta?.progressToken, 0, totalSteps);
       logger.info('Analyzing bugs for both versions');
       const bugComparison = await this.compareBugsBetweenVersions(productId, versionA, versionB, maxSeverity);
       comparison.bug_comparison = bugComparison;
@@ -1243,6 +1259,7 @@ export class BugApi extends BaseApi {
       comparison.summary.introduced_in_b = bugComparison.introduced_in_version_b?.length || 0;
       
       // 2. CVE Analysis (if requested)
+      sendProgress(meta?.progressToken, 1, totalSteps);
       if (includeCveAnalysis) {
         logger.info('Analyzing CVEs and security advisories');
         const cveAnalysis = await this.analyzeCvesBetweenVersions(productId, versionA, versionB);
@@ -1250,6 +1267,7 @@ export class BugApi extends BaseApi {
       }
       
       // 3. Software Recommendations (if requested and Software API available)
+      sendProgress(meta?.progressToken, 2, totalSteps);
       if (includeRecommendations) {
         logger.info('Getting software recommendations');
         const recommendations = await this.getSoftwareRecommendations(productId, versionA, versionB);
@@ -1257,6 +1275,7 @@ export class BugApi extends BaseApi {
       }
       
       // 4. End-of-Life Status (if requested)
+      sendProgress(meta?.progressToken, 3, totalSteps);
       if (includeEolStatus) {
         logger.info('Checking end-of-life status');
         const eolStatus = await this.checkEolStatus(versionA, versionB);
@@ -1264,9 +1283,11 @@ export class BugApi extends BaseApi {
       }
       
       // 5. Generate Recommendations
+      sendProgress(meta?.progressToken, 4, totalSteps);
       comparison.recommendations = this.generateVersionComparisonRecommendations(comparison);
-      
+
       // 6. Determine overall recommendation
+      sendProgress(meta?.progressToken, 5, totalSteps);
       comparison.summary.recommendation = this.determineOverallRecommendation(comparison);
       
       logger.info('Software version comparison completed successfully', {
