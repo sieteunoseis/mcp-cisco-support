@@ -927,32 +927,12 @@ export function createMCPServer(): Server {
     }
   });
 
-  // List resources handler
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    logger.info('List resources request received');
-
-    const resources = [];
+  // Helper function to get resource templates
+  function getResourceTemplates() {
     const resourceTemplates = [];
 
     // Bug resources (if bug API is enabled)
     if (ENABLED_APIS.includes('bug')) {
-      // Static resources
-      resources.push(
-        {
-          uri: 'cisco://bugs/recent/critical',
-          name: 'Recent Critical Bugs',
-          description: 'High-severity bugs from the last 7 days',
-          mimeType: 'application/json'
-        },
-        {
-          uri: 'cisco://bugs/recent/high',
-          name: 'Recent High-Severity Bugs',
-          description: 'Severity 1-3 bugs from the last 30 days',
-          mimeType: 'application/json'
-        }
-      );
-
-      // Dynamic resource template
       resourceTemplates.push({
         uriTemplate: 'cisco://bugs/{bug_id}',
         name: 'Cisco Bug Report',
@@ -963,15 +943,6 @@ export function createMCPServer(): Server {
 
     // Product resources (if product API is enabled)
     if (ENABLED_APIS.includes('product')) {
-      // Static resource
-      resources.push({
-        uri: 'cisco://products/catalog',
-        name: 'Product Catalog',
-        description: 'Product catalog overview',
-        mimeType: 'application/json'
-      });
-
-      // Dynamic resource template
       resourceTemplates.push({
         uriTemplate: 'cisco://products/{product_id}',
         name: 'Cisco Product Information',
@@ -982,23 +953,6 @@ export function createMCPServer(): Server {
 
     // Security resources (if PSIRT API is enabled)
     if (ENABLED_APIS.includes('psirt')) {
-      // Static resources
-      resources.push(
-        {
-          uri: 'cisco://security/advisories/recent',
-          name: 'Recent Security Advisories',
-          description: 'Latest 20 security advisories from Cisco PSIRT',
-          mimeType: 'application/json'
-        },
-        {
-          uri: 'cisco://security/advisories/critical',
-          name: 'Critical Security Advisories',
-          description: 'Critical severity security advisories',
-          mimeType: 'application/json'
-        }
-      );
-
-      // Dynamic resource templates
       resourceTemplates.push(
         {
           uriTemplate: 'cisco://security/advisories/{advisory_id}',
@@ -1015,16 +969,81 @@ export function createMCPServer(): Server {
       );
     }
 
-    logger.info('Returning resources and templates', {
-      resourceCount: resources.length,
-      templateCount: resourceTemplates.length
-    });
+    return resourceTemplates;
+  }
 
-    return {
-      resources,
-      resourceTemplates
-    };
+  // List resources handler
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    logger.info('List resources request received');
+
+    const resources = [];
+
+    // Bug resources (if bug API is enabled)
+    if (ENABLED_APIS.includes('bug')) {
+      resources.push(
+        {
+          uri: 'cisco://bugs/recent/critical',
+          name: 'Recent Critical Bugs',
+          description: 'High-severity bugs from the last 7 days',
+          mimeType: 'application/json'
+        },
+        {
+          uri: 'cisco://bugs/recent/high',
+          name: 'Recent High-Severity Bugs',
+          description: 'Severity 1-3 bugs from the last 30 days',
+          mimeType: 'application/json'
+        }
+      );
+    }
+
+    // Product resources (if product API is enabled)
+    if (ENABLED_APIS.includes('product')) {
+      resources.push({
+        uri: 'cisco://products/catalog',
+        name: 'Product Catalog',
+        description: 'Product catalog overview',
+        mimeType: 'application/json'
+      });
+    }
+
+    // Security resources (if PSIRT API is enabled)
+    if (ENABLED_APIS.includes('psirt')) {
+      resources.push(
+        {
+          uri: 'cisco://security/advisories/recent',
+          name: 'Recent Security Advisories',
+          description: 'Latest 20 security advisories from Cisco PSIRT',
+          mimeType: 'application/json'
+        },
+        {
+          uri: 'cisco://security/advisories/critical',
+          name: 'Critical Security Advisories',
+          description: 'Critical severity security advisories',
+          mimeType: 'application/json'
+        }
+      );
+    }
+
+    logger.info('Returning resources', { resourceCount: resources.length });
+
+    return { resources };
   });
+
+  // List resource templates handler (separate method per MCP spec 2025-06-18)
+  server.setRequestHandler(
+    { method: 'resources/templates/list' } as any,
+    async () => {
+      logger.info('List resource templates request received');
+
+      const resourceTemplates = getResourceTemplates();
+
+      logger.info('Returning resource templates', {
+        templateCount: resourceTemplates.length
+      });
+
+      return { resourceTemplates };
+    }
+  );
 
   // Read resource handler
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
