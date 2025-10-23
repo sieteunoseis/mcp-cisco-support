@@ -119,7 +119,7 @@ export class RmaApi extends BaseApi {
     ];
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<RmaApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<RmaApiResponse> {
     const { tool, processedArgs } = this.validateTool(name, args);
 
     switch (name) {

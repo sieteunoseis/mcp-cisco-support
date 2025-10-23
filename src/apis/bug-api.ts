@@ -79,14 +79,18 @@ export class BugApi extends BaseApi {
     return [...new Set(products)];
   }
 
-  private async searchMultipleSeverities(searchFunc: (severity: string) => Promise<BugApiResponse>, maxSeverity: number = 3): Promise<BugApiResponse> {
+  private async searchMultipleSeverities(searchFunc: (severity: string) => Promise<BugApiResponse>, maxSeverity: number = 3, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const allBugs: any[] = [];
     let totalResults = 0;
-    
+
     logger.info('Starting multi-severity search', { maxSeverity });
-    
+
     for (let severity = 1; severity <= maxSeverity; severity++) {
       try {
+        // Send progress notification before searching this severity
+        const { sendProgress } = await import('../mcp-server.js');
+        sendProgress(meta?.progressToken, severity - 1, maxSeverity);
+
         logger.info(`Searching severity ${severity}`);
         const result = await searchFunc(severity.toString());
         
@@ -617,7 +621,7 @@ export class BugApi extends BaseApi {
     ];
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<BugApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const { processedArgs } = this.validateTool(name, args);
 
     // Normalize version strings to remove leading zeros (17.09.06 -> 17.9.6)
@@ -691,7 +695,7 @@ export class BugApi extends BaseApi {
         return this.executeProgressiveSearch(processedArgs);
         
       case 'multi_severity_search':
-        return this.executeMultiSeveritySearch(processedArgs);
+        return this.executeMultiSeveritySearch(processedArgs, meta);
         
       case 'comprehensive_analysis':
         return this.executeComprehensiveAnalysis(processedArgs);
@@ -880,7 +884,7 @@ export class BugApi extends BaseApi {
     return bestResult;
   }
 
-  private async executeMultiSeveritySearch(args: ToolArgs): Promise<BugApiResponse> {
+  private async executeMultiSeveritySearch(args: ToolArgs, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const searchTerm = args.search_term as string;
     const searchType = args.search_type as string;
     const maxSeverity = (args.max_severity as number) || 3;
@@ -977,7 +981,7 @@ export class BugApi extends BaseApi {
       }
     };
 
-    return await this.searchMultipleSeverities(searchFunc, maxSeverity);
+    return await this.searchMultipleSeverities(searchFunc, maxSeverity, meta);
   }
 
   private async executeComprehensiveAnalysis(args: ToolArgs): Promise<BugApiResponse> {

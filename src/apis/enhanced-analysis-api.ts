@@ -26,7 +26,7 @@ export class EnhancedAnalysisApi extends BugApi {
     return allBugTools.filter(tool => enhancedAnalysisToolNames.includes(tool.name));
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<ApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse> {
     // Validate that the tool is allowed in enhanced analysis mode
     const allowedTools = this.getTools().map(tool => tool.name);
     
@@ -35,6 +35,6 @@ export class EnhancedAnalysisApi extends BugApi {
     }
     
     // Delegate to parent BugApi implementation
-    return await super.executeTool(name, args);
+    return await super.executeTool(name, args, meta);
   }
 }

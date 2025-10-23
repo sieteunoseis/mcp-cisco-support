@@ -13,7 +13,7 @@ export abstract class BaseApi {
   abstract getTools(): Tool[];
 
   // Execute a tool call for this API
-  abstract executeTool(name: string, args: ToolArgs): Promise<ApiResponse>;
+  abstract executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse>;
 
   // Make authenticated API call
   protected async makeApiCall(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {

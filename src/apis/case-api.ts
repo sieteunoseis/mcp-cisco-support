@@ -132,7 +132,7 @@ export class CaseApi extends BaseApi {
     ];
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<CaseApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<CaseApiResponse> {
     const { processedArgs } = this.validateTool(name, args);
     
     let endpoint: string;

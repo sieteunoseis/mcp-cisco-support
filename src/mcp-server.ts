@@ -799,6 +799,41 @@ function formatResults(result: ApiResponse, apiName: string, toolName: string, a
   }
 }
 
+// Progress notification helper
+let mcpServerInstance: Server | null = null;
+
+export function sendProgress(
+  progressToken: string | undefined,
+  progress: number,
+  total: number
+): void {
+  if (!progressToken || !mcpServerInstance) {
+    return; // Client didn't request progress or server not initialized
+  }
+
+  try {
+    mcpServerInstance.notification({
+      method: 'notifications/progress',
+      params: {
+        progressToken,
+        progress,
+        total
+      }
+    });
+
+    logger.info('Progress notification sent', {
+      progressToken,
+      progress,
+      total,
+      percentage: Math.round((progress / total) * 100)
+    });
+  } catch (error) {
+    logger.error('Failed to send progress notification', {
+      error: error instanceof Error ? error.message : error
+    });
+  }
+}
+
 // Create MCP server
 export function createMCPServer(): Server {
   const server = new Server(
@@ -815,6 +850,9 @@ export function createMCPServer(): Server {
       },
     }
   );
+
+  // Store server instance for progress notifications
+  mcpServerInstance = server;
 
   // Ping handler
   server.setRequestHandler(PingRequestSchema, async () => {
@@ -869,11 +907,12 @@ export function createMCPServer(): Server {
   // Call tool handler
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    
+    const meta = request.params._meta as { progressToken?: string } | undefined;
+
     try {
-      logger.info('Tool call started', { name, args });
-      
-      const { result, apiName } = await apiRegistry.executeTool(name, args || {});
+      logger.info('Tool call started', { name, args, hasProgressToken: !!meta?.progressToken });
+
+      const { result, apiName } = await apiRegistry.executeTool(name, args || {}, meta);
       
       logger.info('Tool call completed', { 
         name, 

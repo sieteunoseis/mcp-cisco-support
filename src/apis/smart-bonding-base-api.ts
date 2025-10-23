@@ -34,7 +34,7 @@ export abstract class SmartBondingBaseApi {
   abstract getTools(): Tool[];
 
   // Execute a tool call for this API
-  abstract executeTool(name: string, args: ToolArgs): Promise<ApiResponse>;
+  abstract executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse>;
 
   /**
    * Make authenticated API call to Smart Bonding endpoint

@@ -47,7 +47,7 @@ class PlaceholderApi extends BaseApi {
     ];
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<ApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse> {
     return {
       error: `${this.apiName} API Not Implemented`,
       message: `The Cisco ${this.apiName} API is not yet implemented in this MCP server. Currently, only the Bug and Case APIs are available.`,
@@ -103,7 +103,7 @@ export class ApiRegistry {
   }
 
   // Execute a tool call
-  async executeTool(name: string, args: ToolArgs): Promise<{ result: ApiResponse; apiName: string }> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<{ result: ApiResponse; apiName: string }> {
     // Find which API owns this tool
     for (const apiName of this.enabledApis) {
       const api = this.apis.get(apiName);
@@ -111,12 +111,12 @@ export class ApiRegistry {
         const tools = api.getTools();
         const tool = tools.find(t => t.name === name);
         if (tool) {
-          const result = await api.executeTool(name, args);
+          const result = await api.executeTool(name, args, meta);
           return { result, apiName };
         }
       }
     }
-    
+
     throw new Error(`Unknown tool: ${name}`);
   }
 

@@ -278,7 +278,7 @@ export class PsirtApi extends BaseApi {
     ];
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<ApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse> {
     const { tool, processedArgs } = this.validateTool(name, args);
     
     switch (name) {

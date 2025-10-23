@@ -101,7 +101,7 @@ export class SerialApi extends BaseApi {
     ];
   }
 
-  async executeTool(name: string, args: ToolArgs): Promise<SerialApiResponse> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<SerialApiResponse> {
     const { tool, processedArgs } = this.validateTool(name, args);
 
     switch (name) {
