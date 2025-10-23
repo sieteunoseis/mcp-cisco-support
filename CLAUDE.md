@@ -7,9 +7,10 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 This TypeScript server features:
 - **Dual Transport Support**: stdio (local MCP) and HTTP (remote server)
 - **Extensible Architecture**: Designed to support multiple Cisco Support APIs
-- **ElicitationRequest Support**: ⚠️ EXPERIMENTAL - Future feature for dynamic user interaction (limited client support)
+- **MCP Resources**: ✨ NEW - Expose Cisco data as structured resources
+- **ElicitationRequest Support**: ⚠️ EXPERIMENTAL - Dynamic user interaction (limited client support)
 - OAuth2 authentication with Cisco API (client credentials flow)
-- 8 MCP-compliant tools for comprehensive bug searching (with more tools planned)
+- 50+ MCP-compliant tools for comprehensive Cisco Support operations
 - Real-time updates via Server-Sent Events (HTTP mode)
 - TypeScript with full type safety and MCP SDK integration
 - Docker containerization with multi-stage builds
@@ -304,7 +305,99 @@ The server implements these Cisco Bug API v2.0 endpoints:
 
 ## Key Features
 
-### ElicitationRequest Support ⚠️ EXPERIMENTAL / FUTURE
+### MCP Resources ✨ NEW
+- **Structured Data Access**: Expose Cisco data as MCP resources for direct client access
+- **Reduced API Calls**: Clients can reference data without repeated tool calls
+- **Real-time Information**: Always-fresh data from Cisco APIs
+- **URI-based Access**: Simple `cisco://` URI scheme for all resources
+
+#### Available Resource URIs
+
+**Bug Resources** (requires `SUPPORT_API=bug` or `all`):
+- `cisco://bugs/recent/critical` - Critical bugs (severity 1-2) from last 7 days
+- `cisco://bugs/recent/high` - High-severity bugs (severity 1-3) from last 30 days
+- `cisco://bugs/{bug_id}` - Specific bug details (e.g., `cisco://bugs/CSCvi12345`)
+
+**Product Resources** (requires `SUPPORT_API=product` or `all`):
+- `cisco://products/catalog` - Product catalog information
+- `cisco://products/{product_id}` - Product details (e.g., `cisco://products/C9300-24P`)
+
+**Security Resources** (requires `SUPPORT_API=psirt` or `all`):
+- `cisco://security/advisories/recent` - Latest 20 security advisories
+- `cisco://security/advisories/critical` - Critical severity advisories
+- `cisco://security/advisories/{advisory_id}` - Specific advisory (e.g., `cisco://security/advisories/cisco-sa-20180221-ucdm`)
+- `cisco://security/cve/{cve_id}` - Advisory by CVE (e.g., `cisco://security/cve/CVE-2018-0101`)
+
+#### Resource Templates
+
+The server uses **resource templates** to advertise dynamic URI patterns. Instead of listing every possible bug or product, templates show which URI patterns are supported:
+
+```typescript
+resourceTemplates: [
+  {
+    uriTemplate: "cisco://bugs/{bug_id}",
+    name: "Cisco Bug Report",
+    description: "Access any Cisco bug by its ID (e.g., CSCvi12345)"
+  },
+  {
+    uriTemplate: "cisco://products/{product_id}",
+    name: "Cisco Product Information",
+    description: "Get product details by product ID (e.g., C9300-24P, ISR4431)"
+  },
+  {
+    uriTemplate: "cisco://security/advisories/{advisory_id}",
+    name: "Cisco Security Advisory",
+    description: "Get security advisory by ID (e.g., cisco-sa-20180221-ucdm)"
+  },
+  {
+    uriTemplate: "cisco://security/cve/{cve_id}",
+    name: "Security Advisory by CVE",
+    description: "Get security advisory by CVE identifier (e.g., CVE-2018-0101)"
+  }
+]
+```
+
+This tells MCP clients: "I can handle ANY bug ID, product ID, advisory ID, or CVE in these patterns" without enumerating every possibility.
+
+#### Resource Usage Example
+```typescript
+// List static resources
+const { resources } = await mcpServer.request({
+  method: 'resources/list',
+  params: {}
+});
+
+// List resource templates (separate endpoint per MCP spec)
+const { resourceTemplates } = await mcpServer.request({
+  method: 'resources/templates/list',
+  params: {}
+});
+
+// Read a specific resource using a template pattern
+const bugData = await mcpServer.request({
+  method: 'resources/read',
+  params: { uri: 'cisco://bugs/CSCvi12345' }
+});
+
+// Read a product using a template pattern
+const productData = await mcpServer.request({
+  method: 'resources/read',
+  params: { uri: 'cisco://products/C9300-24P' }
+});
+
+// Read a CVE using a template pattern
+const cveData = await mcpServer.request({
+  method: 'resources/read',
+  params: { uri: 'cisco://security/cve/CVE-2018-0101' }
+});
+```
+
+### ElicitationRequest Support ⚠️ EXPERIMENTAL
+- **Dynamic User Interaction**: Request missing parameters from users at runtime
+- **Predefined Schemas**: Ready-to-use schemas for common Cisco Support scenarios
+- **Security-First Design**: Never requests sensitive information like credentials
+- **Interactive Workflows**: Enable complex multi-step processes requiring user input
+- **Limited Client Support**: Few MCP clients currently implement this feature
 
 **Current Status (January 2025):**
 - ❌ **Limited Client Support**: No major MCP clients (including Claude Desktop) have confirmed full ElicitationRequest implementation
