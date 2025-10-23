@@ -32,8 +32,9 @@ The server supports the following Cisco Support APIs (configurable via `SUPPORT_
 | **Software** (`software`) | ✅ **Complete** | 6 tools | Software suggestions, releases, and upgrade recommendations |
 | **Serial** (`serial`) | ✅ **Complete** | 3 tools | Serial number to coverage, warranty, and product information |
 | **RMA** (`rma`) | ✅ **Complete** | 3 tools | Return Merchandise Authorization tracking and management |
+| **Smart Bonding** (`smart_bonding`) | ⚠️ **EXPERIMENTAL** | 8 tools | Complete ticket lifecycle management and TSP codes (UNTESTED - requires special credentials) |
 
-**Implementation Status:** 8/8 APIs complete (100%) with 46 total tools
+**Implementation Status:** 8/8 Core APIs complete (100%) with 46 total tools + 1 experimental API (8 tools)
 
 **Configuration Examples:**
 - `SUPPORT_API=enhanced_analysis` - Enhanced analysis tools only (6 tools) **← RECOMMENDED for most users**
@@ -221,6 +222,97 @@ Use the "cisco-interactive-search" prompt with:
 ```
 
 See **[examples/elicitation-example.md](examples/elicitation-example.md)** for detailed usage examples and **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** for complete prompt documentation.
+
+## ⚠️ Smart Bonding Customer API (EXPERIMENTAL/UNTESTED)
+
+The server includes **experimental support** for Cisco's Smart Bonding Customer API for ticket management and problem code classification. **This feature is UNTESTED** and requires special credentials obtained through your Cisco Account Manager.
+
+### Smart Bonding Features
+
+**Available Tools (8 total):**
+- `get_smart_bonding_tsp_codes` - Retrieve TSP (Technology, Sub-Technology, Problem Code) details for ticket classification
+- `pull_smart_bonding_tickets` - Retrieve ticket updates from Cisco that haven't been pulled yet
+- `create_smart_bonding_ticket` - Create a new support ticket (returns upload credentials in response)
+- `update_smart_bonding_ticket` - Add work notes and update ticket status
+- `upload_file_to_smart_bonding_ticket` - Upload files using credentials from ticket creation (HTTPS PUT to cxd.cisco.com)
+- `escalate_smart_bonding_ticket` - Escalate critical issues to Cisco
+- `resolve_smart_bonding_ticket` - Mark tickets as resolved with resolution notes
+- `close_smart_bonding_ticket` - Close completed tickets with diagnosis and solution
+
+### File Upload Process
+
+Smart Bonding uses a **separate upload mechanism** from the REST API:
+
+1. **Create ticket** → Response includes upload credentials (Field80-82)
+2. **Save credentials** → Cannot be retrieved later!
+3. **Upload files** → Use `upload_file_to_smart_bonding_ticket` tool or curl
+4. **72-day expiration** → Token expires 72 days after creation
+
+Upload credentials provided in ticket creation response:
+- **Field80**: Upload domain (e.g., cxd.cisco.com)
+- **Field81**: Authentication token (password)
+- **Field82**: Token expiration timestamp
+
+Files cannot be modified after upload - submit new files for corrections.
+
+### Authentication Differences
+
+Smart Bonding API uses a **different authentication system** than standard Cisco Support APIs:
+
+| Feature | Standard Support APIs | Smart Bonding API |
+|---------|----------------------|-------------------|
+| **OAuth2 Endpoint** | `https://id.cisco.com/oauth2/default/v1/token` | `https://cloudsso.cisco.com/as/token.oauth2` |
+| **Token Validity** | 12 hours | 1 hour |
+| **Credentials** | Self-service via Cisco Developer Portal | Contact Cisco Account Manager |
+| **Environment Variables** | `CISCO_CLIENT_ID`, `CISCO_CLIENT_SECRET` | `SMART_BONDING_CLIENT_ID`, `SMART_BONDING_CLIENT_SECRET` |
+
+### Configuration
+
+1. **Obtain Credentials** - Contact your Cisco Account Manager to request Smart Bonding API access
+
+2. **Set Environment Variables:**
+   ```bash
+   export SMART_BONDING_CLIENT_ID=your_smart_bonding_client_id
+   export SMART_BONDING_CLIENT_SECRET=your_smart_bonding_client_secret
+   export SMART_BONDING_ENV=production  # or 'staging' for test environment
+   export SUPPORT_API=smart_bonding     # Enable Smart Bonding API
+   ```
+
+3. **Use Smart Bonding Tools:**
+   - Get TSP codes for ticket classification
+   - Pull new ticket updates
+   - Create/update tickets with standardized problem categorization
+
+### Important Notes
+
+- ⚠️ **EXPERIMENTAL/UNTESTED** - This implementation has not been tested with live Smart Bonding credentials
+- ⚠️ **Separate Credentials Required** - Smart Bonding uses different OAuth2 credentials than standard Support APIs
+- ⚠️ **Not Included in `SUPPORT_API=all`** - Must be explicitly enabled with `SUPPORT_API=smart_bonding`
+- ⚠️ **Special Access Required** - Contact Cisco Account Manager for credential provisioning
+- Base URLs differ for staging vs production environments
+- Supports correlation IDs for end-to-end request traceability
+
+### Example Usage
+
+```bash
+# With Claude Desktop - add to claude_desktop_config.json
+{
+  "mcpServers": {
+    "cisco-smart-bonding": {
+      "command": "npx",
+      "args": ["mcp-cisco-support"],
+      "env": {
+        "SMART_BONDING_CLIENT_ID": "your_id",
+        "SMART_BONDING_CLIENT_SECRET": "your_secret",
+        "SMART_BONDING_ENV": "production",
+        "SUPPORT_API": "smart_bonding"
+      }
+    }
+  }
+}
+```
+
+For complete implementation details and API architecture, see **[SMART_BONDING_IMPLEMENTATION.md](SMART_BONDING_IMPLEMENTATION.md)**.
 
 ## Screenshots
 
