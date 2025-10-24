@@ -28,6 +28,7 @@ const ListResourceTemplatesRequestSchema = z.object({
 import { createApiRegistry, ApiRegistry, SupportedAPI, getEnabledAPIs } from './apis/index.js';
 import { formatBugResults, formatCaseResults, formatEoxResults, ApiResponse, BugApiResponse, CaseApiResponse, EoxApiResponse } from './utils/formatting.js';
 import { setLogging, logger } from './utils/logger.js';
+import { SERVER_ICON } from './utils/icon.js';
 
 // Load environment variables
 dotenv.config();
@@ -840,6 +841,7 @@ export function createMCPServer(): Server {
     {
       name: 'mcp-cisco-support',
       version: VERSION,
+      icon: SERVER_ICON,
     },
     {
       capabilities: {
