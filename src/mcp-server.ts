@@ -1124,12 +1124,12 @@ export function createMCPServer(): Server {
       if (uri === 'cisco://bugs/recent/critical') {
         description = 'Recent critical bugs (severity 1-2) from last 7 days';
         const bugs1 = await apiRegistry.executeTool('search_bugs_by_keyword', {
-          keyword: 'crash OR failure OR outage',
+          keyword: 'cisco',
           severity: '1',
           modified_date: '1'
         });
         const bugs2 = await apiRegistry.executeTool('search_bugs_by_keyword', {
-          keyword: 'crash OR failure OR outage',
+          keyword: 'cisco',
           severity: '2',
           modified_date: '1'
         });
