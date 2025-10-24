@@ -13,7 +13,7 @@ export const logger: Logger = {
     if (loggingEnabled) {
       const timestamp = new Date().toISOString();
       const logEntry = { timestamp, level: 'info', message, ...(data && { data }) };
-      console.log(JSON.stringify(logEntry));
+      console.error(JSON.stringify(logEntry));
     }
   },
   error: (message: string, data?: any) => {
