@@ -97,7 +97,7 @@ Add this configuration to your Claude Desktop settings file:
   "mcpServers": {
     "cisco-support": {
       "command": "npx",
-      "args": ["mcp-cisco-support"],
+      "args": ["-y", "mcp-cisco-support"],
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
         "CISCO_CLIENT_SECRET": "your_client_secret_here",
@@ -410,7 +410,7 @@ Sampling uses an abstraction layer instead of specific model names:
   "mcpServers": {
     "cisco-support": {
       "command": "npx",
-      "args": ["mcp-cisco-support"],
+      "args": ["-y", "mcp-cisco-support"],
       "env": {
         "CISCO_CLIENT_ID": "your_id",
         "CISCO_CLIENT_SECRET": "your_secret",

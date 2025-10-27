@@ -126,7 +126,7 @@ npm start
      "mcpServers": {
        "cisco-support": {
          "command": "npx",
-         "args": ["mcp-cisco-support"],
+         "args": ["-y", "mcp-cisco-support"],
          "env": {
            "CISCO_CLIENT_ID": "your_client_id_here",
            "CISCO_CLIENT_SECRET": "your_client_secret_here",
@@ -136,6 +136,8 @@ npm start
      }
    }
    ```
+
+   > **Note:** The `-y` flag automatically accepts package installation, which is required for Claude Desktop since it runs in the background without user interaction.
    
    **Optional**: Configure which APIs to enable with `SUPPORT_API`:
    - `"enhanced_analysis"` - Enhanced analysis tools only (recommended for most users)
@@ -300,7 +302,7 @@ Smart Bonding API uses a **different authentication system** than standard Cisco
   "mcpServers": {
     "cisco-smart-bonding": {
       "command": "npx",
-      "args": ["mcp-cisco-support"],
+      "args": ["-y", "mcp-cisco-support"],
       "env": {
         "SMART_BONDING_CLIENT_ID": "your_id",
         "SMART_BONDING_CLIENT_SECRET": "your_secret",
@@ -503,7 +505,7 @@ MCP_BEARER_TOKEN=your_custom_secure_token_here
   "mcpServers": {
     "cisco-support": {
       "command": "npx",
-      "args": ["mcp-cisco-support"],
+      "args": ["-y", "mcp-cisco-support"],
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
         "CISCO_CLIENT_SECRET": "your_client_secret_here",
