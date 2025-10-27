@@ -850,6 +850,10 @@ export function createMCPServer(): Server {
   // Store server instance for progress notifications
   mcpServerInstance = server;
 
+  // Reinitialize API registry with server instance for sampling support
+  ENABLED_APIS = getEnabledAPIs();  // Refresh enabled APIs list
+  apiRegistry = createApiRegistry(server);
+
   // Ping handler
   server.setRequestHandler(PingRequestSchema, async () => {
     logger.info('Ping request received');

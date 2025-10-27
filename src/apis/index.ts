@@ -12,11 +12,13 @@ import { ApiResponse } from '../utils/formatting.js';
 import { SerialApi } from './serial-api.js';
 import { RmaApi } from './rma-api.js';
 import { SmartBondingApi } from './smart-bonding-api.js';
+import { samplingTools, handleSamplingTool } from './sampling-tools.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
 // Supported API types
-export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis' | 'smart_bonding';
+export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis' | 'smart_bonding' | 'sampling';
 
-export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software', 'enhanced_analysis', 'smart_bonding'];
+export const SUPPORTED_APIS: SupportedAPI[] = ['psirt', 'bug', 'case', 'eox', 'product', 'serial', 'rma', 'software', 'enhanced_analysis', 'smart_bonding', 'sampling'];
 
 // Placeholder API class for unimplemented APIs
 class PlaceholderApi extends BaseApi {
@@ -67,9 +69,11 @@ class PlaceholderApi extends BaseApi {
 export class ApiRegistry {
   private apis: Map<SupportedAPI, BaseApi> = new Map();
   private enabledApis: SupportedAPI[] = [];
+  private mcpServer?: Server;
 
-  constructor(enabledApis: SupportedAPI[]) {
+  constructor(enabledApis: SupportedAPI[], mcpServer?: Server) {
     this.enabledApis = enabledApis;
+    this.mcpServer = mcpServer;
     this.initializeApis();
   }
 
@@ -90,20 +94,39 @@ export class ApiRegistry {
   // Get all tools from enabled APIs
   getAvailableTools(): Tool[] {
     const availableTools: Tool[] = [];
-    
+
     for (const apiName of this.enabledApis) {
+      // Handle sampling tools specially (they're not in the apis map)
+      if (apiName === 'sampling') {
+        availableTools.push(...samplingTools);
+        continue;
+      }
+
       const api = this.apis.get(apiName);
       if (api) {
         const apiTools = api.getTools();
         availableTools.push(...apiTools);
       }
     }
-    
+
     return availableTools;
   }
 
   // Execute a tool call
   async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<{ result: ApiResponse; apiName: string }> {
+    // Check if this is a sampling tool
+    if (this.enabledApis.includes('sampling')) {
+      const samplingTool = samplingTools.find(t => t.name === name);
+      if (samplingTool && this.mcpServer) {
+        // Get cisco auth from bug API for any tools that need it
+        const bugApi = this.apis.get('bug');
+        const ciscoAuth = bugApi ? (bugApi as any).ciscoAuth : null;
+
+        const result = await handleSamplingTool(this.mcpServer, name, args, ciscoAuth);
+        return { result, apiName: 'sampling' };
+      }
+    }
+
     // Find which API owns this tool
     for (const apiName of this.enabledApis) {
       const api = this.apis.get(apiName);
@@ -134,21 +157,35 @@ export class ApiRegistry {
 // Get enabled APIs from environment
 export function getEnabledAPIs(): SupportedAPI[] {
   const supportApiEnv = process.env.SUPPORT_API || 'bug';
-  
-  if (supportApiEnv.toLowerCase() === 'all') {
-    return SUPPORTED_APIS.filter(api => api !== 'enhanced_analysis' && api !== 'smart_bonding'); // Exclude enhanced_analysis and smart_bonding from 'all'
+  const lowerEnv = supportApiEnv.toLowerCase();
+
+  // Handle 'all' or 'all,something' patterns
+  if (lowerEnv === 'all' || lowerEnv.startsWith('all,')) {
+    const baseApis = SUPPORTED_APIS.filter(api => api !== 'enhanced_analysis' && api !== 'smart_bonding' && api !== 'sampling');
+
+    // If it's "all,sampling" or "all,xyz", add the additional APIs
+    if (lowerEnv.includes(',')) {
+      const additionalApis = lowerEnv.split(',')
+        .slice(1) // Skip 'all'
+        .map(api => api.trim())
+        .filter(api => SUPPORTED_APIS.includes(api as SupportedAPI)) as SupportedAPI[];
+
+      return [...baseApis, ...additionalApis];
+    }
+
+    return baseApis;
   }
-  
-  if (supportApiEnv.toLowerCase() === 'enhanced_analysis') {
+
+  if (lowerEnv === 'enhanced_analysis') {
     return ['enhanced_analysis']; // Only return enhanced analysis tools
   }
-  
-  const requestedAPIs = supportApiEnv.toLowerCase().split(',').map(api => api.trim()) as SupportedAPI[];
+
+  const requestedAPIs = lowerEnv.split(',').map(api => api.trim()) as SupportedAPI[];
   return requestedAPIs.filter(api => SUPPORTED_APIS.includes(api));
 }
 
 // Create API registry instance
-export function createApiRegistry(): ApiRegistry {
+export function createApiRegistry(mcpServer?: Server): ApiRegistry {
   const enabledApis = getEnabledAPIs();
-  return new ApiRegistry(enabledApis);
+  return new ApiRegistry(enabledApis, mcpServer);
 }

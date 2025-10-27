@@ -113,9 +113,17 @@ Add this configuration to your Claude Desktop settings file:
 Configure which tools are available using the `SUPPORT_API` environment variable:
 
 - **`enhanced_analysis`** ⭐ **RECOMMENDED** - Only the 6 enhanced analysis tools (simplified deployment)
+- **`sampling`** 🤖 **AI-POWERED** - 5 AI-powered tools using MCP sampling (requires client support)
 - **`bug`** - All 14 Bug API tools (basic bug search capabilities)
-- **`all`** - All available APIs and tools (complete feature set)
-- **`bug,case,psirt`** - Multiple specific APIs (custom combinations)
+- **`all`** - All stable APIs (bug, case, eox, product, serial, rma, software, psirt)
+  - ⚠️ **Note:** `all` does NOT include experimental features (`sampling`, `smart_bonding`, `enhanced_analysis`)
+  - To include experimental features, use: `all,sampling` or `all,smart_bonding`
+- **`bug,case,psirt,sampling`** - Multiple specific APIs (custom combinations)
+
+**Examples:**
+- `SUPPORT_API=all` → 45 tools (all stable APIs)
+- `SUPPORT_API=all,sampling` → 50 tools (stable + 5 AI-powered)
+- `SUPPORT_API=bug,sampling` → 19 tools (bug + AI-powered)
 
 ### Example Usage
 
@@ -142,6 +150,13 @@ Once configured, you can ask Claude questions like:
   - "Analyze differences between IOS-XE 16.12.04 and 17.03.01 on ISR4431"
   - "Should I upgrade from 15.1(4)M to 15.2(4)M on my ASR 1000?"
   - "Compare bugs and CVEs between version 12.5(1)SU1 and 14.0(1)SU2 for CallManager"
+
+- **AI-Powered Features** (🤖 NEW - Requires Sampling):
+  - "What's the product ID for a Catalyst 9200 24-port switch?" (natural language product resolution)
+  - "Analyze this bug description and categorize it" (intelligent bug categorization)
+  - "Give me an AI analysis of upgrade risks from 17.9.1 to 17.12.3" (upgrade risk assessment)
+  - "Summarize these bugs for my CallManager upgrade" (natural language bug summaries)
+  - "Parse this query: show me critical bugs for Catalyst 9200 running 17.9.1" (query extraction)
 
 ### Using with Other MCP Clients
 
@@ -304,6 +319,113 @@ The server implements these Cisco Bug API v2.0 endpoints:
 - `GET /health` - Health check endpoint
 
 ## Key Features
+
+### MCP Sampling 🤖 NEW (v1.14.0+)
+- **AI-Powered Intelligence**: Leverage LLM capabilities without server-side API keys
+- **Natural Language Processing**: Convert friendly product names to technical IDs
+- **Intelligent Analysis**: AI-driven bug categorization and risk assessment
+- **Smart Summaries**: Generate human-readable summaries from technical data
+- **Query Parsing**: Extract structured parameters from conversational queries
+
+#### Sampling Requirements
+- **Client Support**: Requires MCP client with sampling capability (SDK v1.20.2+)
+- **Protocol**: MCP 2025-06-18 specification
+- **Configuration**: Set `SUPPORT_API=sampling` or include in comma-separated list
+- **Human-in-Loop**: Clients should provide approval UI for sampling requests
+
+#### Available Sampling Tools (5 tools)
+
+**1. resolve_product_name** 🔍
+- Converts natural language product descriptions to Cisco product IDs
+- Example: "Catalyst 9200 24-port switch" → "C9200-24P"
+- Use case: When users describe products conversationally
+
+**2. categorize_bug** 🏷️
+- AI analysis of bug descriptions
+- Returns: severity, impact, and functional category
+- Use case: Quick triage of unfamiliar bugs
+
+**3. analyze_upgrade_risk_with_ai** ⚠️
+- Comprehensive upgrade risk analysis using AI
+- Analyzes bug data between versions
+- Provides detailed recommendations and precautions
+
+**4. summarize_bugs_with_ai** 📊
+- Generate natural language summaries of bug lists
+- Highlights critical issues and patterns
+- Use case: Executive summaries and reports
+
+**5. extract_product_query** 🔎
+- Parse natural language queries into structured search parameters
+- Extracts product IDs, versions, severity, status, keywords
+- Use case: Conversational bug searches
+
+#### How Sampling Works
+
+```typescript
+// Client declares sampling capability during initialization
+{
+  "capabilities": {
+    "sampling": {}
+  }
+}
+
+// Server requests LLM completion
+const analysis = await server.createMessage({
+  messages: [{
+    role: 'user',
+    content: { type: 'text', text: 'Analyze this bug...' }
+  }],
+  systemPrompt: 'You are a Cisco bug analysis expert',
+  maxTokens: 500,
+  modelPreferences: {
+    intelligencePriority: 0.8,
+    speedPriority: 0.6,
+    costPriority: 0.5
+  }
+});
+```
+
+#### Model Preferences
+
+Sampling uses an abstraction layer instead of specific model names:
+
+- **intelligencePriority** (0.0-1.0): How important are advanced capabilities
+- **speedPriority** (0.0-1.0): How important is low latency
+- **costPriority** (0.0-1.0): How important is minimizing cost
+- **hints**: Optional model name suggestions (treated as flexible substrings)
+
+#### Security Considerations
+
+- ✅ **Human Approval**: Clients should show sampling requests for user review
+- ✅ **No Server Keys**: Server never needs LLM API keys
+- ✅ **Client Control**: Client maintains full control over model access
+- ✅ **Audit Trail**: All sampling requests logged for transparency
+
+#### Enabling Sampling
+
+**In Claude Desktop config:**
+```json
+{
+  "mcpServers": {
+    "cisco-support": {
+      "command": "npx",
+      "args": ["mcp-cisco-support"],
+      "env": {
+        "CISCO_CLIENT_ID": "your_id",
+        "CISCO_CLIENT_SECRET": "your_secret",
+        "SUPPORT_API": "bug,sampling"
+      }
+    }
+  }
+}
+```
+
+**Fallback Behavior:**
+If client doesn't support sampling, tools return helpful error messages explaining:
+- What sampling is
+- How to enable it
+- Alternative non-AI tools to use
 
 ### MCP Resources ✨ NEW
 - **Structured Data Access**: Expose Cisco data as MCP resources for direct client access
