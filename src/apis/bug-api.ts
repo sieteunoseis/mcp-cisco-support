@@ -690,19 +690,19 @@ export class BugApi extends BaseApi {
       // Enhanced search tools
       case 'smart_search_strategy':
         return this.generateSearchStrategy(processedArgs);
-        
+
       case 'progressive_bug_search':
-        return this.executeProgressiveSearch(processedArgs);
-        
+        return this.executeProgressiveSearch(processedArgs, meta);
+
       case 'multi_severity_search':
         return this.executeMultiSeveritySearch(processedArgs, meta);
-        
+
       case 'comprehensive_analysis':
         return this.executeComprehensiveAnalysis(processedArgs, meta);
-        
+
       case 'compare_software_versions':
         return this.executeCompareSoftwareVersions(processedArgs, meta);
-        
+
       case 'product_name_resolver':
         return this.executeProductNameResolver(processedArgs);
         
@@ -802,17 +802,20 @@ export class BugApi extends BaseApi {
     return strategy;
   }
 
-  private async executeProgressiveSearch(args: ToolArgs): Promise<BugApiResponse> {
+  private async executeProgressiveSearch(args: ToolArgs, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const primaryTerm = args.primary_search_term as string;
     const version = args.version as string;
     const severityRange = (args.severity_range as string) || 'high';
     const status = args.status as string;
-    
+
     logger.info('Starting progressive search', { primaryTerm, version, severityRange });
-    
+
+    // Send initial progress
+    const { sendProgress } = await import('../mcp-server.js');
+
     // Build search variations
     const searchVariations = [];
-    
+
     // Try product ID approach first
     const productVariations = this.normalizeProductId(primaryTerm);
     for (const product of productVariations) {
@@ -830,30 +833,37 @@ export class BugApi extends BaseApi {
         args: { base_pid: product, status }
       });
       searchVariations.push({
-        type: 'keyword', 
+        type: 'keyword',
         args: { keyword: product, status }
       });
     }
-    
+
     // Try searches with different severity levels based on range
-    const severityLevels = severityRange === 'high' ? ['1', '2', '3'] : 
-                          severityRange === 'medium' ? ['3', '4'] : 
+    const severityLevels = severityRange === 'high' ? ['1', '2', '3'] :
+                          severityRange === 'medium' ? ['3', '4'] :
                           ['1', '2', '3', '4', '5', '6'];
-    
+
+    const totalAttempts = searchVariations.length * severityLevels.length;
+    let currentAttempt = 0;
     let bestResult: BugApiResponse = { bugs: [], total_results: 0, page_index: 1 };
-    
+
+    sendProgress(meta?.progressToken, 0, totalAttempts);
+
     for (const variation of searchVariations) {
       for (const severity of severityLevels) {
+        currentAttempt++;
+        sendProgress(meta?.progressToken, currentAttempt, totalAttempts);
+
         try {
           const searchArgs = { ...variation.args, severity };
           let result: BugApiResponse;
-          
+
           if (variation.type === 'keyword') {
             result = await this.executeTool('search_bugs_by_keyword', searchArgs);
           } else {
             result = await this.executeTool('search_bugs_by_product_id', searchArgs);
           }
-          
+
           if (result.bugs && result.bugs.length > bestResult.bugs!.length) {
             bestResult = result;
             logger.info('Found better result in progressive search', {
@@ -862,7 +872,7 @@ export class BugApi extends BaseApi {
               resultCount: result.bugs.length
             });
           }
-          
+
           // If we found results, we can be less aggressive about continuing
           if (result.bugs && result.bugs.length >= 5) {
             break;
@@ -875,12 +885,17 @@ export class BugApi extends BaseApi {
           });
         }
       }
-      
+
       if (bestResult.bugs && bestResult.bugs.length >= 10) {
+        // Send completion progress before breaking
+        sendProgress(meta?.progressToken, totalAttempts, totalAttempts);
         break; // Good enough result found
       }
     }
-    
+
+    // Ensure final progress is sent
+    sendProgress(meta?.progressToken, totalAttempts, totalAttempts);
+
     return bestResult;
   }
 
