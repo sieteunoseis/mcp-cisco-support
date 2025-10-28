@@ -36,7 +36,7 @@
     "actions:status": "gh run list --limit 1",
     "token:generate": "npm start -- --generate-token",
     "token:help": "npm start -- --token-help",
-    "inspector": "npx @modelcontextprotocol/inspector"
+    "inspector": "npx -y @modelcontextprotocol/inspector"
   },
   "keywords": [
     "mcp",
