@@ -629,12 +629,20 @@ export function createMCPServer(): Server {
 
     // Product resources (if product API is enabled)
     if (ENABLED_APIS.includes('product')) {
-      resourceTemplates.push({
-        uriTemplate: 'cisco://products/{product_id}',
-        name: 'Cisco Product Information',
-        description: 'Get product details by product ID (e.g., C9300-24P, ISR4431)',
-        mimeType: 'application/json'
-      });
+      resourceTemplates.push(
+        {
+          uriTemplate: 'cisco://products/{product_id}',
+          name: 'Cisco Product Information',
+          description: 'Get product details by product ID (e.g., C9300-24P, ISR4431)',
+          mimeType: 'application/json'
+        },
+        {
+          uriTemplate: 'cisco://products/autocomplete/{search_term}',
+          name: 'Cisco Product Autocomplete',
+          description: 'Search Cisco product catalog by name or model (requires CISCO_WEB_COOKIE)',
+          mimeType: 'application/json'
+        }
+      );
     }
 
     // Security resources (if PSIRT API is enabled)
@@ -684,12 +692,20 @@ export function createMCPServer(): Server {
 
     // Product resources (if product API is enabled)
     if (ENABLED_APIS.includes('product')) {
-      resources.push({
-        uri: 'cisco://products/catalog',
-        name: 'Product Catalog',
-        description: 'Product catalog overview',
-        mimeType: 'application/json'
-      });
+      resources.push(
+        {
+          uri: 'cisco://products/catalog',
+          name: 'Product Catalog',
+          description: 'Product catalog overview',
+          mimeType: 'application/json'
+        },
+        {
+          uri: 'cisco://products/autocomplete-help',
+          name: 'Product Autocomplete Setup',
+          description: 'How to configure and use Cisco product autocomplete',
+          mimeType: 'text/markdown'
+        }
+      );
     }
 
     // Security resources (if PSIRT API is enabled)
@@ -789,6 +805,178 @@ export function createMCPServer(): Server {
           bug_ids: bugId
         });
         result = bugResult.result;
+      } else if (uri === 'cisco://products/autocomplete-help') {
+        // Help resource for product autocomplete setup
+        description = 'Product Autocomplete Setup Instructions';
+        const helpText = `# Using Cisco Product Autocomplete
+
+This feature allows you to search Cisco's product catalog using their internal autocomplete API. It requires your Cisco.com session cookie.
+
+## Setup Instructions
+
+### Step 1: Log in to Cisco
+1. Visit https://bst.cloudapps.cisco.com/
+2. Log in with your Cisco account
+
+### Step 2: Extract Your Session Cookie
+1. Open browser DevTools (F12 or Right-click > Inspect)
+2. Go to the **Application** tab (Chrome) or **Storage** tab (Firefox)
+3. Under **Cookies**, select \`https://bst.cloudapps.cisco.com\`
+4. Find these cookies and copy their values:
+   - \`JSESSIONID\`
+   - \`OptanonConsent\`
+   - Any other cookies for bst.cloudapps.cisco.com
+
+### Step 3: Format Your Cookie String
+Combine all cookies in this format:
+\`\`\`
+JSESSIONID=value1; OptanonConsent=value2; other_cookie=value3
+\`\`\`
+
+### Step 4: Set Environment Variable
+Add to your \`.env\` file or MCP configuration:
+\`\`\`bash
+CISCO_WEB_COOKIE="JSESSIONID=...; OptanonConsent=...; ..."
+\`\`\`
+
+### Step 5: Query Products
+Once configured, you can query:
+\`\`\`
+cisco://products/autocomplete/4431
+cisco://products/autocomplete/catalyst
+cisco://products/autocomplete/ASA
+\`\`\`
+
+## Cookie Lifecycle
+
+**Typical Validity**: 24 hours
+**Recommended Refresh**: Daily before heavy use
+
+### Signs Your Cookie Expired
+- "Cookie expired or invalid" error messages
+- 401 Unauthorized or 403 Forbidden responses
+- Empty results or authentication errors
+
+### How to Refresh
+1. Visit https://bst.cloudapps.cisco.com/
+2. If still logged in, just extract the cookie again
+3. If logged out, log back in and extract new cookie
+4. Update your \`.env\` file with the new cookie
+
+## Security Best Practices
+
+1. **Never commit cookies to git** - they're like passwords
+2. **Use .env file** - already in .gitignore
+3. **Refresh regularly** - cookies expire after ~24 hours
+4. **Monitor for unusual activity** - check your Cisco account
+5. **Use dedicated account** - not your primary Cisco login
+
+## Example Response
+
+When querying \`cisco://products/autocomplete/4431\`:
+\`\`\`json
+{
+  "autoPopulateHMPProductDetails": [{
+    "parentMdfConceptId": 286281708,
+    "parentMdfConceptName": "Cisco 4000 Series Integrated Services Routers",
+    "mdfConceptId": 284358776,
+    "mdfConceptName": "Cisco 4431 Integrated Services Router",
+    "mdfMetaclass": "Model"
+  }]
+}
+\`\`\`
+
+## Troubleshooting
+
+**"CISCO_WEB_COOKIE not configured"**
+- Set the environment variable in your .env file or MCP config
+
+**"Cookie expired or invalid"**
+- Extract a fresh cookie from your browser
+- Ensure you're still logged in to Cisco
+
+**"No results found"**
+- Try a different search term
+- Check if the product exists in Cisco's catalog
+- Verify your cookie is still valid
+
+## Need Help?
+
+See the main documentation for more details on MCP resources and Cisco API integration.
+`;
+
+        return {
+          contents: [{
+            uri,
+            mimeType: 'text/markdown',
+            text: helpText
+          }]
+        };
+      } else if (uri.startsWith('cisco://products/autocomplete/')) {
+        // Product autocomplete lookup: cisco://products/autocomplete/{search_term}
+        const searchTerm = uri.replace('cisco://products/autocomplete/', '');
+        description = `Product autocomplete search for "${searchTerm}"`;
+
+        const webCookie = process.env.CISCO_WEB_COOKIE;
+
+        if (!webCookie) {
+          result = {
+            error: 'CISCO_WEB_COOKIE not configured',
+            message: 'To use product autocomplete, you must provide your Cisco.com session cookie',
+            help: 'See cisco://products/autocomplete-help for setup instructions',
+            setup_steps: [
+              '1. Log in to https://bst.cloudapps.cisco.com/',
+              '2. Open browser DevTools (F12)',
+              '3. Go to Application/Storage > Cookies',
+              '4. Copy the entire Cookie header value',
+              '5. Set environment variable: CISCO_WEB_COOKIE="your-cookie-here"'
+            ]
+          };
+        } else {
+          try {
+            const response = await fetch(
+              `https://bst.cloudapps.cisco.com/api/productAutocomplete?productsearchTerm=${encodeURIComponent(searchTerm)}`,
+              {
+                headers: {
+                  'Cookie': webCookie,
+                  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                  'Referer': 'https://bst.cloudapps.cisco.com/',
+                  'Accept': 'application/json'
+                }
+              }
+            );
+
+            if (response.status === 401 || response.status === 403) {
+              result = {
+                error: 'Cookie expired or invalid',
+                message: 'Your Cisco.com session cookie has expired or is invalid',
+                help: 'See cisco://products/autocomplete-help for instructions on refreshing your cookie',
+                status: response.status,
+                refresh_steps: [
+                  '1. Visit https://bst.cloudapps.cisco.com/',
+                  '2. Log in if needed',
+                  '3. Extract fresh cookie from browser DevTools',
+                  '4. Update CISCO_WEB_COOKIE environment variable'
+                ]
+              };
+            } else if (!response.ok) {
+              result = {
+                error: `HTTP ${response.status}`,
+                message: `Cisco API returned error: ${response.statusText}`,
+                help: 'See cisco://products/autocomplete-help for troubleshooting'
+              };
+            } else {
+              const data = await response.json();
+              result = data;
+            }
+          } catch (error) {
+            result = {
+              error: 'Network error',
+              message: error instanceof Error ? error.message : 'Unknown error occurred',
+              help: 'Check your internet connection and cookie configuration'
+            };
+          }
+        }
       } else if (uri.startsWith('cisco://products/')) {
         // Dynamic product lookup: cisco://products/{product_id}
         const productId = uri.replace('cisco://products/', '');

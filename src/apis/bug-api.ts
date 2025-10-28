@@ -82,6 +82,7 @@ export class BugApi extends BaseApi {
   private async searchMultipleSeverities(searchFunc: (severity: string) => Promise<BugApiResponse>, maxSeverity: number = 3, meta?: { progressToken?: string }): Promise<BugApiResponse> {
     const allBugs: any[] = [];
     let totalResults = 0;
+    const severityCounts: Record<string, number> = {};
 
     logger.info('Starting multi-severity search', { maxSeverity });
 
@@ -93,32 +94,39 @@ export class BugApi extends BaseApi {
 
         logger.info(`Searching severity ${severity}`);
         const result = await searchFunc(severity.toString());
-        
+
         if (result.bugs && Array.isArray(result.bugs)) {
+          const count = result.bugs.length;
+          severityCounts[severity.toString()] = count;
           allBugs.push(...result.bugs);
           totalResults += result.total_results || result.bugs.length;
-          logger.info(`Found ${result.bugs.length} bugs at severity ${severity}`);
+          logger.info(`Found ${count} bugs at severity ${severity}`);
+        } else {
+          severityCounts[severity.toString()] = 0;
         }
       } catch (error) {
         logger.warn(`Search failed for severity ${severity}`, { error: error instanceof Error ? error.message : error });
+        severityCounts[severity.toString()] = 0;
         // Continue with other severities
       }
     }
-    
+
     // Remove duplicates by bug_id
-    const uniqueBugs = allBugs.filter((bug, index, self) => 
+    const uniqueBugs = allBugs.filter((bug, index, self) =>
       index === self.findIndex(b => b.bug_id === bug.bug_id)
     );
-    
-    logger.info('Multi-severity search completed', { 
+
+    logger.info('Multi-severity search completed', {
       totalFound: uniqueBugs.length,
-      searchedSeverities: maxSeverity 
+      searchedSeverities: maxSeverity,
+      severityCounts
     });
-    
+
     return {
       bugs: uniqueBugs,
       total_results: uniqueBugs.length,
-      page_index: 1
+      page_index: 1,
+      severity_breakdown: severityCounts
     };
   }
 
@@ -495,7 +503,7 @@ export class BugApi extends BaseApi {
       {
         name: 'multi_severity_search',
         title: 'Multi-Severity Search',
-        description: 'RECOMMENDED for multi-severity searches: Automatically searches multiple severity levels and combines results. Use this when you need "severity 3 or higher", "high severity bugs", or any range of severities. Handles the API limitation that requires separate calls for each severity level. SMART FALLBACK: When product_id search with version returns no results, automatically falls back to keyword search for better coverage.',
+        description: 'RECOMMENDED for multi-severity searches: Automatically searches multiple severity levels and combines results with severity breakdown counts. Use this when you need "severity 3 or higher", "high severity bugs", or any range of severities. Handles the API limitation that requires separate calls for each severity level. SMART FALLBACK: When product_id search returns no results, automatically falls back to keyword search for better coverage (regardless of whether version is provided).',
         inputSchema: {
           type: 'object',
           properties: {
@@ -517,7 +525,7 @@ export class BugApi extends BaseApi {
             },
             version: {
               type: 'string',
-              description: 'Software version to search for (e.g., "15.0", "14.0", "17.9.6"). Will be automatically included in search terms and used for product_series searches as affected_releases. For product_id searches, enables automatic keyword fallback if no results found.'
+              description: 'Software version to search for (e.g., "15.0", "14.0", "17.9.6"). Will be automatically included in keyword search terms and used for product_series searches as affected_releases. Optional for product_id searches (fallback to keyword happens with or without version).'
             }
           },
           required: ['search_term', 'search_type']
@@ -957,15 +965,16 @@ export class BugApi extends BaseApi {
           // Try product_id search first
           const productIdResult = await this.executeTool('search_bugs_by_product_id', { base_pid: searchTerm, ...searchArgs });
 
-          // If product_id search returns no results and version is provided, fallback to keyword search
-          if ((!productIdResult.bugs || productIdResult.bugs.length === 0) && version) {
+          // If product_id search returns no results, always fallback to keyword search
+          if (!productIdResult.bugs || productIdResult.bugs.length === 0) {
             logger.info('Product ID search returned no results, falling back to keyword search', {
               searchTerm,
-              version,
+              version: version || 'none',
               severity
             });
 
-            let keywordTerm = `${searchTerm} ${version}`;
+            // Include version in keyword search if provided
+            let keywordTerm = version ? `${searchTerm} ${version}` : searchTerm;
             if (keywordTerm.length > 50) {
               keywordTerm = keywordTerm.substring(0, 47) + '...';
             }

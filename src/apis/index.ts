@@ -140,6 +140,29 @@ export class ApiRegistry {
       }
     }
 
+    // If tool not found in advertised tools, try calling it anyway
+    // This allows APIs with internal tools (like enhanced_analysis) to handle them
+    for (const apiName of this.enabledApis) {
+      const api = this.apis.get(apiName);
+      if (api) {
+        try {
+          const result = await api.executeTool(name, args, meta);
+          return { result, apiName };
+        } catch (error) {
+          // If this API doesn't have the tool, try the next one
+          if (error instanceof Error && (
+            error.message.includes('not available') ||
+            error.message.includes('Tool implementation not found') ||
+            error.message.includes('Unknown tool')
+          )) {
+            continue;
+          }
+          // If it's a different error, re-throw it
+          throw error;
+        }
+      }
+    }
+
     throw new Error(`Unknown tool: ${name}`);
   }
 

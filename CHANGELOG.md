@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2025-10-28
+
+### Added
+- **Product Autocomplete MCP Resources**: New MCP resources for searching Cisco's internal product catalog
+  - `cisco://products/autocomplete/{search_term}` - Dynamic resource template for product searches
+  - `cisco://products/autocomplete-help` - Static resource with comprehensive setup instructions
+  - User-provided cookie authentication via `CISCO_WEB_COOKIE` environment variable
+  - Cookie lifecycle management (24-hour typical validity with automatic expiration detection)
+  - Graceful error handling for missing/expired cookies with helpful setup instructions
+  - Security best practices documentation and warnings
+
+### Changed
+- **Enhanced Bug API Fallback Logic**: Improved `multi_severity_search` tool behavior
+  - Product ID searches now fallback to keyword search when no results found (regardless of version parameter)
+  - Added severity breakdown counts to all multi-severity search results
+  - Better handling of product searches that return no results
+- **EnhancedAnalysisApi Internal Tool Access**: Fixed internal tool execution
+  - Implemented method swapping to allow EnhancedAnalysisApi to call internal Bug API tools
+  - Added fallback loop in ApiRegistry for tools not in advertised list
+  - Resolved issue where enhanced_analysis mode returned zero results
+
+### Documentation
+- Added new README section: "🔍 MCP Resources - Product Autocomplete"
+  - Setup instructions with 4 steps
+  - Cookie lifecycle and refresh guidance
+  - Security best practices
+  - Usage examples for Claude Desktop
+- Updated Claude Desktop configuration examples to include `CISCO_WEB_COOKIE`
+- Added `CISCO_WEB_COOKIE` documentation to `.env.example`
+- Created comprehensive implementation documentation:
+  - `docs/PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md` - Complete implementation guide
+  - `docs/PRODUCT_AUTOCOMPLETE_SOLUTIONS.md` - Analysis of 5 solution approaches
+  - `docs/CISCO_COOKIE_ANALYSIS.md` - Cookie lifecycle research
+  - `docs/ISR4431_SEARCH_ANALYSIS.md` - Root cause analysis of search issues
+
+### Fixed
+- Fixed product ID searches returning no results when product doesn't exist in Bug API database
+- Fixed severity breakdown not being included in multi-severity search responses
+- Fixed EnhancedAnalysisApi unable to execute internal Bug API tools
+
+### Security
+- Cookie-based authentication requires user to extract their own session cookie
+- No server-side cookie storage or persistence
+- Clear warnings about cookie security in all documentation
+- Recommendation to use dedicated Cisco account for API access
+
 ## [1.14.1] - 2025-10-27
 
 ### Fixed

@@ -27,14 +27,42 @@ export class EnhancedAnalysisApi extends BugApi {
   }
 
   async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse> {
-    // Validate that the tool is allowed in enhanced analysis mode
-    const allowedTools = this.getTools().map(tool => tool.name);
-    
-    if (!allowedTools.includes(name)) {
-      throw new Error(`Tool ${name} is not available in Enhanced Analysis mode. Available tools: ${allowedTools.join(', ')}`);
+    // Get list of tools exposed to external callers
+    const exposedTools = this.getTools().map(tool => tool.name);
+
+    // List of internal tools that enhanced analysis tools can use internally
+    // but aren't exposed to external callers
+    const internalTools = [
+      'get_bug_details',
+      'search_bugs_by_keyword',
+      'search_bugs_by_product_id',
+      'search_bugs_by_product_and_release',
+      'search_bugs_by_product_series_affected',
+      'search_bugs_by_product_series_fixed',
+      'search_bugs_by_product_name_affected',
+      'search_bugs_by_product_name_fixed'
+    ];
+
+    // Allow both exposed and internal tools
+    if (!exposedTools.includes(name) && !internalTools.includes(name)) {
+      throw new Error(`Tool ${name} is not available in Enhanced Analysis mode. Available tools: ${exposedTools.join(', ')}`);
     }
-    
-    // Delegate to parent BugApi implementation
+
+    // For internal tools, we need to temporarily use BugApi's getTools() to pass validation
+    // Save the original getTools method, replace it, then restore it
+    if (internalTools.includes(name)) {
+      const originalGetTools = this.getTools.bind(this);
+      try {
+        // Temporarily use parent's getTools which includes all tools
+        this.getTools = () => super.getTools();
+        return await super.executeTool(name, args, meta);
+      } finally {
+        // Restore the enhanced analysis getTools
+        this.getTools = originalGetTools;
+      }
+    }
+
+    // For exposed tools, just delegate normally
     return await super.executeTool(name, args, meta);
   }
 }

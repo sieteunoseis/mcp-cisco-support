@@ -130,7 +130,7 @@ npm start
          "env": {
            "CISCO_CLIENT_ID": "your_client_id_here",
            "CISCO_CLIENT_SECRET": "your_client_secret_here",
-           "SUPPORT_API": "bug"
+           "SUPPORT_API": "bug,product"
          }
        }
      }
@@ -138,12 +138,27 @@ npm start
    ```
 
    > **Note:** The `-y` flag automatically accepts package installation, which is required for Claude Desktop since it runs in the background without user interaction.
-   
-   **Optional**: Configure which APIs to enable with `SUPPORT_API`:
+
+   **Optional Environment Variables:**
+
+   Configure which APIs to enable with `SUPPORT_API`:
    - `"enhanced_analysis"` - Enhanced analysis tools only (recommended for most users)
    - `"bug"` - Bug API only (default)
+   - `"bug,product"` - Bug + Product APIs (enables product autocomplete)
    - `"all"` - All available APIs
    - `"bug,case,eox"` - Multiple specific APIs
+
+   **Product Autocomplete** (optional, requires `SUPPORT_API` to include `product`):
+   ```json
+   "env": {
+     "CISCO_CLIENT_ID": "your_client_id_here",
+     "CISCO_CLIENT_SECRET": "your_client_secret_here",
+     "SUPPORT_API": "bug,product",
+     "CISCO_WEB_COOKIE": "JSESSIONID=...; OptanonConsent=..."
+   }
+   ```
+
+   See the [Product Autocomplete](#-mcp-resources---product-autocomplete) section for setup instructions.
 
 3. **Replace Your Credentials**:
    - Replace `your_client_id_here` with your actual Cisco Client ID
@@ -224,6 +239,94 @@ Use the "cisco-interactive-search" prompt with:
 ```
 
 See **[examples/elicitation-example.md](examples/elicitation-example.md)** for detailed usage examples and **[⚡ MCP Prompts](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Prompts)** for complete prompt documentation.
+
+## 🔍 MCP Resources - Product Autocomplete
+
+The server exposes Cisco data as **MCP Resources** for direct client access. This includes a new **Product Autocomplete** feature that lets you search Cisco's internal product catalog using your browser session cookie.
+
+### Available Product Resources
+
+When `SUPPORT_API` includes `product`, the following resources are available:
+
+**Resource Templates** (dynamic URIs):
+- `cisco://products/{product_id}` - Get product details by ID (e.g., C9300-24P, ISR4431)
+- `cisco://products/autocomplete/{search_term}` - ✨ **NEW**: Search product catalog by name or model
+
+**Static Resources**:
+- `cisco://products/catalog` - Product catalog overview
+- `cisco://products/autocomplete-help` - ✨ **NEW**: Setup instructions for product autocomplete
+
+### Product Autocomplete Setup
+
+The product autocomplete feature requires your Cisco.com session cookie to access Cisco's internal API.
+
+**Quick Setup:**
+
+1. **Log in to Cisco:**
+   - Visit https://bst.cloudapps.cisco.com/
+   - Log in with your Cisco account
+
+2. **Extract Your Cookie:**
+   - Open browser DevTools (F12)
+   - Go to Application/Storage > Cookies
+   - Select `https://bst.cloudapps.cisco.com`
+   - Copy all cookie values
+
+3. **Set Environment Variable:**
+   ```bash
+   export CISCO_WEB_COOKIE="JSESSIONID=...; OptanonConsent=...; ..."
+   ```
+
+4. **Query Products:**
+   ```
+   cisco://products/autocomplete/4431
+   cisco://products/autocomplete/catalyst
+   cisco://products/autocomplete/ASA
+   ```
+
+**Cookie Lifecycle:**
+- **Typical Validity**: 24 hours
+- **Recommended Refresh**: Daily before heavy use
+- **Expiration Signs**: 401/403 errors, "Cookie expired" messages
+
+For detailed setup instructions, query the help resource:
+```
+cisco://products/autocomplete-help
+```
+
+### Example Response
+
+Query: `cisco://products/autocomplete/4431`
+
+```json
+{
+  "autoPopulateHMPProductDetails": [{
+    "parentMdfConceptId": 286281708,
+    "parentMdfConceptName": "Cisco 4000 Series Integrated Services Routers",
+    "mdfConceptId": 284358776,
+    "mdfConceptName": "Cisco 4431 Integrated Services Router",
+    "mdfMetaclass": "Model"
+  }]
+}
+```
+
+### Security Best Practices
+
+- ✅ **Never commit cookies** - they're like passwords
+- ✅ **Use .env file** - already in .gitignore
+- ✅ **Refresh regularly** - cookies expire after ~24 hours
+- ✅ **Monitor activity** - check your Cisco account
+- ✅ **Use dedicated account** - not your primary login
+
+### Usage in Claude Desktop
+
+**Ask Claude:**
+- "Show me the help for product autocomplete"
+- "Search for Cisco product 4431 using autocomplete"
+- "What is the full name of product ISR4431?"
+- "Find products matching 'catalyst switch'"
+
+See **[docs/PRODUCT_AUTOCOMPLETE_SOLUTIONS.md](docs/PRODUCT_AUTOCOMPLETE_SOLUTIONS.md)** for implementation details and **[docs/CISCO_COOKIE_ANALYSIS.md](docs/CISCO_COOKIE_ANALYSIS.md)** for cookie lifecycle information.
 
 ## ⚠️ Smart Bonding Customer API (EXPERIMENTAL/UNTESTED)
 
