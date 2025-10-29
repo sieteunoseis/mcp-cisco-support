@@ -16,12 +16,17 @@ import { SupportedAPI } from '../apis/index.js';
 export const ciscoPrompts: Prompt[] = [
   {
     name: 'cisco-high-severity-search',
-    description: 'Search for high-severity bugs (severity 3 or higher) for specific products - handles API limitation requiring separate searches',
+    description: 'Search for high-severity bugs (severity 3 or higher) for specific products - handles API limitation requiring separate searches. Provide either product_keyword OR serial_number (not both).',
     arguments: [
       {
         name: 'product_keyword',
-        description: 'Product name or keyword to search for (e.g., "Cisco Unified Communications Manager", "CallManager")',
-        required: true
+        description: 'Product name or keyword to search for (e.g., "Cisco Unified Communications Manager", "CallManager"). Either this OR serial_number is required.',
+        required: false
+      },
+      {
+        name: 'serial_number',
+        description: 'Serial number to look up product information (e.g., "SAL09232Q0Z"). Either this OR product_keyword is required. Will automatically determine product from serial.',
+        required: false
       },
       {
         name: 'version',
@@ -37,7 +42,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-incident-investigation',
-    description: 'Investigate Cisco bugs related to specific incident symptoms and errors',
+    description: 'Investigate Cisco bugs related to specific incident symptoms and errors. Provide either product OR serial_number.',
     arguments: [
       {
         name: 'symptom',
@@ -46,8 +51,13 @@ export const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'product',
-        description: 'Cisco product experiencing the issue (e.g., "Cisco ASR 1000", "Cisco Catalyst 9200")',
-        required: true
+        description: 'Cisco product experiencing the issue (e.g., "Cisco ASR 1000", "Cisco Catalyst 9200"). Either this OR serial_number is required.',
+        required: false
+      },
+      {
+        name: 'serial_number',
+        description: 'Serial number of device experiencing the issue (e.g., "SAL09232Q0Z"). Either this OR product is required. Will automatically look up product details.',
+        required: false
       },
       {
         name: 'severity',
@@ -63,7 +73,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-upgrade-planning',
-    description: 'Research known issues and bugs before upgrading Cisco software or hardware',
+    description: 'Research known issues and bugs before upgrading Cisco software or hardware. Provide either product OR serial_number.',
     arguments: [
       {
         name: 'current_version',
@@ -77,8 +87,13 @@ export const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'product',
-        description: 'Cisco product being upgraded (e.g., "Cisco ASR 9000 Series")',
-        required: true
+        description: 'Cisco product being upgraded (e.g., "Cisco ASR 9000 Series"). Either this OR serial_number is required.',
+        required: false
+      },
+      {
+        name: 'serial_number',
+        description: 'Serial number of device being upgraded (e.g., "SAL09232Q0Z"). Either this OR product is required. Will automatically look up product details.',
+        required: false
       },
       {
         name: 'environment',
@@ -89,7 +104,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-maintenance-prep',
-    description: 'Prepare for maintenance windows by identifying potential issues and bugs',
+    description: 'Prepare for maintenance windows by identifying potential issues and bugs. Provide either product OR serial_number.',
     arguments: [
       {
         name: 'maintenance_type',
@@ -98,8 +113,13 @@ export const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'product',
-        description: 'Cisco product undergoing maintenance',
-        required: true
+        description: 'Cisco product undergoing maintenance. Either this OR serial_number is required.',
+        required: false
+      },
+      {
+        name: 'serial_number',
+        description: 'Serial number of device undergoing maintenance (e.g., "SAL09232Q0Z"). Either this OR product is required. Will automatically look up product details.',
+        required: false
       },
       {
         name: 'software_version',
@@ -115,12 +135,17 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-security-advisory',
-    description: 'Research security-related bugs and vulnerabilities for Cisco products',
+    description: 'Research security-related bugs and vulnerabilities for Cisco products. Provide either product OR serial_number.',
     arguments: [
       {
         name: 'product',
-        description: 'Cisco product to check for security issues',
-        required: true
+        description: 'Cisco product to check for security issues. Either this OR serial_number is required.',
+        required: false
+      },
+      {
+        name: 'serial_number',
+        description: 'Serial number of device to check for security issues (e.g., "SAL09232Q0Z"). Either this OR product is required. Will automatically look up product details.',
+        required: false
       },
       {
         name: 'software_version',
@@ -136,12 +161,17 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-known-issues',
-    description: 'Check for known issues in specific Cisco software releases or products',
+    description: 'Check for known issues in specific Cisco software releases or products. Provide either product OR serial_number.',
     arguments: [
       {
         name: 'product',
-        description: 'Cisco product to check',
-        required: true
+        description: 'Cisco product to check. Either this OR serial_number is required.',
+        required: false
+      },
+      {
+        name: 'serial_number',
+        description: 'Serial number of device to check (e.g., "SAL09232Q0Z"). Either this OR product is required. Will automatically look up product details.',
+        required: false
       },
       {
         name: 'software_version',
@@ -265,16 +295,17 @@ export const ciscoPrompts: Prompt[] = [
 /**
  * Prompt to API mapping
  * Defines which APIs each prompt uses for filtering based on enabled APIs
+ * Prompts with serial_number support require 'serial' API for product lookups
  */
 export const promptApiMapping: Record<string, SupportedAPI[]> = {
-  'cisco-high-severity-search': ['bug'],
-  'cisco-incident-investigation': ['bug'],
-  'cisco-upgrade-planning': ['bug'],
-  'cisco-maintenance-prep': ['bug'],
-  'cisco-security-advisory': ['bug'],
-  'cisco-known-issues': ['bug'],
+  'cisco-high-severity-search': ['bug', 'serial'],
+  'cisco-incident-investigation': ['bug', 'serial'],
+  'cisco-upgrade-planning': ['bug', 'serial'],
+  'cisco-maintenance-prep': ['bug', 'serial'],
+  'cisco-security-advisory': ['bug', 'serial'],
+  'cisco-known-issues': ['bug', 'serial'],
   'cisco-case-investigation': ['case'],
-  'cisco-lifecycle-planning': ['eox'],
+  'cisco-lifecycle-planning': ['eox', 'serial'],
   'cisco-eox-research': ['eox'],
   'cisco-smart-search': ['bug'],
   'cisco-interactive-search': ['bug']

@@ -216,14 +216,20 @@ Claude will use the appropriate MCP tools to fetch real-time data from Cisco's B
 
 ## MCP Prompts
 
-The server includes **6 specialized prompts** for guided Cisco support workflows:
+The server includes **10+ specialized prompts** for guided Cisco support workflows:
 
+- **🔍 cisco-high-severity-search** - Search high-severity bugs by product or serial number
 - **🚨 cisco-incident-investigation** - Investigate symptoms and errors
 - **🔄 cisco-upgrade-planning** - Research issues before upgrades
 - **🔧 cisco-maintenance-prep** - Prepare for maintenance windows
 - **🔒 cisco-security-advisory** - Research security vulnerabilities
 - **⚠️ cisco-known-issues** - Check for software release issues
-- **✨ cisco-interactive-search** - NEW: Interactive search with elicitation for missing parameters
+- **📋 cisco-case-investigation** - Investigate support cases
+- **⏰ cisco-lifecycle-planning** - End-of-life planning
+- **🎯 cisco-smart-search** - Intelligent search with automatic refinement
+- **✨ cisco-interactive-search** - Interactive search with elicitation
+
+**Serial Number Support:** Most prompts now accept either a **product name** OR a **serial number**. When you provide a serial number (e.g., "SAL09232Q0Z"), the server automatically looks up the product details and uses them for the search. This makes it easy to investigate issues when you have a device serial number but don't know the exact product model.
 
 Each prompt provides structured investigation plans and expert recommendations.
 

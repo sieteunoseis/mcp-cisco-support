@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2025-10-28
+
+### Added
+- **Serial Number Support in MCP Prompts**: All product-focused prompts now accept serial numbers as an alternative to product names
+  - Updated 6 prompts to support `serial_number` parameter: cisco-high-severity-search, cisco-incident-investigation, cisco-upgrade-planning, cisco-maintenance-prep, cisco-security-advisory, cisco-known-issues
+  - When serial number is provided, server automatically looks up product details via Serial Number API
+  - Makes investigation easier when you have device serial but don't know exact product model
+  - Prompts now accept either `product` OR `serial_number` (not both required)
+
+### Changed
+- **Prompt Parameter Flexibility**: Product-related parameters are now optional when serial_number is provided
+  - `product_keyword` in cisco-high-severity-search is now optional (either product_keyword OR serial_number)
+  - `product` parameter in 5 prompts is now optional (either product OR serial_number)
+  - Updated prompt descriptions to explain either/or requirement
+  - Added 'serial' API requirement to prompt API mapping
+
+### Documentation
+- Updated README MCP Prompts section with serial number support information
+- Added explanation of automatic product lookup from serial numbers
+- Updated prompt count from 6 to 10+ prompts
+- Added prompt descriptions with emojis for better visual organization
+
 ## [1.16.0] - 2025-10-28
 
 ### Added
