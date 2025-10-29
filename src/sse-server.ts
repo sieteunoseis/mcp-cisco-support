@@ -8,6 +8,15 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { logger } from './mcp-server.js';
+import {
+  generateAuthorizationServerMetadata,
+  registerClient,
+  handleAuthorizeRequest,
+  handleAuthorizeApproval,
+  handleTokenRequest,
+  createOAuth2Middleware,
+  type OAuth2Config
+} from './oauth2.js';
 
 // Generate a secure session token for authentication
 function generateAuthToken(): string {
@@ -67,31 +76,66 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
 
 export function createSSEServer(mcpServer: Server) {
   const app = express();
-  
+
   // Check environment variables for auth configuration
   const enableAuth = process.env.DANGEROUSLY_OMIT_AUTH !== 'true';
+  const authType = (process.env.AUTH_TYPE || 'bearer').toLowerCase();
   const authToken = generateAuthToken();
-  
-  // Display authentication info prominently like MCP Inspector
+  const port = process.env.PORT || 3000;
+
+  // OAuth 2.1 configuration
+  const oauth2Config: OAuth2Config = {
+    issuerUrl: process.env.OAUTH2_ISSUER_URL || `http://localhost:${port}`,
+    allowDynamicRegistration: process.env.OAUTH2_ALLOW_DYNAMIC_REGISTRATION !== 'false',
+    requirePKCE: true
+  };
+
+  // Display authentication info prominently
   if (enableAuth) {
-    const port = process.env.PORT || 3000;
-    const isEnvToken = !!process.env.MCP_BEARER_TOKEN;
-    
     console.log('Starting MCP Cisco Support server...');
     console.log(`⚙️  Server listening on 127.0.0.1:${port}`);
-    console.log(`🔑 Bearer token: ${authToken}`);
-    
-    if (isEnvToken) {
-      console.log('   ✅ Using token from MCP_BEARER_TOKEN environment variable');
-    } else {
-      console.log('   🎲 Generated random token (set MCP_BEARER_TOKEN to use custom token)');
-    }
-    
-    console.log('Use this token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
+    console.log(`🔐 Authentication Type: ${authType.toUpperCase()}`);
     console.log('');
-    console.log('🔗 Access with Bearer token:');
-    console.log(`   curl -H "Authorization: Bearer ${authToken}" http://localhost:${port}/mcp`);
-    console.log(`   (Query parameter also supported: ?token=${authToken})`);
+
+    if (authType === 'bearer') {
+      const isEnvToken = !!process.env.MCP_BEARER_TOKEN;
+      console.log(`🔑 Bearer token: ${authToken}`);
+
+      if (isEnvToken) {
+        console.log('   ✅ Using token from MCP_BEARER_TOKEN environment variable');
+      } else {
+        console.log('   🎲 Generated random token (set MCP_BEARER_TOKEN to use custom token)');
+      }
+
+      console.log('Use this token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
+      console.log('');
+      console.log('🔗 Access with Bearer token:');
+      console.log(`   curl -H "Authorization: Bearer ${authToken}" http://localhost:${port}/mcp`);
+      console.log(`   (Query parameter also supported: ?token=${authToken})`);
+    } else if (authType === 'oauth2.1') {
+      console.log('📋 OAuth 2.1 Authorization Server Configuration:');
+      console.log(`   Issuer: ${oauth2Config.issuerUrl}`);
+      console.log(`   Authorization Endpoint: ${oauth2Config.issuerUrl}/authorize`);
+      console.log(`   Token Endpoint: ${oauth2Config.issuerUrl}/token`);
+      console.log(`   Registration Endpoint: ${oauth2Config.allowDynamicRegistration ? oauth2Config.issuerUrl + '/register' : 'Disabled'}`);
+      console.log(`   Metadata: ${oauth2Config.issuerUrl}/.well-known/oauth-authorization-server`);
+      console.log('');
+      console.log('📝 To register a client:');
+      console.log(`   curl -X POST ${oauth2Config.issuerUrl}/register \\`);
+      console.log(`     -H "Content-Type: application/json" \\`);
+      console.log(`     -d '{"redirect_uris":["http://localhost:3001/callback"],"client_name":"My MCP Client"}'`);
+      console.log('');
+      console.log('🔐 OAuth 2.1 Flow:');
+      console.log('   1. Register client (POST /register)');
+      console.log('   2. Get authorization code (GET /authorize)');
+      console.log('   3. Exchange code for token (POST /token)');
+      console.log('   4. Use token in requests (Authorization: Bearer <token>)');
+    } else {
+      console.log(`⚠️  Unknown AUTH_TYPE: ${authType}`);
+      console.log('   Valid options: bearer (default), oauth2.1');
+      console.log('   Falling back to bearer authentication');
+    }
+
     console.log('');
     console.log(`🌐 MCP Server is up and running at http://127.0.0.1:${port} 🚀`);
     console.log('');
@@ -106,15 +150,53 @@ export function createSSEServer(mcpServer: Server) {
   app.use(morgan('combined'));
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
-  
+
   // MCP Protocol Version header middleware
   app.use((req, res, next) => {
     res.setHeader('MCP-Protocol-Version', '2025-06-18');
     next();
   });
-  
-  // Apply authentication middleware
-  app.use(createAuthMiddleware(authToken, enableAuth));
+
+  // OAuth 2.1 endpoints (before auth middleware)
+  if (enableAuth && authType === 'oauth2.1') {
+    // Authorization Server Metadata (RFC 8414)
+    app.get('/.well-known/oauth-authorization-server', (req, res) => {
+      logger.info('Authorization server metadata requested');
+      res.json(generateAuthorizationServerMetadata(oauth2Config));
+    });
+
+    // Dynamic Client Registration (RFC 7591)
+    app.post('/register', (req, res) => {
+      registerClient(req, res, oauth2Config);
+    });
+
+    // Authorization endpoint
+    app.get('/authorize', (req, res) => {
+      handleAuthorizeRequest(req, res);
+    });
+
+    // Authorization approval endpoint
+    app.post('/authorize/approve', (req, res) => {
+      handleAuthorizeApproval(req, res);
+    });
+
+    // Token endpoint
+    app.post('/token', (req, res) => {
+      handleTokenRequest(req, res);
+    });
+  }
+
+  // Apply authentication middleware based on type
+  if (enableAuth) {
+    if (authType === 'oauth2.1') {
+      app.use(createOAuth2Middleware());
+      logger.info('OAuth 2.1 authentication middleware enabled');
+    } else {
+      // Default to bearer token authentication
+      app.use(createAuthMiddleware(authToken, enableAuth));
+      logger.info('Bearer token authentication middleware enabled');
+    }
+  }
 
   const transportMap = new Map<string, SSEServerTransport>();
   const streamableTransports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
@@ -444,29 +526,60 @@ export function createSSEServer(mcpServer: Server) {
 
   // Server info endpoint (publicly accessible to show auth info)
   app.get('/', (_req, res) => {
-    const port = process.env.PORT || 3000;
-    res.json({
+    const baseEndpoints: Record<string, string> = {
+      mcp: '/mcp (POST/GET/DELETE) - MCP StreamableHTTP endpoint',
+      sse: '/sse (GET) - Legacy SSE connection',
+      messages: '/messages (POST) - Legacy SSE messages',
+      health: '/health (GET) - Health check (no auth required)'
+    };
+
+    const oauth2Endpoints: Record<string, string> = {
+      metadata: '/.well-known/oauth-authorization-server (GET) - OAuth 2.1 server metadata',
+      register: '/register (POST) - Dynamic client registration',
+      authorize: '/authorize (GET) - Authorization endpoint',
+      token: '/token (POST) - Token endpoint'
+    };
+
+    const responseData: any = {
       name: 'Cisco Support MCP SSE Server',
       description: 'MCP Server-Sent Events transport for Cisco Support APIs',
       authentication: {
         enabled: enableAuth,
-        type: 'Bearer Token',
-        note: enableAuth ? 'Token displayed in console logs on startup. Use Authorization: Bearer <token> header (recommended) or ?token=<token> query parameter' : 'Authentication disabled via DANGEROUSLY_OMIT_AUTH=true'
+        type: enableAuth ? authType.toUpperCase() : 'None',
+        note: enableAuth
+          ? (authType === 'oauth2.1'
+              ? 'OAuth 2.1 with PKCE - Register client, get authorization code, exchange for token'
+              : 'Bearer token - Token displayed in console logs on startup')
+          : 'Authentication disabled via DANGEROUSLY_OMIT_AUTH=true'
       },
-      endpoints: {
-        mcp: '/mcp (POST/GET/DELETE) - MCP StreamableHTTP endpoint',
-        sse: '/sse (GET) - Legacy SSE connection',
-        messages: '/messages (POST) - Legacy SSE messages',
-        health: '/health (GET) - Health check (no auth required)'
-      },
-      examples: enableAuth ? {
+      endpoints: enableAuth && authType === 'oauth2.1'
+        ? { ...baseEndpoints, ...oauth2Endpoints }
+        : baseEndpoints,
+      activeTransports: transportMap.size + Object.keys(streamableTransports).length,
+      timestamp: new Date().toISOString()
+    };
+
+    // Add examples based on auth type
+    if (enableAuth && authType === 'bearer') {
+      responseData.examples = {
         curl: `curl -H "Authorization: Bearer <token>" http://localhost:${port}/mcp`,
         curlQuery: `curl http://localhost:${port}/mcp?token=<token>`,
         javascript: `fetch('http://localhost:${port}/mcp', { headers: { 'Authorization': 'Bearer <token>' } })`
-      } : undefined,
-      activeTransports: transportMap.size + Object.keys(streamableTransports).length,
-      timestamp: new Date().toISOString()
-    });
+      };
+    } else if (enableAuth && authType === 'oauth2.1') {
+      responseData.oauth2Flow = {
+        issuer: oauth2Config.issuerUrl,
+        metadata: `${oauth2Config.issuerUrl}/.well-known/oauth-authorization-server`,
+        steps: [
+          '1. Register client: POST /register',
+          '2. Get authorization code: GET /authorize?response_type=code&client_id=...&redirect_uri=...&code_challenge=...&code_challenge_method=S256',
+          '3. Exchange code: POST /token with grant_type=authorization_code&code=...&code_verifier=...',
+          '4. Use access token: Include "Authorization: Bearer <access_token>" in all requests'
+        ]
+      };
+    }
+
+    res.json(responseData);
   });
 
   // Error handling middleware
