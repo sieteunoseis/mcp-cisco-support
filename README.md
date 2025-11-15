@@ -5,6 +5,7 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 ## 🚀 Current Features
 
 - **Multi-API Support**: 8 Cisco Support APIs fully implemented (46 total tools)
+- **TOON Format Output**: ✨ **NEW** - Text-Object-Oriented Notation for structured, human-readable responses (enabled by default)
 - **ElicitationRequest Support**: ✨ Dynamic user interaction for gathering missing parameters
 - **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints
 - **Configurable API Access**: Enable only the Cisco Support APIs you have access to
@@ -99,6 +100,88 @@ cd mcp-cisco-support
 npm install
 npm run build
 npm start
+```
+
+## 📋 TOON Format Output
+
+The server now supports **TOON (Text-Object-Oriented Notation)** format for API responses, providing structured and highly readable output by default.
+
+### What is TOON?
+
+TOON is a human-readable text format that presents structured data in a clear, organized way that's easy to read and understand. Instead of raw JSON or verbose markdown, TOON provides:
+
+- **Clean Structure**: Hierarchical data representation with clear nesting
+- **Readable Format**: No verbose markup, just clean presentation
+- **Easy Navigation**: Logical organization of complex data
+- **Consistent Styling**: Uniform formatting across all responses
+
+### Configuration
+
+TOON format is **enabled by default**. You can control it with the `DISABLE_TOON_FORMAT` environment variable:
+
+**Enable TOON format (default behavior):**
+```bash
+# No configuration needed - TOON is enabled by default
+npx mcp-cisco-support
+```
+
+**Disable TOON format to use native JSON responses:**
+```bash
+export DISABLE_TOON_FORMAT=true
+npx mcp-cisco-support
+```
+
+**Configure in Claude Desktop:**
+```json
+{
+  "mcpServers": {
+    "cisco-support": {
+      "command": "npx",
+      "args": ["-y", "mcp-cisco-support"],
+      "env": {
+        "CISCO_CLIENT_ID": "your_client_id_here",
+        "CISCO_CLIENT_SECRET": "your_client_secret_here",
+        "DISABLE_TOON_FORMAT": "false"
+      }
+    }
+  }
+}
+```
+
+### Example Output
+
+**TOON Format Output:**
+```
+bugs:
+  - bug_id: CSCvi12345
+    headline: Memory leak in device management
+    status: Open
+    severity: 3
+    last_modified_date: 2024-01-15
+
+  - bug_id: CSCvi12346
+    headline: Connection timeout in API
+    status: Fixed
+    severity: 2
+    last_modified_date: 2024-01-14
+
+total_results: 2
+```
+
+**Native JSON Output (when `DISABLE_TOON_FORMAT=true`):**
+```json
+{
+  "bugs": [
+    {
+      "bug_id": "CSCvi12345",
+      "headline": "Memory leak in device management",
+      "status": "Open",
+      "severity": "3",
+      "last_modified_date": "2024-01-15"
+    }
+  ],
+  "total_results": 1
+}
 ```
 
 ## Claude Desktop Integration

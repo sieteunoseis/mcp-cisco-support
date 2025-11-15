@@ -26,6 +26,7 @@ import { SERVER_ICON } from './utils/icon.js';
 import { initializeProgressNotifications, sendProgress, createProgressTracker } from './utils/progress.js';
 import { ciscoPrompts, promptApiMapping, getFilteredPrompts } from './prompts/cisco-prompts.js';
 import { ElicitationSchemas, createElicitationRequest } from './elicitation/schemas.js';
+import { shouldUseToonFormat, bugResponseToToon, caseResponseToToon, eoxResponseToToon, getFormatDescription } from './utils/toon-formatter.js';
 
 // Load environment variables
 dotenv.config();
@@ -426,10 +427,36 @@ This interactive approach showcases how elicitationRequest can make tools more u
 // Re-export for backward compatibility
 export { ElicitationSchemas, createElicitationRequest } from './elicitation/schemas.js';
 
-// Format results based on API type
+// Format results based on API type and configuration
 function formatResults(result: ApiResponse, apiName: string, toolName: string, args: Record<string, any>): string {
+  // Check if TOON format should be used
+  const useToon = shouldUseToonFormat();
+  const formatType = getFormatDescription();
+
+  logger.info(`Formatting results as ${formatType}`, { apiName, toolName });
+
+  // If TOON format is enabled, use TOON formatting for JSON data
+  if (useToon) {
+    try {
+      if (apiName === 'Bug' || toolName.includes('bug')) {
+        return bugResponseToToon(result as BugApiResponse);
+      } else if (apiName === 'Case' || toolName.includes('case')) {
+        return caseResponseToToon(result as CaseApiResponse);
+      } else if (apiName === 'EoX' || toolName.includes('eox')) {
+        return eoxResponseToToon(result as EoxApiResponse);
+      } else {
+        // Fallback to TOON for generic API responses
+        return bugResponseToToon(result as BugApiResponse);
+      }
+    } catch (error) {
+      logger.warn('TOON formatting failed, falling back to standard format', { error });
+      // Fall through to standard formatting
+    }
+  }
+
+  // Standard format (human-readable markdown)
   const searchContext = { toolName, args };
-  
+
   if (apiName === 'Bug' || toolName.includes('bug')) {
     return formatBugResults(result as BugApiResponse, searchContext);
   } else if (apiName === 'Case' || toolName.includes('case')) {
