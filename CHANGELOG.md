@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2025-11-15
+
+### Added
+- **TOON Format Output**: Added Text-Object-Oriented Notation (TOON) format for API responses
+  - Provides structured, human-readable output by default instead of raw JSON
+  - Clean hierarchical data representation with clear nesting
+  - Easy navigation and consistent styling across all responses
+  - New dependency: `@toon-format/toon` package for JSON-to-TOON conversion
+  - Enabled by default for better readability
+
+### Changed
+- **Response Format Default**: All API responses now use TOON format by default
+  - Native JSON responses still available via `DISABLE_TOON_FORMAT=true` environment variable
+  - Configurable in Claude Desktop and Docker deployments
+  - Better user experience with cleaner, more readable output
+
+### Documentation
+- Added comprehensive TOON format documentation to README.md:
+  - "📋 TOON Format Output" section explaining benefits and usage
+  - Configuration examples for enabling/disabling TOON format
+  - Side-by-side comparison of TOON vs JSON output
+  - Claude Desktop configuration examples with TOON settings
+- Updated environment variable documentation in `.env.example`
+- Added TOON format examples to usage documentation
+
 ## [1.17.0] - 2025-10-28
 
 ### Added
