@@ -96,8 +96,9 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  CISCO_CLIENT_ID           Cisco API client ID (required)');
   console.log('  CISCO_CLIENT_SECRET       Cisco API client secret (required)');
   console.log('  SUPPORT_API               Enabled APIs: bug,case,eox or all (default: bug)');
-  console.log('  DISABLE_TOON_FORMAT       Set to "true" to use native JSON instead of TOON (default: false)');
-  console.log('  MCP_BEARER_TOKEN          Custom Bearer token for HTTP auth');
+  console.log('  AUTH_TYPE                 Auth type: bearer (default) or oauth2.1');
+  console.log('  MCP_BEARER_TOKEN          Custom Bearer token (for bearer auth)');
+  console.log('  OAUTH2_ISSUER_URL         OAuth 2.1 issuer URL (for oauth2.1 auth)');
   console.log('  DANGEROUSLY_OMIT_AUTH     Set to "true" to disable HTTP auth');
   console.log('  PORT                      HTTP server port (default: 3000)');
   console.log('');

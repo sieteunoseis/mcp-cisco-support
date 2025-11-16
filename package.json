@@ -21,6 +21,8 @@
     "start": "node dist/src/index.js",
     "dev": "tsx watch src/index.ts",
     "dev:http": "tsx watch src/index.ts -- --http",
+    "dev:http:oauth": "AUTH_TYPE=oauth2.1 tsx watch src/index.ts -- --http",
+    "start:oauth": "AUTH_TYPE=oauth2.1 node dist/src/index.js -- --http",
     "stdio": "node dist/src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -36,6 +38,9 @@
     "actions:status": "gh run list --limit 1",
     "token:generate": "npm start -- --generate-token",
     "token:help": "npm start -- --token-help",
+    "oauth:dev": "AUTH_TYPE=oauth2.1 tsx watch src/index.ts -- --http",
+    "oauth:start": "npm run build && AUTH_TYPE=oauth2.1 node dist/src/index.js -- --http",
+    "oauth:test": "curl -s http://localhost:3000/.well-known/oauth-authorization-server | jq",
     "inspector": "npx -y @modelcontextprotocol/inspector"
   },
   "keywords": [
@@ -70,9 +75,9 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^20.10.0",
+    "@types/node": "^20.19.24",
     "@types/uuid": "^9.0.7",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",

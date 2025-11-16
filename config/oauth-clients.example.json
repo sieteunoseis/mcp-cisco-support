@@ -1,0 +1,66 @@
+{
+  "clients": [
+    {
+      "client_id": "mcp_inspector_prod",
+      "client_uri": "https://modelcontextprotocol.io",
+      "redirect_uris": [
+        "https://inspector.example.com/oauth/callback"
+      ],
+      "scopes": ["mcp"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "description": "MCP Inspector - Production (confidential client - secret in oauth-secrets.json)",
+      "enabled": true
+    },
+    {
+      "client_id": "mcp_inspector_dev",
+      "client_uri": "http://localhost:6274",
+      "redirect_uris": [
+        "http://localhost:6274/oauth/callback"
+      ],
+      "scopes": ["mcp"],
+      "grant_types": ["authorization_code"],
+      "description": "MCP Inspector - Local Development (public client with PKCE)",
+      "enabled": true
+    },
+    {
+      "client_id": "mcp_jam",
+      "client_uri": "https://www.mcpjam.com",
+      "redirect_uris": [
+        "mcpjam://oauth/callback",
+        "http://localhost:*/oauth/callback"
+      ],
+      "scopes": ["mcp"],
+      "grant_types": ["authorization_code"],
+      "description": "MCP Jam - Testing Tool (public client with PKCE)",
+      "enabled": true
+    },
+    {
+      "client_id": "bug_search_app",
+      "client_uri": "https://bugs.company.com",
+      "redirect_uris": [
+        "https://bugs.company.com/oauth/callback"
+      ],
+      "scopes": ["mcp:bug", "mcp:psirt"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "description": "Bug Search Application - Limited to Bug and Security APIs only",
+      "enabled": true
+    },
+    {
+      "client_id": "network_ops_dashboard",
+      "client_uri": "https://dashboard.company.com",
+      "redirect_uris": [
+        "https://dashboard.company.com/oauth/callback"
+      ],
+      "scopes": ["mcp:case", "mcp:rma", "mcp:eox"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "description": "Network Operations Dashboard - Case management and lifecycle access",
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "allow_dynamic_registration": true,
+    "require_client_secret": false,
+    "token_expiry_seconds": 3600,
+    "refresh_token_expiry_seconds": 86400
+  }
+}

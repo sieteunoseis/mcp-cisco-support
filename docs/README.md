@@ -6,9 +6,17 @@ This directory contains comprehensive documentation for the Cisco Support MCP Se
 
 ## 📋 Current Documentation
 
-### Active Implementation Guides (v1.16.0)
+### Active Implementation Guides (v1.17.0+)
 
-1. **[Product Autocomplete Implementation](./PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md)** 🆕 **v1.16.0**
+1. **[OAuth 2.1 Authentication Guide](./OAUTH2_AUTHENTICATION.md)** 🆕 **v1.17.0+**
+   - Comprehensive OAuth 2.1 authorization server implementation guide
+   - Bearer token vs OAuth 2.1 comparison and decision matrix
+   - Complete OAuth flow with PKCE (Proof Key for Code Exchange)
+   - Security features and production deployment recommendations
+   - Working examples for CLI tools, web apps, and service accounts
+   - **Best for:** Understanding and implementing HTTP authentication modes
+
+2. **[Product Autocomplete Implementation](./PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md)** 🆕 **v1.16.0**
    - Complete implementation guide for MCP product autocomplete resources
    - User-provided cookie authentication setup
    - Cookie lifecycle management (24-hour validity)
@@ -29,14 +37,14 @@ This directory contains comprehensive documentation for the Cisco Support MCP Se
    - Implementation recommendations
    - **Best for:** Understanding cookie authentication behavior
 
-4. **[ISR4431 Search Analysis](./ISR4431_SEARCH_ANALYSIS.md)** 🐛 **BUG FIX**
+5. **[ISR4431 Search Analysis](./ISR4431_SEARCH_ANALYSIS.md)** 🐛 **BUG FIX**
    - Root cause analysis of product ID search failures
    - Enhanced fallback logic implementation
    - Severity breakdown feature addition
    - Test results and verification
    - **Best for:** Understanding multi-severity search improvements
 
-5. **[Tool Examples](./tool-examples.md)** 📚 **REFERENCE**
+6. **[Tool Examples](./tool-examples.md)** 📚 **REFERENCE**
    - Comprehensive examples for all 50+ MCP tools
    - Usage patterns and best practices
    - API parameter documentation
@@ -67,6 +75,7 @@ Historical documentation and implemented features have been moved to **[archive/
 ```
 docs/
 ├── README.md                                    # This file
+├── OAUTH2_AUTHENTICATION.md                     # v1.17.0+ OAuth 2.1 guide
 ├── PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md       # v1.16.0 implementation
 ├── PRODUCT_AUTOCOMPLETE_SOLUTIONS.md            # Design analysis
 ├── CISCO_COOKIE_ANALYSIS.md                     # Cookie research
@@ -91,6 +100,12 @@ docs/
 ## 🎯 Quick Start
 
 ### For Users
+**Setting up HTTP Authentication:**
+1. Read: **[OAuth 2.1 Authentication Guide](./OAUTH2_AUTHENTICATION.md)**
+2. Choose between Bearer token (default) or OAuth 2.1
+3. Configure environment variables (AUTH_TYPE, etc.)
+4. Start server with `--http` flag
+
 **Setting up Product Autocomplete:**
 1. Read: **[Product Autocomplete Implementation](./PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md)**
 2. Extract your Cisco.com session cookie
@@ -116,10 +131,11 @@ docs/
 
 ---
 
-## 📊 Project Status (v1.16.0)
+## 📊 Project Status (v1.17.0+)
 
 | Feature | Status | Documentation |
 |---------|--------|---------------|
+| **OAuth 2.1 Authorization** | ✅ Implemented | OAUTH2_AUTHENTICATION.md |
 | **Product Autocomplete** | ✅ Implemented | 3 dedicated docs |
 | **Enhanced Bug Search** | ✅ Implemented | ISR4431_SEARCH_ANALYSIS.md |
 | **All 8 Cisco APIs** | ✅ Complete | tool-examples.md |
@@ -127,6 +143,25 @@ docs/
 | **MCP Sampling** | ✅ Implemented | archive/SAMPLING_* (v1.14.0) |
 | **MCP Progress** | ✅ Implemented | archive/RESOURCES_* (v1.14.0) |
 | **Smart Bonding** | ⚠️ Experimental | archive/SMART_BONDING_* |
+
+---
+
+## 🆕 What's New in v1.17.0+
+
+### OAuth 2.1 Authorization Support
+- Full OAuth 2.1 authorization server implementation with PKCE
+- Bearer token authentication (default, backward compatible)
+- Authorization Server Metadata endpoint (RFC 8414)
+- Dynamic Client Registration (RFC 7591)
+- Token refresh and rotation capabilities
+- Complete documentation with 50+ code examples
+- Production deployment guide and security best practices
+
+### Documentation Enhancements
+- New comprehensive OAuth 2.1 authentication guide
+- Bearer vs OAuth 2.1 comparison and decision matrix
+- Step-by-step OAuth flow diagrams
+- Working examples for CLI, web apps, and service accounts
 
 ---
 
@@ -162,6 +197,7 @@ docs/
 
 ### MCP Specification
 - [MCP Protocol](https://modelcontextprotocol.io/)
+- [Authorization](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization) - OAuth 2.1
 - [Resources](https://modelcontextprotocol.io/specification/2025-03-26/server/resources)
 - [Sampling](https://modelcontextprotocol.io/specification/2025-03-26/client/sampling)
 - [Progress](https://modelcontextprotocol.io/specification/2025-03-26/server/utilities/progress)
@@ -221,7 +257,7 @@ When archiving documentation:
 
 ---
 
-**Last Updated:** 2025-10-28
-**Documentation Set Version:** 2.0
-**Project Version:** 1.16.0
-**Status:** Active documentation (5 files) + Archive (10 files)
+**Last Updated:** 2025-01-30
+**Documentation Set Version:** 2.1
+**Project Version:** 1.17.0+
+**Status:** Active documentation (6 files) + Archive (10 files)

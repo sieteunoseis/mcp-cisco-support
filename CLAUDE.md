@@ -5,10 +5,10 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 ## Project Overview
 
 This TypeScript server features:
-- **TOON Format Output**: ✨ NEW - Text-Object-Oriented Notation for structured, human-readable responses (enabled by default)
 - **Dual Transport Support**: stdio (local MCP) and HTTP (remote server)
 - **Extensible Architecture**: Designed to support multiple Cisco Support APIs
-- **MCP Resources**: Expose Cisco data as structured resources
+- **MCP Resources**: ✨ NEW - Expose Cisco data as structured resources
+- **OAuth 2.1 Authorization**: 🆕 NEW - Full OAuth 2.1 with PKCE support for HTTP mode
 - **ElicitationRequest Support**: ⚠️ EXPERIMENTAL - Dynamic user interaction (limited client support)
 - OAuth2 authentication with Cisco API (client credentials flow)
 - 50+ MCP-compliant tools for comprehensive Cisco Support operations
@@ -16,7 +16,7 @@ This TypeScript server features:
 - TypeScript with full type safety and MCP SDK integration
 - Docker containerization with multi-stage builds
 - NPX support for easy local installation
-- Security best practices
+- Security best practices with flexible authentication options
 
 ## Project Structure
 
@@ -42,9 +42,8 @@ Install these npm packages:
 {
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "@toon-format/toon": "^1.0.0",
     "express": "^4.18.2",
-    "cors": "^2.8.5",
+    "cors": "^2.8.5", 
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
     "uuid": "^9.0.1",
@@ -271,10 +270,6 @@ CISCO_CLIENT_SECRET=your_client_secret_here
 # Server Configuration
 PORT=3000
 NODE_ENV=development
-
-# Output Format Configuration (v1.18.0+)
-# DISABLE_TOON_FORMAT=false    # Use TOON format for readable output (DEFAULT)
-# DISABLE_TOON_FORMAT=true     # Use native JSON responses
 ```
 
 ## API Endpoints
@@ -592,6 +587,187 @@ This conversational approach works better than rigid schemas and is already supp
 - CORS enabled
 - Input validation
 - Environment variable protection
+
+### HTTP Server Authentication
+
+The MCP server supports two authentication modes for HTTP transport (when running with `--http` flag):
+
+#### Bearer Token Authentication (Default)
+
+Simple bearer token authentication using static tokens. **Recommended for most use cases.**
+
+**Configuration:**
+```bash
+# Use default bearer authentication
+AUTH_TYPE=bearer  # or omit (default)
+
+# Option 1: Auto-generate random token on startup
+npx mcp-cisco-support --http
+# Token will be displayed in console
+
+# Option 2: Use custom token from environment
+export MCP_BEARER_TOKEN=your_custom_token_here
+npx mcp-cisco-support --http
+
+# Option 3: Generate and use a secure token
+TOKEN=$(npx mcp-cisco-support --generate-token | grep -oP '(?<=Generated Bearer Token:\n\n   )[a-f0-9]+')
+export MCP_BEARER_TOKEN=$TOKEN
+npx mcp-cisco-support --http
+```
+
+**Usage:**
+```bash
+# Include token in Authorization header (recommended)
+curl -H "Authorization: Bearer <token>" http://localhost:3000/mcp
+
+# Or use query parameter (less secure)
+curl http://localhost:3000/mcp?token=<token>
+```
+
+**Features:**
+- ✅ Simple and fast
+- ✅ No user interaction required
+- ✅ Suitable for service-to-service communication
+- ✅ Works with all HTTP clients
+- ⚠️ Static token (rotate periodically for security)
+
+#### OAuth 2.1 Authorization (Advanced)
+
+Full OAuth 2.1 implementation with PKCE (Proof Key for Code Exchange) based on the [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization).
+
+**Configuration:**
+```bash
+# Enable OAuth 2.1 authentication
+AUTH_TYPE=oauth2.1
+
+# Optional: Configure issuer URL (defaults to http://localhost:PORT)
+OAUTH2_ISSUER_URL=https://your-server.com
+
+# Optional: Disable dynamic client registration (enabled by default)
+OAUTH2_ALLOW_DYNAMIC_REGISTRATION=false
+
+# Start server
+npx mcp-cisco-support --http
+```
+
+**OAuth 2.1 Flow:**
+
+1. **Discover Server Metadata** (RFC 8414):
+```bash
+curl http://localhost:3000/.well-known/oauth-authorization-server
+```
+
+Returns authorization server metadata including endpoints and supported features.
+
+2. **Register Client** (RFC 7591):
+```bash
+curl -X POST http://localhost:3000/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "redirect_uris": ["http://localhost:3001/callback"],
+    "client_name": "My MCP Client",
+    "grant_types": ["authorization_code"]
+  }'
+```
+
+Returns `client_id` and `client_secret`.
+
+3. **Generate PKCE Parameters**:
+```bash
+# Generate code_verifier (random string)
+CODE_VERIFIER=$(openssl rand -base64 32 | tr -d '=' | tr '+/' '-_')
+
+# Generate code_challenge (SHA256 of verifier)
+CODE_CHALLENGE=$(echo -n "$CODE_VERIFIER" | openssl dgst -binary -sha256 | openssl base64 | tr -d '=' | tr '+/' '-_')
+```
+
+4. **Request Authorization Code**:
+```bash
+# Open in browser or redirect user
+http://localhost:3000/authorize?response_type=code&client_id=<client_id>&redirect_uri=http://localhost:3001/callback&code_challenge=<CODE_CHALLENGE>&code_challenge_method=S256&state=<random_state>
+```
+
+User will see authorization page and approve the request. Server redirects to `redirect_uri` with authorization code.
+
+5. **Exchange Code for Access Token**:
+```bash
+curl -X POST http://localhost:3000/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=<authorization_code>" \
+  -d "redirect_uri=http://localhost:3001/callback" \
+  -d "client_id=<client_id>" \
+  -d "code_verifier=$CODE_VERIFIER"
+```
+
+Returns `access_token` and `refresh_token`.
+
+6. **Use Access Token**:
+```bash
+curl -H "Authorization: Bearer <access_token>" http://localhost:3000/mcp
+```
+
+7. **Refresh Token** (when access token expires):
+```bash
+curl -X POST http://localhost:3000/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=refresh_token" \
+  -d "refresh_token=<refresh_token>"
+```
+
+**OAuth 2.1 Endpoints:**
+- `GET /.well-known/oauth-authorization-server` - Server metadata (RFC 8414)
+- `POST /register` - Dynamic client registration (RFC 7591)
+- `GET /authorize` - Authorization endpoint
+- `POST /token` - Token endpoint
+- Token lifespan: 1 hour (access tokens), 24 hours (refresh tokens)
+- Authorization code validity: 10 minutes
+
+**Features:**
+- ✅ Industry-standard OAuth 2.1 protocol
+- ✅ PKCE required for all clients (enhanced security)
+- ✅ Support for authorization code and client credentials flows
+- ✅ Token refresh capability
+- ✅ Dynamic client registration
+- ✅ MCP specification compliant
+- ⚠️ More complex setup (requires user interaction)
+- ⚠️ Best for multi-user or delegated access scenarios
+
+**Grant Types Supported:**
+- **Authorization Code** (with PKCE): For user-delegated access
+- **Client Credentials**: For service accounts
+- **Refresh Token**: For extending session lifetime
+
+**Security Features:**
+- ✅ PKCE mandatory (prevents authorization code interception)
+- ✅ HTTPS-only redirect URIs (except localhost for development)
+- ✅ Secure redirect URI validation
+- ✅ Short-lived access tokens (1 hour)
+- ✅ Automatic token cleanup
+- ✅ Client credential protection
+
+#### Disabling Authentication (Not Recommended)
+
+```bash
+# WARNING: Only for development/testing in secure networks
+DANGEROUSLY_OMIT_AUTH=true npx mcp-cisco-support --http
+```
+
+**Comparison:**
+
+| Feature | Bearer Token | OAuth 2.1 |
+|---------|-------------|-----------|
+| Setup Complexity | Simple | Complex |
+| User Interaction | None | Required (authorization flow) |
+| Token Refresh | Manual rotation | Automatic (refresh tokens) |
+| Multi-user Support | Limited | Full |
+| MCP Spec Compliance | Basic auth | Full OAuth 2.1 spec |
+| Best For | Service-to-service, simple deployments | Multi-user, delegated access, enterprise |
+| Default | ✅ Yes | No |
+
+**Recommendation:**
+- Use **Bearer Token** for most deployments, development, and service-to-service communication
+- Use **OAuth 2.1** for multi-user environments, production deployments requiring user authorization, or when full OAuth 2.1 compliance is needed
 
 ## Docker Configuration
 
