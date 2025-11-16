@@ -17,6 +17,7 @@ import {
   createOAuth2Middleware,
   type OAuth2Config
 } from './oauth2.js';
+import { setCurrentRequestScopes } from './apis/index.js';
 
 // Generate a secure session token for authentication
 function generateAuthToken(): string {
@@ -39,6 +40,20 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
 
     // Skip auth for public endpoints
     if (req.path === '/health' || req.path === '/') {
+      return next();
+    }
+
+    // Skip auth for OAuth 2.1 discovery and registration endpoints (RFC 8414, RFC 7591)
+    const publicOAuth2Paths = [
+      '/.well-known/oauth-authorization-server',
+      '/.well-known/oauth-protected-resource',
+      '/.well-known/openid-configuration',
+      '/register',
+      '/authorize',  // User will be redirected here, needs to show UI
+      '/token'       // Client credentials are verified within the endpoint
+    ];
+
+    if (publicOAuth2Paths.some(path => req.path === path || req.path.startsWith(path + '/'))) {
       return next();
     }
 
@@ -145,7 +160,16 @@ export function createSSEServer(mcpServer: Server) {
   }
 
   // Security middleware
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "form-action": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'"],
+        "style-src": ["'self'", "'unsafe-inline'"]
+      }
+    }
+  }));
   app.use(cors());
   app.use(morgan('combined'));
   app.use(express.json({ limit: '10mb' }));
@@ -165,14 +189,41 @@ export function createSSEServer(mcpServer: Server) {
       res.json(generateAuthorizationServerMetadata(oauth2Config));
     });
 
+    // OAuth Protected Resource Metadata (RFC 9728)
+    // This tells clients which authorization server protects this resource
+    app.get('/.well-known/oauth-protected-resource', (req, res) => {
+      logger.info('Protected resource metadata requested');
+      res.json({
+        resource: oauth2Config.issuerUrl,
+        authorization_servers: [oauth2Config.issuerUrl],
+        scopes_supported: ['mcp'],
+        bearer_methods_supported: ['header', 'query'],
+        resource_documentation: `${oauth2Config.issuerUrl}/`,
+        'mcp-protocol-version': '2025-06-18'
+      });
+    });
+
+    // OAuth Protected Resource Metadata for /mcp endpoint specifically
+    app.get('/.well-known/oauth-protected-resource/mcp', (req, res) => {
+      logger.info('Protected resource metadata for /mcp requested');
+      res.json({
+        resource: `${oauth2Config.issuerUrl}/mcp`,
+        authorization_servers: [oauth2Config.issuerUrl],
+        scopes_supported: ['mcp'],
+        bearer_methods_supported: ['header'],
+        resource_documentation: `${oauth2Config.issuerUrl}/`,
+        'mcp-protocol-version': '2025-06-18'
+      });
+    });
+
     // Dynamic Client Registration (RFC 7591)
     app.post('/register', (req, res) => {
       registerClient(req, res, oauth2Config);
     });
 
     // Authorization endpoint
-    app.get('/authorize', (req, res) => {
-      handleAuthorizeRequest(req, res);
+    app.get('/authorize', async (req, res) => {
+      await handleAuthorizeRequest(req, res);
     });
 
     // Authorization approval endpoint
@@ -365,7 +416,11 @@ export function createSSEServer(mcpServer: Server) {
   app.post("/mcp", async (req, res) => {
     try {
       logger.info('Direct MCP call received', { method: req.body?.method });
-      
+
+      // Set OAuth scopes for this request (if available)
+      // This allows the API registry to filter tools based on token scopes
+      setCurrentRequestScopes(req.oauth_scopes);
+
       // Check for existing session ID
       const sessionId = req.headers['mcp-session-id'] as string;
       let transport: StreamableHTTPServerTransport;

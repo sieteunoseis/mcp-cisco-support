@@ -57,8 +57,12 @@ COPY --from=builder /usr/src/app/dist ./dist
 # Copy .env.example for reference
 COPY --chown=nodeuser:nodejs .env.example ./
 
-# Create logs directory
-RUN mkdir -p logs && chown -R nodeuser:nodejs logs
+# Copy OAuth example config files to config directory
+COPY --chown=nodeuser:nodejs config/oauth-clients.example.json ./config/
+COPY --chown=nodeuser:nodejs config/oauth-secrets.example.json ./config/
+
+# Create logs and oauth-config directories
+RUN mkdir -p logs oauth-config && chown -R nodeuser:nodejs logs oauth-config
 
 # Expose port
 EXPOSE 3000

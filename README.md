@@ -5,16 +5,17 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 ## 🚀 Current Features
 
 - **Multi-API Support**: 8 Cisco Support APIs fully implemented (46 total tools)
-- **ElicitationRequest Support**: ✨ Dynamic user interaction for gathering missing parameters
-- **Bearer Token Authentication**: MCP Inspector-style security for HTTP endpoints
+- **OAuth 2.1 Server**: ✨ Production-grade authentication with fine-grained scope-based access control
+- **ElicitationRequest Support**: Dynamic user interaction for gathering missing parameters
+- **Triple Auth Modes**: stdio (no auth), Bearer token (simple), OAuth 2.1 (production)
 - **Configurable API Access**: Enable only the Cisco Support APIs you have access to
 - **Specialized Prompts**: 9 workflow prompts for guided Cisco support scenarios
 - **Dual Transport**: stdio (local MCP clients) and HTTP (remote server with auth)
 - **OAuth2 Authentication**: Automatic token management with Cisco API
 - **Real-time Updates**: Server-Sent Events for HTTP mode
 - **TypeScript**: Full type safety and MCP SDK integration
-- **Production Security**: Helmet, CORS, input validation, Bearer tokens
-- **Docker Support**: Containerized deployment with health checks
+- **Production Security**: Helmet, CORS, input validation, PKCE, scope validation
+- **Docker Support**: Containerized deployment with OAuth config volume mounts
 - **Comprehensive Logging**: Structured logging with timestamps
 
 ## 📊 Supported Cisco APIs
@@ -606,6 +607,101 @@ MCP_BEARER_TOKEN=your_custom_secure_token_here
 # DANGEROUSLY_OMIT_AUTH=true          # Disables HTTP authentication entirely
 ```
 
+### OAuth 2.1 Authentication (Advanced)
+
+For production-grade authentication with fine-grained access control, use OAuth 2.1 mode:
+
+#### Quick Start
+```bash
+# 1. Copy example configuration files
+cp config/oauth-clients.example.json config/oauth-clients.json
+cp config/oauth-secrets.example.json config/oauth-secrets.json
+
+# 2. Edit config/oauth-clients.json to configure your clients
+# 3. Add client secrets to config/oauth-secrets.json (optional, for confidential clients)
+
+# 4. Start server in OAuth 2.1 mode
+AUTH_TYPE=oauth2.1 npm run oauth:start
+# or for development with hot reload:
+npm run oauth:dev
+```
+
+#### Configuration Files
+
+**config/oauth-clients.json** - Client configuration (can be version controlled):
+```json
+{
+  "clients": [
+    {
+      "client_id": "mcp_inspector_dev",
+      "client_uri": "http://localhost:6274",
+      "redirect_uris": ["http://localhost:6274/oauth/callback"],
+      "scopes": ["mcp:bug", "mcp:psirt"],
+      "grant_types": ["authorization_code"],
+      "description": "MCP Inspector - Limited to Bug + Security APIs",
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "allow_dynamic_registration": true,
+    "token_expiry_seconds": 3600
+  }
+}
+```
+
+**config/oauth-secrets.json** - Client secrets (gitignored, never commit):
+```json
+{
+  "secrets": {
+    "mcp_inspector_prod": "your_production_secret_here"
+  }
+}
+```
+
+#### OAuth Scopes
+
+Control API access with fine-grained scopes:
+
+| Scope | API Access | Description |
+|-------|-----------|-------------|
+| `mcp` | All APIs | Full access to all MCP tools |
+| `mcp:bug` | Bug API | Bug search and details only |
+| `mcp:case` | Case API | Support case management only |
+| `mcp:eox` | EoX API | End-of-life information only |
+| `mcp:psirt` | Security API | Security advisories only |
+| `mcp:product` | Product API | Product information only |
+| `mcp:software` | Software API | Software suggestions only |
+| `mcp:serial` | Serial API | Serial number lookups only |
+| `mcp:rma` | RMA API | Return authorization only |
+
+**Best Practice**: Grant only the scopes each application needs (principle of least privilege).
+
+#### Environment Variables
+
+Point to custom config file locations:
+```bash
+# OAuth 2.1 Configuration
+AUTH_TYPE=oauth2.1
+
+# Optional: Custom config paths (defaults shown)
+OAUTH_CLIENTS_CONFIG=config/oauth-clients.json
+OAUTH_SECRETS_CONFIG=config/oauth-secrets.json
+
+# Optional: Custom issuer URL (defaults to http://localhost:PORT)
+OAUTH2_ISSUER_URL=https://your-server.com
+```
+
+#### OAuth Endpoints
+
+When running in OAuth 2.1 mode, the server provides:
+- `GET /.well-known/oauth-authorization-server` - OAuth discovery metadata
+- `GET /authorize` - Authorization endpoint (displays consent page)
+- `POST /authorize/approve` - Authorization approval
+- `POST /token` - Token endpoint (PKCE required)
+- `POST /register` - Dynamic client registration (if enabled)
+
+See [docs/OAUTH_CLIENTS_CONFIG.md](docs/OAUTH_CLIENTS_CONFIG.md) for complete OAuth 2.1 documentation.
+
 ### Claude Desktop Integration
 
 **Complete configuration for Claude Desktop:**
@@ -627,7 +723,7 @@ MCP_BEARER_TOKEN=your_custom_secure_token_here
 
 ### Docker Configuration
 
-**With authentication:**
+**Option 1: Bearer Token Authentication**
 ```bash
 docker run -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_client_id \
@@ -637,13 +733,53 @@ docker run -p 3000:3000 \
   ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 ```
 
-**Without authentication (development only):**
+**Option 2: OAuth 2.1 Authentication (Production)**
+```bash
+# 1. Create local OAuth config directory
+mkdir -p ./oauth-config
+cp config/oauth-clients.example.json ./oauth-config/oauth-clients.json
+cp config/oauth-secrets.example.json ./oauth-config/oauth-secrets.json
+
+# 2. Edit ./oauth-config/oauth-clients.json and oauth-secrets.json
+
+# 3. Run with volume mount
+docker run -p 3000:3000 \
+  -e CISCO_CLIENT_ID=your_client_id \
+  -e CISCO_CLIENT_SECRET=your_client_secret \
+  -e AUTH_TYPE=oauth2.1 \
+  -e OAUTH_CLIENTS_CONFIG=/oauth-config/oauth-clients.json \
+  -e OAUTH_SECRETS_CONFIG=/oauth-config/oauth-secrets.json \
+  -v $(pwd)/oauth-config:/oauth-config:ro \
+  ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
+```
+
+**Option 3: Without Authentication (Development Only)**
 ```bash
 docker run -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_client_id \
   -e CISCO_CLIENT_SECRET=your_client_secret \
   -e DANGEROUSLY_OMIT_AUTH=true \
   ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
+```
+
+**Docker Compose with OAuth 2.1:**
+```yaml
+version: '3.8'
+services:
+  mcp-cisco-support:
+    image: ghcr.io/sieteunoseis/mcp-cisco-support:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - CISCO_CLIENT_ID=your_client_id
+      - CISCO_CLIENT_SECRET=your_client_secret
+      - AUTH_TYPE=oauth2.1
+      - OAUTH_CLIENTS_CONFIG=/oauth-config/oauth-clients.json
+      - OAUTH_SECRETS_CONFIG=/oauth-config/oauth-secrets.json
+    volumes:
+      - ./oauth-config:/oauth-config:ro
+    command: ["node", "dist/index.js", "--http"]
+    restart: unless-stopped
 ```
 
 ## API Endpoints

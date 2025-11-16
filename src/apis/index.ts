@@ -14,6 +14,7 @@ import { RmaApi } from './rma-api.js';
 import { SmartBondingApi } from './smart-bonding-api.js';
 import { samplingTools, handleSamplingTool } from './sampling-tools.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { scopesToEnabledAPIs } from '../oauth2.js';
 
 // Supported API types
 export type SupportedAPI = 'psirt' | 'bug' | 'case' | 'eox' | 'product' | 'serial' | 'rma' | 'software' | 'enhanced_analysis' | 'smart_bonding' | 'sampling';
@@ -65,6 +66,25 @@ class PlaceholderApi extends BaseApi {
   }
 }
 
+// Module-level variable to store current request's OAuth scopes
+// This is set by the SSE/HTTP transport layer before handling MCP requests
+let currentRequestScopes: string[] | undefined;
+
+/**
+ * Set the OAuth scopes for the current request
+ * Called by HTTP transport before handling MCP requests
+ */
+export function setCurrentRequestScopes(scopes: string[] | undefined): void {
+  currentRequestScopes = scopes;
+}
+
+/**
+ * Get the OAuth scopes for the current request
+ */
+export function getCurrentRequestScopes(): string[] | undefined {
+  return currentRequestScopes;
+}
+
 // API registry
 export class ApiRegistry {
   private apis: Map<SupportedAPI, BaseApi> = new Map();
@@ -92,10 +112,18 @@ export class ApiRegistry {
   }
 
   // Get all tools from enabled APIs
+  // In OAuth mode, filters based on current request scopes
   getAvailableTools(): Tool[] {
+    // In OAuth 2.1 mode, filter tools based on current request scopes
+    let apisToUse = this.enabledApis;
+
+    if (process.env.AUTH_TYPE === 'oauth2.1' && currentRequestScopes) {
+      apisToUse = getEnabledAPIs(currentRequestScopes);
+    }
+
     const availableTools: Tool[] = [];
 
-    for (const apiName of this.enabledApis) {
+    for (const apiName of apisToUse) {
       // Handle sampling tools specially (they're not in the apis map)
       if (apiName === 'sampling') {
         availableTools.push(...samplingTools);
@@ -177,8 +205,23 @@ export class ApiRegistry {
   }
 }
 
-// Get enabled APIs from environment
-export function getEnabledAPIs(): SupportedAPI[] {
+// Get enabled APIs from environment or OAuth scopes
+export function getEnabledAPIs(oauthScopes?: string[]): SupportedAPI[] {
+  // In OAuth 2.1 mode, enable ALL APIs at startup
+  // Per-request filtering will be done based on OAuth token scopes
+  if (process.env.AUTH_TYPE === 'oauth2.1' && !oauthScopes) {
+    // Enable all APIs so the registry has all tools available
+    // The tools/list handler will filter based on actual OAuth scopes
+    return SUPPORTED_APIS;
+  }
+
+  // If oauthScopes provided, convert scopes to APIs (per-request filtering)
+  if (oauthScopes && process.env.AUTH_TYPE === 'oauth2.1') {
+    const enabledApis = scopesToEnabledAPIs(oauthScopes);
+    return enabledApis as SupportedAPI[];
+  }
+
+  // Fallback to environment variable for non-OAuth modes
   const supportApiEnv = process.env.SUPPORT_API || 'bug';
   const lowerEnv = supportApiEnv.toLowerCase();
 
@@ -208,7 +251,7 @@ export function getEnabledAPIs(): SupportedAPI[] {
 }
 
 // Create API registry instance
-export function createApiRegistry(mcpServer?: Server): ApiRegistry {
-  const enabledApis = getEnabledAPIs();
+export function createApiRegistry(mcpServer?: Server, oauthScopes?: string[]): ApiRegistry {
+  const enabledApis = getEnabledAPIs(oauthScopes);
   return new ApiRegistry(enabledApis, mcpServer);
 }
