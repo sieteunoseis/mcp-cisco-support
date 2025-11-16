@@ -5,9 +5,10 @@ A comprehensive TypeScript MCP (Model Context Protocol) server for Cisco Support
 ## Project Overview
 
 This TypeScript server features:
+- **TOON Format Output**: ✨ NEW - Text-Object-Oriented Notation for structured, human-readable responses (enabled by default)
 - **Dual Transport Support**: stdio (local MCP) and HTTP (remote server)
 - **Extensible Architecture**: Designed to support multiple Cisco Support APIs
-- **MCP Resources**: ✨ NEW - Expose Cisco data as structured resources
+- **MCP Resources**: Expose Cisco data as structured resources
 - **ElicitationRequest Support**: ⚠️ EXPERIMENTAL - Dynamic user interaction (limited client support)
 - OAuth2 authentication with Cisco API (client credentials flow)
 - 50+ MCP-compliant tools for comprehensive Cisco Support operations
@@ -41,8 +42,9 @@ Install these npm packages:
 {
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@toon-format/toon": "^1.0.0",
     "express": "^4.18.2",
-    "cors": "^2.8.5", 
+    "cors": "^2.8.5",
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
     "uuid": "^9.0.1",
@@ -269,6 +271,10 @@ CISCO_CLIENT_SECRET=your_client_secret_here
 # Server Configuration
 PORT=3000
 NODE_ENV=development
+
+# Output Format Configuration (v1.18.0+)
+# DISABLE_TOON_FORMAT=false    # Use TOON format for readable output (DEFAULT)
+# DISABLE_TOON_FORMAT=true     # Use native JSON responses
 ```
 
 ## API Endpoints
