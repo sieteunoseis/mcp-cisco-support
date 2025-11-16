@@ -75,7 +75,7 @@ curl -X POST http://localhost:3000/register \
 ```
 
 ### 3. Complete OAuth flow
-See [docs/OAUTH2_AUTHENTICATION.md](docs/OAUTH2_AUTHENTICATION.md) for complete flow examples.
+See the [OAuth 2.1 Authentication Wiki](https://github.com/sieteunoseis/mcp-cisco-support/wiki/OAuth-2.1-Authentication) for complete flow examples and configuration guide.
 
 ## Comparison with Bearer Token Mode
 
