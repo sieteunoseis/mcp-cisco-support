@@ -1,5 +1,14 @@
 # Cisco Support MCP Server
 
+[![npm version](https://img.shields.io/npm/v/mcp-cisco-support.svg)](https://www.npmjs.com/package/mcp-cisco-support)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-1.13.0-green.svg)](https://modelcontextprotocol.io/)
+[![Glama](https://img.shields.io/badge/Glama-MCP_Server-purple.svg)](https://glama.ai/mcp/servers/@sieteunoseis/mcp-cisco-support)
+[![Cisco Code Exchange](https://img.shields.io/badge/Cisco-Code_Exchange-00bceb.svg)](https://developer.cisco.com/codeexchange/github/repo/sieteunoseis/mcp-cisco-support)
+[![Docker](https://img.shields.io/badge/Docker-Multi--platform-blue.svg?logo=docker)](https://ghcr.io/sieteunoseis/mcp-cisco-support)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/sieteunoseis/mcp-cisco-support/docker-build.yml?label=Docker%20Build)](https://github.com/sieteunoseis/mcp-cisco-support/actions)
+
 A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Support APIs with comprehensive security and dual transport support. This extensible server provides access to multiple Cisco Support APIs including Bug Search, Case Management, and End-of-Life information.
 
 ## 🚀 Current Features
