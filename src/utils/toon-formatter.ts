@@ -4,10 +4,12 @@ import {
   CaseApiResponse,
   EoxApiResponse,
 } from "./formatting.js";
+import { encodeGeneric } from "@blackwell-systems/gcf";
 
 /**
- * Convert API responses to TOON format
- * TOON (Text Object-Oriented Notation) provides a more readable and structured output
+ * Convert API responses to GCF (Graph Compact Format)
+ * GCF provides 28.5% fewer tokens than JSON on Cisco API data,
+ * with 90.7% LLM comprehension accuracy (vs 53.6% JSON).
  */
 
 export async function convertToToonFormat(
@@ -15,14 +17,9 @@ export async function convertToToonFormat(
   apiType: string,
 ): Promise<string> {
   try {
-    const { encode } = await import("@toon-format/toon");
-    const toonOutput = encode(data, {
-      indent: 2,
-    });
-
-    return toonOutput;
+    return encodeGeneric(data);
   } catch (error) {
-    console.error("TOON formatting error:", error);
+    console.error("GCF formatting error:", error);
     return JSON.stringify(data, null, 2);
   }
 }
@@ -51,18 +48,18 @@ export async function eoxResponseToToon(data: EoxApiResponse): Promise<string> {
 }
 
 /**
- * Determine if TOON format should be used based on environment variable
- * Defaults to true (TOON enabled) unless explicitly disabled
+ * Determine if compact format should be used based on environment variable
+ * Defaults to true (GCF enabled) unless explicitly disabled
  */
 export function shouldUseToonFormat(): boolean {
-  const toonDisabled =
+  const disabled =
     process.env.DISABLE_TOON_FORMAT?.toLowerCase() === "true";
-  return !toonDisabled;
+  return !disabled;
 }
 
 /**
  * Get format description for logging/debugging
  */
 export function getFormatDescription(): string {
-  return shouldUseToonFormat() ? "TOON" : "JSON";
+  return shouldUseToonFormat() ? "GCF" : "JSON";
 }
