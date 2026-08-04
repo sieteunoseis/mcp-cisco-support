@@ -218,7 +218,24 @@ export function formatEoxResults(data: EoxApiResponse, searchContext?: { toolNam
     return formatted;
   }
   
-  if (!data.EOXRecord || data.EOXRecord.length === 0) {
+  // An empty EOXRecord array is a valid answer: the product exists but Cisco
+  // holds no end-of-life data for it. Dumping raw JSON in that case buried the
+  // result, so report it in the same readable form as a populated response.
+  if (Array.isArray(data.EOXRecord) && data.EOXRecord.length === 0) {
+    let formatted = `# Cisco End-of-Life (EoX) Results\n\n`;
+
+    if (searchContext) {
+      formatted += formatEoxSearchContext(searchContext);
+    }
+
+    formatted += `No end-of-life records were found for this query.\n\n`;
+    formatted += `This usually means the product is still active, or that EoX data has not been published for it.\n\n`;
+    return formatted;
+  }
+
+  // A missing EOXRecord key is a genuinely unexpected shape, so surface the
+  // payload rather than silently claiming there were no results.
+  if (!data.EOXRecord) {
     return JSON.stringify(data, null, 2);
   }
 
@@ -306,9 +323,10 @@ export function formatEoxResults(data: EoxApiResponse, searchContext?: { toolNam
     Object.keys(eoxItem).forEach(key => {
       if (!handledKeys.includes(key)) {
         const value = extractValue(eoxItem[key]);
-        if (value) {
-          const fieldName = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-          formatted += `**${fieldName}:** ${value}\n\n`;
+        // extractValue already returns null for absent fields, so compare
+        // against null instead of re-applying a falsy test that would drop "0".
+        if (value !== null) {
+          formatted += `**${humanizeFieldName(key)}:** ${value}\n\n`;
         }
       }
     });
@@ -347,27 +365,49 @@ function formatEoxSearchContext(searchContext: { toolName: string; args: ToolArg
 
 // Helper function to extract values from EoX API object structures
 function extractValue(value: any): string | null {
-  if (!value) {
+  // Only `null`/`undefined` mean the vendor omitted the field. A numeric 0 is
+  // real data (a flag or a count), so it must survive extraction rather than
+  // being swallowed by a falsy check and reported as absent.
+  if (value === null || value === undefined) {
     return null;
   }
-  
+
   if (typeof value === 'string') {
     return value.trim() || null;
   }
-  
+
   if (typeof value === 'object') {
     // Try common object properties
     const valueKeys = ['value', '#text', 'text'];
     for (const key of valueKeys) {
-      if (value[key]) {
-        const extracted = String(value[key]).trim();
+      const inner = value[key];
+      if (inner !== null && inner !== undefined) {
+        const extracted = String(inner).trim();
         return extracted || null;
       }
     }
     return null;
   }
-  
+
   return String(value).trim() || null;
+}
+
+/**
+ * Turn a Cisco PascalCase field name into a readable label.
+ *
+ * Splitting on every capital shatters the acronyms Cisco uses throughout the
+ * EoX schema, so `EOXInputType` rendered as "E O X Input Type". Runs of
+ * capitals are kept together instead: `EOXInputType` -> "EOX Input Type",
+ * `PIDActiveFlag` -> "PID Active Flag".
+ */
+function humanizeFieldName(key: string): string {
+  return key
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^./, str => str.toUpperCase());
 }
 
 // Helper function to format EoX date objects
