@@ -9,9 +9,9 @@ import { ProductApi } from './product-api.js';
 import { SoftwareApi } from './software-api.js';
 import { SerialApi } from './serial-api.js';
 import { RmaApi } from './rma-api.js';
-import { ToolArgs } from '../utils/validation.js';
-import { ApiResponse } from '../utils/formatting.js';
-import { TOOL_SPECS, RENAMED_TOOLS, ApiName, ToolContext } from '../tools/index.js';
+type ToolArgs = Record<string, any>;
+import { ApiResponse } from './base-api.js';
+import { TOOL_SPECS, RENAMED_TOOLS, ApiName, ApiClient, ToolContext } from '../tools/index.js';
 
 // Supported API types (values for SUPPORT_API)
 export type SupportedAPI = ApiName;
@@ -49,7 +49,7 @@ export class ApiRegistry {
   }
 
   // Execute a tool call
-  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<{ result: ApiResponse; apiName: string }> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string; signal?: AbortSignal }): Promise<{ result: ApiResponse; apiName: string }> {
     const spec = this.specsFor().find(s => s.tool.name === name);
     if (!spec) {
       const renamed = RENAMED_TOOLS[name];
@@ -58,27 +58,21 @@ export class ApiRegistry {
       }
       throw new Error(`Unknown tool: ${name}`);
     }
+    // Bind the caller's cancellation signal to every upstream request
+    const signal = meta?.signal;
+    const apis = Object.fromEntries(
+      (Object.entries(this.apis) as [SupportedAPI, BaseApi][]).map(([apiName, api]) => [
+        apiName,
+        { request: (endpoint: string, params: Record<string, any> = {}) => api.request(endpoint, params, signal) },
+      ]),
+    ) as Record<SupportedAPI, ApiClient>;
     const ctx: ToolContext = {
-      apis: this.apis,
+      apis,
       enabled: new Set(this.enabledApis),
       progressToken: meta?.progressToken,
     };
     const result = await spec.handler(args as Record<string, any>, ctx);
     return { result, apiName: spec.requires[0] };
-  }
-
-  /**
-   * Internal: run a 2.x-style API operation by its old name. Used by the
-   * cisco:// resources; these operations are not advertised as tools.
-   */
-  async executeLegacyTool(name: string, args: ToolArgs): Promise<{ result: ApiResponse; apiName: string }> {
-    for (const apiName of this.enabledApis) {
-      const api = this.apis[apiName];
-      if (api.getTools().some(t => t.name === name)) {
-        return { result: await api.executeTool(name, args), apiName };
-      }
-    }
-    throw new Error(`Unknown operation: ${name}`);
   }
 
   // Get enabled API names

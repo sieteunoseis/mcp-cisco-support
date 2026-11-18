@@ -27,15 +27,10 @@ if (hasRealCredentials) {
   mockFetch = undefined;
 } else {
   // For unit tests with fake credentials, mock fetch
-  console.log('🧪 Unit test mode: Using mocked fetch and AbortController');
+  console.log('🧪 Unit test mode: Using mocked fetch');
   mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
   global.fetch = mockFetch;
-  
-  // Mock AbortController for unit tests
-  global.AbortController = jest.fn().mockImplementation(() => ({
-    signal: { aborted: false },
-    abort: jest.fn(),
-  })) as any;
+
 }
 
 // Each test starts without a cached Cisco token, so mocked OAuth calls line up

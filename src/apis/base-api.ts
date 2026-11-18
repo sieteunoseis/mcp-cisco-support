@@ -1,39 +1,17 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { getValidToken, resetToken } from '../utils/auth.js';
 import { logger } from '../utils/logger.js';
-import { validateToolArgs, setDefaultValues, buildApiParams, ToolArgs } from '../utils/validation.js';
-import { ApiResponse } from '../utils/formatting.js';
+
+/** Raw JSON body returned by a Cisco API */
+export type ApiResponse = Record<string, any>;
 
 // Base API class providing common functionality
 export abstract class BaseApi {
   protected abstract baseUrl: string;
   protected abstract apiName: string;
 
-  // Get tools provided by this API
-  abstract getTools(): Tool[];
-
-  // Execute a tool call for this API
-  abstract executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse>;
-
-  // Make authenticated API call
   /** Raw GET against this API's base URL (used by the v3 tool layer) */
-  async request(endpoint: string, params: Record<string, any> = {}): Promise<any> {
-    return this.makeApiCall(endpoint, params);
-  }
-
-  /** Encode one path segment taken from tool input */
-  protected seg(value: unknown): string {
-    return BaseApi.encodePathValue(String(value ?? '').trim());
-  }
-
-  /** Encode a comma-separated list for a path segment (trims items, keeps commas) */
-  protected list(value: unknown): string {
-    return String(value ?? '')
-      .split(',')
-      .map(item => item.trim())
-      .filter(Boolean)
-      .map(item => BaseApi.encodePathValue(item))
-      .join(',');
+  async request(endpoint: string, params: Record<string, any> = {}, signal?: AbortSignal): Promise<any> {
+    return this.makeApiCall(endpoint, params, signal);
   }
 
   /**
@@ -52,22 +30,26 @@ export abstract class BaseApi {
    * Cisco's gateway rate-limits per second and answers with
    * 403 "Developer Over Qps" (or 429). Back off and retry those.
    */
-  protected async makeApiCall(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {
+  protected async makeApiCall(endpoint: string, params: Record<string, any> = {}, signal?: AbortSignal): Promise<ApiResponse> {
     const delays = [1000, 2000, 4000];
     for (let attempt = 0; ; attempt++) {
+      if (signal?.aborted) throw new Error(`${this.apiName} API call cancelled by the client`);
       try {
-        return await this.makeApiCallOnce(endpoint, params);
+        return await this.makeApiCallOnce(endpoint, params, signal);
       } catch (error) {
         const message = error instanceof Error ? error.message : '';
         const rateLimited = /Over Qps|Over Rate|\b429\b/i.test(message);
-        if (!rateLimited || attempt >= delays.length) throw error;
+        if (!rateLimited || attempt >= delays.length || signal?.aborted) throw error;
         logger.warn(`${this.apiName} API rate limited, retrying`, { endpoint, attempt: attempt + 1, delayMs: delays[attempt] });
-        await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+        await new Promise<void>(resolve => {
+          const timer = setTimeout(resolve, delays[attempt]);
+          signal?.addEventListener('abort', () => { clearTimeout(timer); resolve(); }, { once: true });
+        });
       }
     }
   }
 
-  private async makeApiCallOnce(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {
+  private async makeApiCallOnce(endpoint: string, params: Record<string, any> = {}, signal?: AbortSignal): Promise<ApiResponse> {
     const token = await getValidToken();
     
     // Build query string
@@ -91,6 +73,9 @@ export abstract class BaseApi {
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      // Abort the upstream request when the MCP client cancels the tool call
+      const onCancel = () => controller.abort();
+      signal?.addEventListener('abort', onCancel, { once: true });
       
       const response = await fetch(url, {
         method: 'GET',
@@ -100,7 +85,10 @@ export abstract class BaseApi {
           'User-Agent': 'mcp-cisco-support/1.0'
         },
         signal: controller.signal
-      }).finally(() => clearTimeout(timeoutId));
+      }).finally(() => {
+        clearTimeout(timeoutId);
+        signal?.removeEventListener('abort', onCancel);
+      });
 
       if (response.status === 401) {
         logger.warn('Received 401, token may be expired, refreshing...');
@@ -144,13 +132,15 @@ export abstract class BaseApi {
       const data = await response.json() as ApiResponse;
       logger.info(`${this.apiName} API call successful`, { 
         endpoint, 
-        resultCount: this.getResultCount(data)
       });
       
       return data;
     } catch (error) {
       // Handle specific timeout errors
       if (error instanceof Error) {
+        if (signal?.aborted) {
+          throw new Error(`${this.apiName} API call cancelled by the client`);
+        }
         if (error.name === 'AbortError' || error.message.includes('timeout')) {
           logger.error(`${this.apiName} API call timed out`, { endpoint, params, timeout: '60s' });
           throw new Error(`${this.apiName} API call timed out after 60 seconds. The API may be experiencing high load. Please try again later.`);
@@ -163,36 +153,5 @@ export abstract class BaseApi {
       logger.error(`${this.apiName} API call failed`, { endpoint, error: error instanceof Error ? error.message : error });
       throw error;
     }
-  }
-
-  // Validate tool arguments
-  protected validateTool(name: string, args: ToolArgs): { tool: Tool; processedArgs: ToolArgs } {
-    const tools = this.getTools();
-    const tool = tools.find(t => t.name === name);
-    
-    if (!tool) {
-      throw new Error(`Unknown tool: ${name}`);
-    }
-
-    validateToolArgs(tool, args);
-    const processedArgs = setDefaultValues(args);
-    
-    return { tool, processedArgs };
-  }
-
-  // Get result count from API response (to be overridden by subclasses if needed)
-  protected getResultCount(data: ApiResponse): number {
-    if ('bugs' in data && Array.isArray(data.bugs)) {
-      return data.bugs.length;
-    }
-    if ('cases' in data && Array.isArray(data.cases)) {
-      return data.cases.length;
-    }
-    return 0;
-  }
-
-  // Build standard API parameters
-  protected buildStandardParams(args: ToolArgs): Record<string, any> {
-    return buildApiParams(args);
   }
 }

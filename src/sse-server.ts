@@ -148,11 +148,6 @@ export function createSSEServer(createServer: () => Server) {
     next();
   });
 
-  // MCP Protocol Version header middleware
-  app.use((req, res, next) => {
-    res.setHeader('MCP-Protocol-Version', '2025-06-18');
-    next();
-  });
 
   // Apply bearer token authentication middleware
   if (enableAuth) {

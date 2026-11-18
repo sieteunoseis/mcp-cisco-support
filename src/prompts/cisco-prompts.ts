@@ -16,6 +16,7 @@ import { SupportedAPI } from '../apis/index.js';
 export const ciscoPrompts: Prompt[] = [
   {
     name: 'cisco-high-severity-search',
+    title: 'Cisco High Severity Search',
     description: 'Search for high-severity bugs (severity 3 or higher) for specific products - handles API limitation requiring separate searches. Provide either product_keyword OR serial_number (not both).',
     arguments: [
       {
@@ -42,6 +43,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-incident-investigation',
+    title: 'Cisco Incident Investigation',
     description: 'Investigate Cisco bugs related to specific incident symptoms and errors. Provide either product OR serial_number.',
     arguments: [
       {
@@ -73,6 +75,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-upgrade-planning',
+    title: 'Cisco Upgrade Planning',
     description: 'Research known issues and bugs before upgrading Cisco software or hardware. Provide either product OR serial_number.',
     arguments: [
       {
@@ -104,6 +107,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-maintenance-prep',
+    title: 'Cisco Maintenance Prep',
     description: 'Prepare for maintenance windows by identifying potential issues and bugs. Provide either product OR serial_number.',
     arguments: [
       {
@@ -135,6 +139,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-security-advisory',
+    title: 'Cisco Security Advisory',
     description: 'Research security-related bugs and vulnerabilities for Cisco products. Provide either product OR serial_number.',
     arguments: [
       {
@@ -161,6 +166,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-known-issues',
+    title: 'Cisco Known Issues',
     description: 'Check for known issues in specific Cisco software releases or products. Provide either product OR serial_number.',
     arguments: [
       {
@@ -187,6 +193,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-case-investigation',
+    title: 'Cisco Case Investigation',
     description: 'Investigate support cases and related information using Case API tools',
     arguments: [
       {
@@ -213,6 +220,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-lifecycle-planning',
+    title: 'Cisco Lifecycle Planning',
     description: 'Research end-of-life information for Cisco products to plan replacements and maintenance',
     arguments: [
       {
@@ -239,6 +247,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-eox-research',
+    title: 'Cisco EoX Research',
     description: 'Research end-of-life and end-of-sale information for specific Cisco products',
     arguments: [
       {
@@ -255,6 +264,7 @@ export const ciscoPrompts: Prompt[] = [
   },
   {
     name: 'cisco-smart-search',
+    title: 'Cisco Smart Search',
     description: 'Intelligent search strategy with automatic refinement and comprehensive analysis. Uses multiple search techniques and provides web search guidance.',
     arguments: [
       {
@@ -270,22 +280,6 @@ export const ciscoPrompts: Prompt[] = [
       {
         name: 'include_web_guidance',
         description: 'Include web search recommendations for additional research (true/false)',
-        required: false
-      }
-    ]
-  },
-  {
-    name: 'cisco-interactive-search',
-    description: '⚠️ EXPERIMENTAL: Interactive search with elicitation requests for missing parameters. Note: ElicitationRequest support is limited in current MCP clients (Claude Desktop uses conversational follow-ups instead). Kept for future client support.',
-    arguments: [
-      {
-        name: 'initial_query',
-        description: 'Initial search query (optional - if not provided, will use elicitation to gather)',
-        required: false
-      },
-      {
-        name: 'use_elicitation',
-        description: 'Whether to use elicitation to gather additional search parameters (true/false)',
         required: false
       }
     ]
@@ -308,7 +302,6 @@ export const promptApiMapping: Record<string, SupportedAPI[]> = {
   'cisco-lifecycle-planning': ['eox', 'serial'],
   'cisco-eox-research': ['eox'],
   'cisco-smart-search': ['bug'],
-  'cisco-interactive-search': ['bug']
 };
 
 /**

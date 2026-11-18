@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { executeTool, getAvailableTools } from '../src/mcp-server';
+import { createApiRegistry } from '../src/apis/index';
 import { mockFetch } from './setup';
 
 const FIXTURES = join(__dirname, 'fixtures', 'cisco');
@@ -255,6 +256,23 @@ describe('assess_upgrade', () => {
 });
 
 describe('resilience', () => {
+  test('a cancelled call never reaches Cisco', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(createApiRegistry().executeTool('bug_get', { bug_ids: 'CSCwh87343' }, { signal: controller.signal }))
+      .rejects.toThrow('cancelled by the client');
+    expect(calls).toHaveLength(0);
+  });
+
+  test('cancelling during a rate-limit backoff stops retrying', async () => {
+    const controller = new AbortController();
+    let hits = 0;
+    routeFixtures([[/bug_ids/, () => { hits++; setTimeout(() => controller.abort(), 50); return respond(403, '<h1>Developer Over Qps</h1>'); }]]);
+    await expect(createApiRegistry().executeTool('bug_get', { bug_ids: 'CSCwh87343' }, { signal: controller.signal }))
+      .rejects.toThrow();
+    expect(hits).toBe(1);
+  });
+
   test('retries when Cisco rate-limits with 403 Over Qps', async () => {
     let hits = 0;
     routeFixtures([[/bug_ids/, () => (++hits === 1

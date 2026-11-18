@@ -17,8 +17,13 @@ import {
 
 export type ApiName = 'bug' | 'psirt' | 'eox' | 'product' | 'serial' | 'software' | 'case' | 'rma';
 
+/** What a tool handler can do with an API: GET an endpoint (cancellation is wired in) */
+export interface ApiClient {
+  request(endpoint: string, params?: Record<string, any>): Promise<any>;
+}
+
 export interface ToolContext {
-  apis: Record<ApiName, BaseApi>;
+  apis: Record<ApiName, ApiClient>;
   enabled: Set<ApiName>;
   progressToken?: string;
 }

@@ -15,24 +15,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `bug_search` takes several severities in one call and reports the API's real totals.
 - `SUPPORT_API` values are now `bug, psirt, eox, product, serial, software, case, rma, all`. `enhanced_analysis` maps to `bug`; an unknown value falls back to `bug` instead of enabling nothing.
 - Node 20+ required; Docker image uses Node 22.
+- MCP SDK 1.20.2 -> 1.32.2: negotiates protocol 2025-11-25 (2025-06-18 clients still work); server icon uses the standard `icons` field.
+- Resources are thin views over the v3 tools: `cisco://bugs/{bug_id}`, `cisco://products/{product_id}`, `cisco://security/advisories/{advisory_id}`, `cisco://security/cve/{cve_id}`, plus `cisco://security/advisories/recent` and `/critical`.
+- Prompts rewritten around the v3 tools (one `bug_search` call for several severities, `assess_upgrade`, `psirt_search` by OS version) and given titles.
+- Non-GCF output (`DISABLE_GCF_FORMAT=true`, or the old `DISABLE_TOON_FORMAT`) is plain JSON.
 
 ### Added
 - `psirt_search` with `os_type` + `version`: advisories affecting a release, with first fixed releases.
 - `assess_upgrade` rebuilt on real data: open bugs on current and target, bugs the target fixes, advisories fixed/remaining/new, EoX; defaults to Cisco's suggested release.
 - `device_lookup`: coverage, product and EoX per serial number in one call.
 - Retry with backoff when Cisco rate-limits (403 "Developer Over Qps").
-- Recorded Cisco API responses in `tests/fixtures/cisco` and a fixture-driven test suite.
+- Recorded Cisco API responses in `tests/fixtures/cisco` and a fixture-driven test suite, plus protocol-level tests (SDK client over an in-memory transport).
+- Cancellation: a cancelled tool call aborts its Cisco requests and any rate-limit backoff.
 
 ### Removed
 - Smart Bonding API (untested, write operations).
 - Sampling "AI" tools (two sent placeholder data instead of Cisco data), `smart_search_strategy`, `progressive_bug_search`, `comprehensive_analysis`, `product_name_resolver`, the web-search helper, and the `enhanced_analysis`/`sampling`/`smart_bonding` modes.
 - `search_rmas_by_serial` (the Return API has no serial endpoint) and `get_coverage_summary_by_instance`.
+- Product autocomplete resource (scraped bst.cloudapps.cisco.com with a browser cookie, `CISCO_WEB_COOKIE`) and the "recent bugs" resources (keyword searches for "cisco"/"bug").
+- `cisco-interactive-search` prompt and the elicitation helpers; the server no longer declares an `elicitation` capability (it is a client capability) or answers elicitation requests with placeholder data.
+- The 2.x per-endpoint tool code, markdown formatters and argument validator (~2,500 lines).
 
 ### Fixed
 - Bug product-name searches returned 404 (wrong path).
 - Product IDs containing `/` returned 400 (the gateway rejects `%2F`).
 - PSIRT "no data" (404 NO_DATA_FOUND) is reported as zero advisories, not an error.
 - Unknown bug IDs are reported in `not_found` instead of as empty bugs.
+- Unknown prompts and resource URIs return `-32602 InvalidParams`; HTTP responses no longer hard-code `MCP-Protocol-Version: 2025-06-18`.
 - HTTP mode: one MCP server per session, header-only bearer auth, origin checks, `HOST` binding, redacted logs (see 2.x hardening commits).
 - 401 retry fetched the same cached token; RMA paths/params; Case paging started at page 5; PSIRT severity field and 2025 year cap.
 
