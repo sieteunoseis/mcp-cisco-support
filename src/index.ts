@@ -3,7 +3,7 @@
 console.error('[MCP DEBUG] Starting imports...');
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createMCPServer, setLogging, logger } from './mcp-server.js';
-import { createSSEServer } from './sse-server.js';
+import { createHttpServer } from './http-server.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'node:crypto';
@@ -143,7 +143,7 @@ async function main() {
     // Run as SSE HTTP server
     const PORT = process.env.PORT || 3000;
     const HOST = process.env.HOST || '127.0.0.1';
-    const sseServer = createSSEServer(createMCPServer);
+    const sseServer = createHttpServer(createMCPServer);
     
     // Graceful shutdown handling
     const cleanup = () => {

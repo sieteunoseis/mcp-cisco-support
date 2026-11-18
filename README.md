@@ -20,7 +20,7 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 - **Specialized Prompts**: 9 workflow prompts for guided Cisco support scenarios
 - **Dual Transport**: stdio (local MCP clients) and HTTP (remote server with auth)
 - **OAuth2 Authentication**: Automatic token management with Cisco API
-- **Real-time Updates**: Server-Sent Events for HTTP mode
+- **Streamable HTTP**: remote mode with bearer-token auth
 - **TypeScript**: Full type safety and MCP SDK integration
 - **Security**: Helmet, CORS, input validation
 - **Docker Support**: Containerized deployment
@@ -483,18 +483,15 @@ docker run -p 3000:3000 \
 ```
 
 
-## API Endpoints
+## HTTP Endpoints (`--http`)
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Server information and available endpoints |
-| `/mcp` | POST | Main MCP endpoint (JSON-RPC over HTTP) |
-| `/messages` | POST | Alternative MCP endpoint for N8N compatibility |
-| `/sse` | GET | SSE connection with session management |
-| `/sse` | POST | Legacy SSE message endpoint (deprecated) |
-| `/sse/session/{sessionId}` | POST | Session-specific MCP message endpoint |
-| `/ping` | GET | Simple ping endpoint for connectivity testing |
-| `/health` | GET | Health check with detailed status |
+| `/mcp` | POST/GET/DELETE | MCP Streamable HTTP (requires `Authorization: Bearer <token>`) |
+| `/health` | GET | Health check (no auth) |
+| `/` | GET | Server information (no auth) |
+
+The legacy HTTP+SSE transport (`/sse`, `/messages`) was removed in v3.0.0; use Streamable HTTP at `/mcp`.
 
 ## 📚 Documentation
 
@@ -504,7 +501,6 @@ For detailed information, see our comprehensive [GitHub Wiki](https://github.com
 - **[🔧 Advanced Configuration](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Advanced-Configuration)** - Environment variables and deployment options
 - **[🔒 Security Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Security-Guide)** - Authentication, tokens, and security best practices  
 - **[🚀 Docker Deployment](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Docker-Deployment)** - Containerized deployment and production setup
-- **[🌐 SSE Integration](https://github.com/sieteunoseis/mcp-cisco-support/wiki/SSE-Integration)** - Server-Sent Events and real-time communication
 - **[🧪 Testing Framework](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Testing-Framework)** - Comprehensive testing and validation
 - **[🔧 Development Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Development-Guide)** - Contributing, architecture, and API development
 - **[🚨 Troubleshooting Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Troubleshooting-Guide)** - Common issues and debugging
@@ -514,343 +510,43 @@ For detailed information, see our comprehensive [GitHub Wiki](https://github.com
 
 ### cURL Examples
 
-```bash
-# Test server connectivity
-curl http://localhost:3000/ping
+Streamable HTTP needs an `initialize` request first; the response carries an `Mcp-Session-Id` header to send on later requests.
 
-# Check health status
+```bash
+TOKEN=your_bearer_token
+H=(-H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream")
+
+# Health (no auth)
 curl http://localhost:3000/health
 
-# List available tools (main MCP endpoint)
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "tools/list"
-  }'
+# Initialize and capture the session ID
+SID=$(curl -s -D - -o /dev/null "${H[@]}" -X POST http://localhost:3000/mcp \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"curl","version":"1"}}}' \
+  | grep -i '^mcp-session-id' | awk '{print $2}' | tr -d '\r')
+curl -s "${H[@]}" -H "mcp-session-id: $SID" -X POST http://localhost:3000/mcp -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
 
-# List available tools (alternative endpoint for N8N)
-curl -X POST http://localhost:3000/messages \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "tools/list"
-  }'
+# List tools
+curl -s "${H[@]}" -H "mcp-session-id: $SID" -X POST http://localhost:3000/mcp -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 
-# Test SSE connection (will show endpoint event)
-curl -N http://localhost:3000/sse
-
-# Search for bugs by keyword
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "2",
-    "method": "tools/call",
-    "params": {
-      "name": "search_bugs_by_keyword",
-      "arguments": {
-        "keyword": "crash",
-        "severity": "1",
-        "status": "open"
-      }
-    }
-  }'
-
-# Get specific bug details
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "3",
-    "method": "tools/call",
-    "params": {
-      "name": "get_bug_details",
-      "arguments": {
-        "bug_ids": "CSCab12345"
-      }
-    }
-  }'
+# Call a tool
+curl -s "${H[@]}" -H "mcp-session-id: $SID" -X POST http://localhost:3000/mcp \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"bug_search","arguments":{"keyword":"crash","severity":["1","2"],"status":"O"}}}'
 ```
 
-### JavaScript Client Example
-
-```javascript
-async function searchBugs(keyword) {
-  const response = await fetch('http://localhost:3000/mcp', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method: 'tools/call',
-      params: {
-        name: 'search_bugs_by_keyword',
-        arguments: {
-          keyword: keyword,
-          page_index: 1,
-          status: 'open'
-        }
-      }
-    })
-  });
-  
-  const result = await response.json();
-  return result;
-}
-```
-
-## Health Monitoring
-
-The server provides a comprehensive health check endpoint:
+## Development and Testing
 
 ```bash
-curl http://localhost:3000/health
+npm ci
+npx tsc --noEmit     # type check
+npm test             # unit + protocol tests (Cisco responses served from tests/fixtures/cisco)
+npm run build
+npm run dev          # stdio, auto-reload
+npm run dev:http     # HTTP on 127.0.0.1:3000, auto-reload
 ```
 
-Response includes:
-- Server status
-- OAuth2 token status
-- Memory usage
-- Uptime
-- Active SSE connections
+Integration tests against the live Cisco APIs are opt-in: `RUN_INTEGRATION=1 CISCO_CLIENT_ID=... CISCO_CLIENT_SECRET=... npm test`.
 
-## Security Features
-
-- **Helmet**: Security headers
-- **CORS**: Cross-origin resource sharing
-- **Input Validation**: Schema-based validation
-- **Non-root Execution**: Docker security
-- **Environment Variables**: Secure credential storage
-
-## Troubleshooting
-
-### Common Issues
-
-1. **OAuth2 Authentication Failed**
-   - Verify `CISCO_CLIENT_ID` and `CISCO_CLIENT_SECRET`
-   - Check network connectivity to `https://id.cisco.com`
-
-2. **API Calls Failing**
-   - Check token validity at `/health`
-   - Verify network access to `https://apix.cisco.com`
-
-3. **Docker Issues**
-   - Ensure environment variables are set
-   - Check Docker logs: `docker-compose logs`
-
-### Logs
-
-Structured JSON logs include:
-- Timestamp
-- Log level (info, error, warn)
-- Message
-- Additional context data
-
-## Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run specific test suite
-npx jest tests/auth.test.js
-npx jest tests/mcp-tools.test.js
-```
-
-### Test Structure
-
-The test suite includes:
-- **Authentication Tests** (`tests/auth.test.js`): OAuth2 authentication, token management, error handling
-- **MCP Tools Tests** (`tests/mcp-tools.test.js`): All 8 MCP tools, error handling, pagination
-- **Setup** (`tests/setup.js`): Test environment configuration
-
-## Recent Test Fixes
-
-The following issues were identified and resolved in the test suite:
-
-### ✅ Fixed Issues
-
-1. **Token Refresh Logic**
-   - **Problem**: Token expiry calculation was incorrect in `getValidToken()`
-   - **Solution**: Fixed condition to properly check if token is within refresh margin
-   - **Impact**: Proper token caching and refresh behavior
-
-2. **Multiple Bug IDs Handling**
-   - **Problem**: State leakage between tests causing mock sequence mismatches
-   - **Solution**: Implemented `resetServerState()` function for proper cleanup
-   - **Impact**: Consistent test results across multiple runs
-
-3. **Search Tools Implementation**
-   - **Problem**: Same state management issue affecting keyword search and other tools
-   - **Solution**: Proper server state reset between tests
-   - **Impact**: All 8 MCP tools now work correctly
-
-4. **Error Handling**
-   - **Problem**: API errors and network timeouts not properly converted to MCP error responses
-   - **Solution**: Enhanced error handling in `handleMCPMessage()` function
-   - **Impact**: Proper error responses for client applications
-
-5. **Authentication Failure Scenarios**
-   - **Problem**: Health endpoint returning 200 instead of 503 on auth failures
-   - **Solution**: Module cache clearing and proper state isolation
-   - **Impact**: Correct health status reporting
-
-6. **Test State Management**
-   - **Problem**: Module-level variables persisting between tests
-   - **Solution**: Added `resetServerState()` export and proper module cache clearing
-   - **Impact**: True test isolation and reliable test results
-
-### Test Configuration
-
-- **Jest**: Using Jest with `--forceExit` flag for main test runs
-- **State Reset**: Each test gets a fresh server instance with clean state
-- **Mock Management**: Proper fetch mocking with correct sequence handling
-- **Test Isolation**: Module cache clearing prevents state leakage
-
-### Key Implementation Details
-
-- **Native fetch**: Uses Node.js native fetch instead of external libraries
-- **Token Management**: 12-hour token validity with 30-minute refresh margin
-- **Error Handling**: Comprehensive error handling with proper MCP error responses
-- **Security**: Helmet security headers, CORS support, input validation
-- **Logging**: Structured JSON logging with timestamps
-
-## Development
-
-### Project Structure
-
-```
-mcp-cisco-support/
-├── src/
-│   └── index.ts        # Main TypeScript server implementation
-├── dist/               # Compiled JavaScript (generated by build)
-├── package.json        # Dependencies and scripts
-├── tsconfig.json       # TypeScript configuration
-├── .env.example       # Environment variables template
-├── .env               # Actual environment variables (create from example)
-├── .gitignore         # Git ignore rules
-├── Dockerfile         # Docker configuration
-├── docker-compose.yml # Docker Compose setup
-├── screenshots/        # Documentation screenshots
-│   └── mcp-inspector-screenshot.png
-├── CLAUDE.md          # Project instructions and architecture
-└── README.md          # Project documentation
-```
-
-### Development Commands
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server with auto-reload
-npm run dev
-
-# Run tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Build Docker image
-docker build -t mcp-cisco-support .
-
-# View logs in development
-npm run dev 2>&1 | jq '.'  # Pretty print JSON logs
-```
-
-### Performance Considerations
-
-- Token caching reduces API calls
-- Pagination limits results to 10 per page
-- SSE heartbeat every 30 seconds keeps connections alive
-- Request timeout set to 30 seconds
-
-### Security Notes
-
-- Never commit `.env` file to version control
-- Use environment variables for all secrets
-- Review Cisco API usage limits and terms
-- Monitor logs for suspicious activity
-
-## API Reference
-
-### Authentication
-
-- **OAuth2 URL**: `https://id.cisco.com/oauth2/default/v1/token`
-- **Grant Type**: `client_credentials`
-- **Token Validity**: 12 hours
-- **Auto-refresh**: 30 minutes before expiry
-
-### Bug API Base URL
-
-- **Base URL**: `https://apix.cisco.com/bug/v2.0`
-
-### MCP Protocol
-
-The server implements the Model Context Protocol with these methods:
-- `initialize`: Initialize MCP connection
-- `tools/list`: List available tools
-- `tools/call`: Execute a tool
-
-Example MCP message:
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "1",
-  "method": "tools/call",
-  "params": {
-    "name": "search_bugs_by_keyword",
-    "arguments": {
-      "keyword": "memory leak",
-      "status": "open"
-    }
-  }
-}
-```
-
-## Health Monitoring
-
-The server provides a comprehensive health check endpoint:
-
-```bash
-curl http://localhost:3000/health
-```
-
-Response includes server status, OAuth2 token status, memory usage, uptime, and active connections.
-
-## Testing
-
-Comprehensive Jest-based testing framework with:
-- ✅ **46/46 tools tested** - All MCP tools across 8 APIs  
-- ✅ **Mock & Real API testing** - Unit tests with mocks + integration tests with live APIs
-- ✅ **Individual tool testing** - Standalone test runner for development
-
-```bash
-# Run all tests
-npm test
-
-# Test with real API credentials
-CISCO_CLIENT_ID=your_id CISCO_CLIENT_SECRET=your_secret npm test
-
-# Test individual tools
-npm run test:tool search_bugs_by_keyword
-```
-
-See **[🧪 Testing Framework](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Testing-Framework)** for complete testing documentation.
+See [CLAUDE.md](CLAUDE.md) for the code layout, Cisco API behaviour verified against the live APIs, how to record fixtures, and the release process.
 
 ## License
 

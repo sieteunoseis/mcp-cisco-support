@@ -1,5 +1,4 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID, timingSafeEqual } from 'node:crypto';
@@ -85,7 +84,7 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
   };
 }
 
-export function createSSEServer(createServer: () => Server) {
+export function createHttpServer(createServer: () => Server) {
   const app = express();
 
   // Check environment variables for auth configuration
@@ -162,176 +161,8 @@ export function createSSEServer(createServer: () => Server) {
     logger.info('Bearer token authentication middleware enabled');
   }
 
-  const transportMap = new Map<string, SSEServerTransport>();
+  // Streamable HTTP sessions (each with its own MCP server)
   const streamableTransports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
-  const sessionServers = new Map<string, Server>();
-  
-  // Heartbeat configuration
-  const HEARTBEAT_INTERVAL = 30000; // 30 seconds
-  const CONNECTION_TIMEOUT = 120000; // 2 minutes
-  const heartbeatIntervals = new Map<string, NodeJS.Timeout>();
-
-  // Helper function to start heartbeat for SSE connection
-  function startHeartbeat(sessionId: string, res: express.Response): NodeJS.Timeout {
-    return setInterval(() => {
-      try {
-        // Send heartbeat message to keep connection alive
-        res.write('event: heartbeat\n');
-        res.write(`data: {"type":"heartbeat","timestamp":"${new Date().toISOString()}"}\n\n`);
-        logger.info('Heartbeat sent', { sessionId });
-      } catch (error) {
-        logger.warn('Heartbeat failed, cleaning up connection', { sessionId, error });
-        stopHeartbeat(sessionId);
-        cleanupConnection(sessionId, res);
-      }
-    }, HEARTBEAT_INTERVAL);
-  }
-
-  // Helper function to stop heartbeat
-  function stopHeartbeat(sessionId: string) {
-    const interval = heartbeatIntervals.get(sessionId);
-    if (interval) {
-      clearInterval(interval);
-      heartbeatIntervals.delete(sessionId);
-      logger.info('Heartbeat stopped', { sessionId });
-    }
-  }
-
-  // Helper function to cleanup connection
-  function cleanupConnection(sessionId: string, res?: express.Response) {
-    transportMap.delete(sessionId);
-    const sessionServer = sessionServers.get(sessionId);
-    if (sessionServer) {
-      sessionServers.delete(sessionId);
-      sessionServer.close().catch(() => { /* already closed */ });
-    }
-    stopHeartbeat(sessionId);
-    
-    if (res && !res.destroyed) {
-      try {
-        res.end();
-      } catch (error) {
-        logger.info('Response already ended', { sessionId });
-      }
-    }
-    
-    logger.info('SSE connection cleaned up', { 
-      sessionId,
-      remainingConnections: transportMap.size
-    });
-  }
-
-  // SSE endpoint - establishes SSE connection and connects to MCP server
-  app.get("/sse", async (req, res) => {
-    let sessionId: string | undefined;
-    
-    try {
-      logger.info('SSE connection request received');
-      
-      // Set connection timeout
-      req.setTimeout(CONNECTION_TIMEOUT, () => {
-        logger.warn('SSE connection timeout', { sessionId });
-        if (sessionId) {
-          cleanupConnection(sessionId, res);
-        }
-      });
-      
-      // Create SSE transport with proper endpoint - it will set the headers
-      const transport = new SSEServerTransport("/messages", res);
-      sessionId = transport.sessionId;
-      
-      // Store transport for message handling
-      transportMap.set(sessionId, transport);
-      
-      // Start heartbeat to keep connection alive
-      const heartbeatInterval = startHeartbeat(sessionId, res);
-      heartbeatIntervals.set(sessionId, heartbeatInterval);
-      
-      logger.info('SSE transport created', { sessionId: transport.sessionId });
-      
-      // Each session gets its own MCP server instance
-      const sessionServer = createServer();
-      sessionServers.set(sessionId, sessionServer);
-      await sessionServer.connect(transport);
-      
-      logger.info('MCP server connected to SSE transport', { 
-        sessionId: transport.sessionId,
-        totalTransports: transportMap.size
-      });
-      
-      // Set up cleanup handlers before connecting
-      transport.onclose = () => {
-        logger.info('SSE connection closed', { sessionId });
-        if (sessionId) {
-          cleanupConnection(sessionId);
-        }
-      };
-
-      // Enhanced error handling with detailed logging
-      transport.onerror = (error) => {
-        logger.error('SSE transport error', { 
-          sessionId: sessionId,
-          error: error.message,
-          errorType: typeof error,
-          stack: error instanceof Error ? error.stack : undefined
-        });
-        
-        // Clean up on transport error
-        if (sessionId) {
-          cleanupConnection(sessionId, res);
-        }
-      };
-
-      // Handle cleanup when connection closes
-      req.on('close', () => {
-        logger.info('SSE request closed by client', { sessionId });
-        if (sessionId) {
-          cleanupConnection(sessionId);
-        }
-      });
-      
-      // Handle errors on response stream
-      res.on('error', (error) => {
-        logger.error('SSE response stream error', { 
-          sessionId: sessionId,
-          error: error.message,
-          code: (error as any).code,
-          errno: (error as any).errno
-        });
-        if (sessionId) {
-          cleanupConnection(sessionId);
-        }
-      });
-      
-      // Handle connection timeout
-      res.on('timeout', () => {
-        logger.warn('SSE response timeout', { sessionId });
-        if (sessionId) {
-          cleanupConnection(sessionId, res);
-        }
-      });
-      
-    } catch (error) {
-      logger.error('Failed to establish SSE connection', { 
-        sessionId,
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      
-      // Cleanup on error
-      if (sessionId) {
-        cleanupConnection(sessionId, res);
-      }
-      
-      if (!res.headersSent) {
-        res.status(500).json({ 
-          error: 'Failed to establish SSE connection',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          retryAfter: '5' // Suggest client retry after 5 seconds
-        });
-      }
-    }
-  });
 
   // MCP JSON-RPC endpoint - handles direct MCP calls using StreamableHTTP
   app.post("/mcp", async (req, res) => {
@@ -450,67 +281,26 @@ export function createSSEServer(createServer: () => Server) {
     }
   });
 
-  // Messages endpoint - handles MCP JSON-RPC messages
-  app.post("/messages", async (req, res) => {
-    const sessionId = req.query.sessionId as string;
-    
-    if (!sessionId) {
-      logger.error('Message received without sessionId');
-      res.status(400).json({ error: 'sessionId is required' });
-      return;
-    }
-
-    logger.info('Message received for session', { sessionId, method: req.body?.method });
-
-    const transport = transportMap.get(sessionId);
-
-    if (transport) {
-      try {
-        // Let the transport handle the message - must await and pass req.body
-        await transport.handlePostMessage(req, res, req.body);
-      } catch (error) {
-        logger.error('Failed to handle message', { 
-          sessionId, 
-          error: error instanceof Error ? error.message : error 
-        });
-        if (!res.headersSent) {
-          res.status(500).json({ 
-            error: 'Failed to handle message',
-            message: error instanceof Error ? error.message : 'Unknown error'
-          });
-        }
-      }
-    } else {
-      logger.error('Transport not found for session', { sessionId });
-      res.status(404).json({ 
-        error: 'Session not found',
-        sessionId 
-      });
-    }
-  });
-
   // Health check endpoint
   app.get('/health', (_req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      activeTransports: transportMap.size,
-      server: 'mcp-cisco-support-sse'
+      activeSessions: Object.keys(streamableTransports).length,
+      server: 'mcp-cisco-support'
     });
   });
 
   // Server info endpoint (publicly accessible to show auth info)
   app.get('/', (_req, res) => {
     const baseEndpoints: Record<string, string> = {
-      mcp: '/mcp (POST/GET/DELETE) - MCP StreamableHTTP endpoint',
-      sse: '/sse (GET) - Legacy SSE connection',
-      messages: '/messages (POST) - Legacy SSE messages',
+      mcp: '/mcp (POST/GET/DELETE) - MCP Streamable HTTP endpoint',
       health: '/health (GET) - Health check (no auth required)'
     };
 
     const responseData: any = {
-      name: 'Cisco Support MCP SSE Server',
-      description: 'MCP Server-Sent Events transport for Cisco Support APIs',
+      name: 'Cisco Support MCP Server',
+      description: 'MCP Streamable HTTP transport for Cisco Support APIs',
       authentication: {
         enabled: enableAuth,
         type: enableAuth ? 'BEARER' : 'None',
@@ -519,7 +309,7 @@ export function createSSEServer(createServer: () => Server) {
           : 'Authentication disabled via DANGEROUSLY_OMIT_AUTH=true'
       },
       endpoints: baseEndpoints,
-      activeTransports: transportMap.size + Object.keys(streamableTransports).length,
+      activeSessions: Object.keys(streamableTransports).length,
       timestamp: new Date().toISOString()
     };
 
@@ -536,7 +326,7 @@ export function createSSEServer(createServer: () => Server) {
 
   // Error handling middleware
   app.use((error: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    logger.error('Unhandled SSE server error', { 
+    logger.error('Unhandled HTTP server error', { 
       error: error.message,
       path: req.path,
       method: req.method
@@ -553,30 +343,18 @@ export function createSSEServer(createServer: () => Server) {
     res.status(404).json({
       error: 'Endpoint not found',
       path: req.path,
-      availableEndpoints: ['/mcp (POST/GET/DELETE)', '/sse', '/messages', '/health', '/'],
+      availableEndpoints: ['/mcp (POST/GET/DELETE)', '/health', '/'],
       timestamp: new Date().toISOString()
     });
   });
 
-  // Graceful shutdown handler
+  // Graceful shutdown: close every open session
   function gracefulShutdown() {
-    logger.info('Shutting down SSE server, cleaning up connections', { 
-      activeConnections: transportMap.size,
-      activeHeartbeats: heartbeatIntervals.size
-    });
-    
-    // Clean up all connections
-    for (const sessionId of transportMap.keys()) {
-      cleanupConnection(sessionId);
+    const sessions = Object.values(streamableTransports);
+    logger.info('Shutting down HTTP server, closing sessions', { activeSessions: sessions.length });
+    for (const transport of sessions) {
+      transport.close().catch(() => { /* already closed */ });
     }
-    
-    // Clear any remaining heartbeat intervals
-    for (const [sessionId, interval] of heartbeatIntervals.entries()) {
-      clearInterval(interval);
-      heartbeatIntervals.delete(sessionId);
-    }
-    
-    logger.info('SSE server cleanup completed');
   }
 
   // Handle process termination
