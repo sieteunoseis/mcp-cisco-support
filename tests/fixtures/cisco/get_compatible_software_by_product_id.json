@@ -1,0 +1,117 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "paginationResponseRecord": {
+      "pageIndex": "1",
+      "lastIndex": "8",
+      "totalRecords": "143",
+      "pageRecords": "20",
+      "selfLink": "https://api.cisco.com/software/suggestion/v2/suggestions/compatible/productId/ISR4431/K9",
+      "title": "Software Suggestions"
+    },
+    "suggestions": [
+      {
+        "id": "1",
+        "isSuggested": "Y",
+        "basePID": "ISR4431/K9",
+        "mdfId": "284358776",
+        "productName": "",
+        "softwareType": "IOS XE Software",
+        "releaseFormat1": "17.12.8",
+        "releaseFormat2": "17.12.8",
+        "releaseDate": "05-Aug-2026",
+        "majorRelease": "17",
+        "releaseTrain": "17.12",
+        "releaseLifeCycle": "MD",
+        "relDispName": "Dublin-17.12.8",
+        "trainDispName": "Dublin-17.12",
+        "images": [
+          {
+            "imageName": "isr4400-universalk9_npe.17.12.08.SPA.bin",
+            "imageSize": "788726524",
+            "description": "Cisco ISR 4400 Series IOS XE Universal-No Payload Encryption",
+            "requiredDRAM": "0 MB",
+            "requiredFlash": "0 MB"
+          },
+          {
+            "imageName": "isr4400-universalk9.17.12.08.SPA.bin",
+            "imageSize": "785130805",
+            "description": "Cisco ISR 4400 Series IOS XE Universal",
+            "requiredDRAM": "0 MB",
+            "requiredFlash": "0 MB"
+          }
+        ],
+        "errorDetailsResponse": null
+      },
+      {
+        "id": "2",
+        "isSuggested": "Y",
+        "basePID": "ISR4431/K9",
+        "mdfId": "284358776",
+        "productName": "",
+        "softwareType": "IOS XE Software",
+        "releaseFormat1": "17.9.10",
+        "releaseFormat2": "17.9.10",
+        "releaseDate": "01-Aug-2026",
+        "majorRelease": "17",
+        "releaseTrain": "17.9",
+        "releaseLifeCycle": "MD",
+        "relDispName": "Cupertino-17.9.10",
+        "trainDispName": "Cupertino-17.9",
+        "images": [
+          {
+            "imageName": "isr4400-universalk9_npe.17.09.10.SPA.bin",
+            "imageSize": "782033967",
+            "description": "Cisco ISR 4400 Series IOS XE Universal-No Payload Encryption",
+            "requiredDRAM": "0 MB",
+            "requiredFlash": "0 MB"
+          },
+          {
+            "imageName": "isr4400-universalk9.17.09.10.SPA.bin",
+            "imageSize": "778314740",
+            "description": "Cisco ISR 4400 Series IOS XE Universal",
+            "requiredDRAM": "0 MB",
+            "requiredFlash": "0 MB"
+          }
+        ],
+        "errorDetailsResponse": null
+      },
+      {
+        "id": "3",
+        "isSuggested": "N",
+        "basePID": "ISR4431/K9",
+        "mdfId": "284358776",
+        "productName": "",
+        "softwareType": "IOS XE Software",
+        "releaseFormat1": "17.12.7b",
+        "releaseFormat2": "17.12.7b",
+        "releaseDate": "01-Apr-2026",
+        "majorRelease": "17",
+        "releaseTrain": "17.12",
+        "releaseLifeCycle": "MD",
+        "relDispName": "Dublin-17.12.7b",
+        "trainDispName": "Dublin-17.12",
+        "images": [
+          {
+            "imageName": "isr4400-universalk9.17.12.07b.SPA.bin",
+            "imageSize": "785050613",
+            "description": "Cisco ISR 4400 Series IOS XE Universal",
+            "requiredDRAM": "0 MB",
+            "requiredFlash": "0 MB"
+          },
+          {
+            "imageName": "isr4400-universalk9_npe.17.12.07b.SPA.bin",
+            "imageSize": "788679148",
+            "description": "Cisco ISR 4400 Series IOS XE Universal-No Payload Encryption",
+            "requiredDRAM": "0 MB",
+            "requiredFlash": "0 MB"
+          }
+        ],
+        "errorDetailsResponse": null
+      }
+    ],
+    "status": "Success",
+    "errorDetailsResponse": null
+  }
+}

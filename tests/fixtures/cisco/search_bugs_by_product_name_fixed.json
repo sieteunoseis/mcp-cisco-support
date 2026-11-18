@@ -1,0 +1,15 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "bugs": [],
+    "pagination_response_record": {
+      "last_index": 0,
+      "page_index": 1,
+      "page_records": 0,
+      "self_link": "https://apix.cisco.com/bug/v2.0/bugs/product_name/Cisco Unified Communications Manager (CallManager)/fixed_in_releases/14.0(1)SU3?page_index=1&modified_date=5&sort_by=modified_date",
+      "title": "Bug API - Get Bugs by Product Name and Fixed In Software Releases",
+      "total_records": 0
+    }
+  }
+}

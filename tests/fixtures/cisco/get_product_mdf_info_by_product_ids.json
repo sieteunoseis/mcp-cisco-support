@@ -1,0 +1,32 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "pagination_response_record": {
+      "last_index": 1,
+      "page_index": 1,
+      "page_records": 2,
+      "self_link": "https://apix.cisco.com/product/v1/information/product_ids_mdf/VG224,C9200-24P?page_index=1",
+      "title": "Product Info API - Get Product MDF Information by Product Id(s)",
+      "total_records": 2
+    },
+    "product_list": [
+      {
+        "id": "1",
+        "product_id": "C9200-24P",
+        "product_name": "Cisco Catalyst 9200-24P Switch",
+        "product_name_mdf": "286320176",
+        "product_series": "Cisco Catalyst 9200 Series Switches",
+        "product_series_mdf": "286319845"
+      },
+      {
+        "id": "2",
+        "product_id": "VG224",
+        "product_name": "Cisco VG224 Analog Voice Gateway",
+        "product_name_mdf": "278714890",
+        "product_series": "Cisco VG Series Gateways",
+        "product_series_mdf": "270675370"
+      }
+    ]
+  }
+}

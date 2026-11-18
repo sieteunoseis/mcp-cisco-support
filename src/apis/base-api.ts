@@ -18,7 +18,7 @@ export abstract class BaseApi {
   // Make authenticated API call
   /** Encode one path segment taken from tool input */
   protected seg(value: unknown): string {
-    return encodeURIComponent(String(value ?? '').trim());
+    return BaseApi.encodePathValue(String(value ?? '').trim());
   }
 
   /** Encode a comma-separated list for a path segment (trims items, keeps commas) */
@@ -27,8 +27,20 @@ export abstract class BaseApi {
       .split(',')
       .map(item => item.trim())
       .filter(Boolean)
-      .map(item => encodeURIComponent(item))
+      .map(item => BaseApi.encodePathValue(item))
       .join(',');
+  }
+
+  /**
+   * Encode a value for an apix.cisco.com path. Cisco's gateway rejects %2F,
+   * and product IDs like "ISR4431/K9" are sent with a literal slash, so '/'
+   * is kept, but '..' segments are refused so input can't climb to another API.
+   */
+  static encodePathValue(value: string): string {
+    if (value.split('/').some(part => part === '..' || part === '.')) {
+      throw new Error(`Invalid identifier: "${value}"`);
+    }
+    return encodeURIComponent(value).replace(/%2F/gi, '/');
   }
 
   protected async makeApiCall(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {

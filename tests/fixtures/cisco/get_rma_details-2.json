@@ -1,0 +1,154 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "APIPagination": {
+      "pageIndex": "1",
+      "lastIndex": "1",
+      "totalRecords": "1",
+      "pageRecords": "1",
+      "title": "<title-10>",
+      "selfLink": "<self_link>"
+    },
+    "returns": {
+      "RmaRecord": [
+        {
+          "rmaNo": 100002,
+          "status": "Closed",
+          "orderDate": "2026-09-29T22:18:41.000Z",
+          "caseId": "<caseId-2>",
+          "requestedShipDate": "2026-10-01T22:00:00.000Z",
+          "originator": "<originator-2>",
+          "allowPartialShipment": "",
+          "failureClass": "Operational Failure",
+          "failureCode": "HW Fail - Boot Up",
+          "contractId": "<contractId-2>",
+          "serviceLevel": "Advance Replacement - Next Business Day",
+          "deliveryType": "",
+          "plannedDeliveryReason": "",
+          "plannedDeliveryWindow": "",
+          "plannedDeliveryDate": "2026-10-02T00:00:00.000Z",
+          "customerRefInfo": {
+            "customerPONumber": "",
+            "origSalesOrderNumber": "<origSalesOrderNumber-2>",
+            "customerRefNumber": "",
+            "customerProvidedSN": ""
+          },
+          "shipToInfo": {
+            "customerName": "<customerName-3>",
+            "address1": "<address1-3>",
+            "address2": "<address2-2>",
+            "address3": "",
+            "address4": "",
+            "city": "<city-3>",
+            "state": "<state-2>",
+            "country": "<country-3>",
+            "postalCode": "<postalCode-3>",
+            "stateProv": "<stateProv-3>",
+            "siteUseId": "<siteUseId-3>",
+            "ackUserId": "<ackUserId-2>",
+            "ackPhone": "<ackPhone-2>",
+            "ackEmail": "<ackEmail-2>",
+            "ackName": "<ackName-2>",
+            "shipToContactName": "<shipToContactName-2>",
+            "shipToContactPhone": "<shipToContactPhone-2>",
+            "shipToContactEmail": "<shipToContactEmail-2>"
+          },
+          "billToInfo": {
+            "customerName": "<customerName-4>",
+            "address1": "<address1-4>",
+            "address2": "<address2-3>",
+            "address3": "",
+            "address4": "",
+            "city": "<city-4>",
+            "state": "",
+            "country": "<country-4>",
+            "postalCode": "<postalCode-4>",
+            "stateProv": "<stateProv-4>",
+            "siteUseId": "<siteUseId-4>"
+          },
+          "replacementParts": {
+            "partsLineDetails": [
+              {
+                "partsLineRef": "<partsLineRef-2>",
+                "partsLineStatus": "Closed",
+                "partsTransactionType": "<partsTransactionType-2>",
+                "shippedPartNo": "<shippedPartNo-2>",
+                "partsDescription": "<partsDescription-2>",
+                "partsQtyAuth": "<partsQtyAuth-2>",
+                "partsScheduledShipTime": "<partsScheduledShipTime-2>",
+                "partsqtyShipped": "<partsqtyShipped-2>",
+                "partsShipDate": "2026-09-30T22:45:02.000Z",
+                "partsShipmentWarehouse": "<partsShipmentWarehouse-2>",
+                "partsDispatchStatus": "DISPATCHED",
+                "shippedSerialID": "<shippedSerialID-2>",
+                "plannedDeliveryDate": "2026-10-02T00:00:00.000Z",
+                "partsRequestShipDate": "2026-10-02T00:00:00.000Z",
+                "partsPromiseDate": "2026-10-01T22:00:00.000Z",
+                "trackingInfo": [
+                  {
+                    "trackingNumber": "<trackingNumber-2>",
+                    "courierList": "<courierList-2>",
+                    "shipDate": "2026-09-30T22:45:02.000Z",
+                    "receivedBy": "<receivedBy-2>",
+                    "receivedDate": "2026-10-01T16:32:00.000Z",
+                    "eta": "<eta-2>",
+                    "trackingUrl": "<trackingUrl-2>"
+                  }
+                ]
+              }
+            ]
+          },
+          "returnLines": {
+            "returnParts": [
+              {
+                "returnLineRef": "<returnLineRef-2>",
+                "returnLineStatus": "Closed",
+                "returnTransactionType": "<returnTransactionType-2>",
+                "receivedPartNo": "<receivedPartNo-2>",
+                "returnDescription": "<returnDescription-2>",
+                "returnQtyAuth": "<returnQtyAuth-2>",
+                "returnToCiscoBy": "<returnToCiscoBy-2>",
+                "reqturnQtyReceived": "<reqturnQtyReceived-1>",
+                "returnDateReceived": "2026-10-15T19:02:18.000Z",
+                "returnWarehouse": "<returnWarehouse-2>",
+                "receivedSerialNumber": "<receivedSerialNumber-1>",
+                "pickupRequestedDate": "",
+                "pickupScheduledDate": "",
+                "pickupDeliveredDate": "",
+                "deliveryPodMadeDate": "",
+                "pickupRequestSentDate": "",
+                "receivedDateAtCisco": "2026-10-15T14:01:41.000Z"
+              }
+            ]
+          },
+          "laborDetails": {
+            "fieldEngineerName": "",
+            "fieldEngineerPhone": "",
+            "fieldEngineerOnRouteTime": "",
+            "fieldEngineerArrivedTime": "",
+            "fieldEngineerReleasedTime": "",
+            "laborLines": [
+              {
+                "laborTaskNumber": "",
+                "laborStatus": "",
+                "primaryProductFamily": "",
+                "laborScheduledTime": "",
+                "laborDispatch": "",
+                "laborDispatchOrCancellationNotes": ""
+              }
+            ]
+          },
+          "notes": {
+            "addlComments": "",
+            "failureDescription": "<failureDescription-2>",
+            "fieldEngineerInstructions": "",
+            "partDeliveryInstructions": "",
+            "partialShipmentNote": "<partialShipmentNote-2>",
+            "specialInstructions": ""
+          }
+        }
+      ]
+    }
+  }
+}

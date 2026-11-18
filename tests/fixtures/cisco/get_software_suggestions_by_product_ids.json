@@ -1,0 +1,107 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "paginationResponseRecord": {
+      "pageIndex": "1",
+      "lastIndex": "1",
+      "totalRecords": "1",
+      "pageRecords": "1",
+      "selfLink": "https://api.cisco.com/software/suggestion/v2/suggestions/software/productIds/C9300-48P",
+      "title": "Software Suggestions"
+    },
+    "productList": [
+      {
+        "id": "1",
+        "product": {
+          "basePID": "C9300-48P",
+          "mdfId": "286315874",
+          "productName": "Catalyst 9300 Switch",
+          "softwareType": "IOS XE Software"
+        },
+        "suggestions": [
+          {
+            "id": "1",
+            "isSuggested": "Y",
+            "releaseFormat1": "17.18.4",
+            "releaseFormat2": "17.18.4",
+            "releaseDate": "05-Aug-2026",
+            "majorRelease": "17",
+            "releaseTrain": "17.18",
+            "releaseLifeCycle": "MD",
+            "relDispName": "IOSXE-17.18.4",
+            "trainDispName": "IOSXE-17.18",
+            "images": [
+              {
+                "imageName": "cat9k_iosxe.17.18.04.SPA.bin",
+                "imageSize": "1249489705",
+                "featureSet": "CAT9300/9400/9500/9600 Universal",
+                "description": "",
+                "requiredDRAM": "0 MB",
+                "requiredFlash": "0 MB"
+              },
+              {
+                "imageName": "cat9k_iosxe_npe.17.18.04.SPA.bin",
+                "imageSize": "1242678411",
+                "featureSet": "CAT9300/9400/9500/9600 UNIVERSAL - NO PAYLOAD ENCRYPTION",
+                "description": "",
+                "requiredDRAM": "0 MB",
+                "requiredFlash": "0 MB"
+              },
+              {
+                "imageName": "cat9k_iosxe.17.18.04.SPA.bin",
+                "imageSize": "1249489705",
+                "featureSet": "CAT9300/9400/9500/9600 Universal",
+                "description": "",
+                "requiredDRAM": "0 MB",
+                "requiredFlash": "0 MB"
+              }
+            ],
+            "errorDetailsResponse": null
+          },
+          {
+            "id": "2",
+            "isSuggested": "Y",
+            "releaseFormat1": "17.15.6",
+            "releaseFormat2": "17.15.6",
+            "releaseDate": "05-Aug-2026",
+            "majorRelease": "17",
+            "releaseTrain": "17.15",
+            "releaseLifeCycle": "MD",
+            "relDispName": "IOSXE-17.15.6",
+            "trainDispName": "IOSXE-17.15",
+            "images": [
+              {
+                "imageName": "cat9k_iosxe.17.15.06.SPA.bin",
+                "imageSize": "1284238569",
+                "featureSet": "CAT9300/9400/9500/9600 Universal",
+                "description": "",
+                "requiredDRAM": "0 MB",
+                "requiredFlash": "0 MB"
+              },
+              {
+                "imageName": "cat9k_iosxe_npe.17.15.06.SPA.bin",
+                "imageSize": "1277427148",
+                "featureSet": "CAT9300/9400/9500/9600 UNIVERSAL - NO PAYLOAD ENCRYPTION",
+                "description": "",
+                "requiredDRAM": "0 MB",
+                "requiredFlash": "0 MB"
+              },
+              {
+                "imageName": "cat9k_iosxe.17.15.06.SPA.bin",
+                "imageSize": "1284238569",
+                "featureSet": "CAT9300/9400/9500/9600 Universal",
+                "description": "",
+                "requiredDRAM": "0 MB",
+                "requiredFlash": "0 MB"
+              }
+            ],
+            "errorDetailsResponse": null
+          }
+        ]
+      }
+    ],
+    "status": "Success",
+    "errorDetailsResponse": null
+  }
+}

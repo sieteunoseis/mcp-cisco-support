@@ -1,0 +1,61 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "bugs": [
+      {
+        "id": "1",
+        "base_pid": "C9300-48P",
+        "bug_id": "CSCwo50092",
+        "headline": "C9k Standby Supervisor Memory Leak: EWLC_SM_OPERATION_DB database grows to large size",
+        "description": "<B>Symptom:</B>\n- Warning messages for standby supervisor memory utilization\n- Warning messages for standby supervisor tmpfs utilization\n- sessmgrd process holding most memory\n- standby supervisor tmpfs mounted at /tmp/rp/tdldb continuously increasing in size\n\n<pre>\n#### show logging ####\n%PLATFORM-3-ELEMENT_CRITICAL: R0/0: smand: RP/1: Used Memory value 99% exceeds critical level 95%\n%PLATFORM-3-ELEMENT_TMPFS_WARNING: R0/0: smand: RP/1: TMPFS value 44% above warning level 40%\n\n\n#### show process memory platform sorted location rp standby ####\nSystem memory: 15993664K total, 15843264K used, 150400K free,\nLowest: 99484K\n   Pid    Text      Data   Stack   Dynamic       RSS              Name \n----------------------------------------------------------------------\n25725     180   7053948     136     15844   7053948          sessmgrd \n27077     421   2329184     136      3444   2329184              repm \n  7370  283194    875996     136       472    875996   linux_iosd-imag \n\n\n#### show platform software mount r1 ####\nFilesystem                 Used  Available Use % Mounted on                    \n-------------------------------------------------------------------------------\n...\ntmpfs                   6902076    5892856   54% /tmp/rp/tdldb                  \n...\n</pre>\n\n<B>Conditions:</B>\n- C9400\n- dual-supervisors\n- leak occurs each time IP address for a MAC address is updated in session manager\n\n<B>Workaround:</B>\n- Reload affected supervisor / switch that is reporting higher memory utilization to temporarily clear held SMD process memory and also to reduce WLC_SM_OPERATION_DB back to normal size. Issue will likely return over time if the MAC/IP churn activity continues.\n\n<B>Further Problem Description:</B>\n- Issue may also be seen in switch stacks where there are standby or member switches.\n",
+        "severity": "3",
+        "status": "F",
+        "behavior_changed": "",
+        "last_modified_date": "2026-11-18",
+        "product": "Cisco Catalyst 9200 Series Switches,Cisco Catalyst 9300 Series Switches,Cisco Catalyst 9400 Series Switches,Cisco Catalyst 9500 Series Switches,Cisco Catalyst 9600 Series Switches",
+        "known_affected_releases": "17.9.4a",
+        "known_fixed_releases": "17.12.6 17.12.6a 17.12.6b 17.12.7 17.12.7a 17.12.7b 17.12.8 17.15.4 17.15.4a 17.15.4b 17.15.4c 17.15.4d 17.15.4s1 17.15.5 17.15.5a 17.15.6 17.18.1 17.18.1a 17.18.1w 17.18.1x 17.18.1y 17.18.1z 17.18.2 17.18.3 17.18.3a 17.18.4 17.18.4a 17.18.5 17.18.5x Dublin-17.12.6",
+        "support_case_count": "10"
+      },
+      {
+        "id": "2",
+        "base_pid": "C9300-48P",
+        "bug_id": "CSCwi59338",
+        "headline": "Enable strict-kex support in IOS-SSH to address CVE-2023-48795 (aka Terrapin Attack)",
+        "description": "<B>Symptom:</B>\nThis product includes Third-party Software that is affected by the\nvulnerabilities identified by the following Common Vulnerability and\nExposures (CVE) IDs:\n\nCVE-2023-46445 - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-46445\nCVE-2023-46446 - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-46446\nCVE-2023-48795 - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795\n\nThe affected third-party software component has been upgraded to a version that includes fixes for the vulnerability. Future versions of the product(s) will not be affected by this vulnerability.\n\n<B>Conditions:</B>\nDevice with default configuration.\n\n<B>Workaround:</B>\nDevice requires chacha20-poly1305@openssh.com encryption algorithm, or any encryption algorithm suffixed -cbc in combination with any MAC algorithm suffixed -etm@openssh.com, to be vulnerable to Terrapin.\n\nCustomers can disable these encryption algorithms using the \"ip ssh server algorithm encryption\" command. See https://community.cisco.com/t5/networking-knowledge-base/configuring-ios-xe-for-strong-security-ssh-sessions/tac-p/4912351 for additional information.\n\n<B>Further Problem Description:</B>\nAdditional details about the vulnerabilities listed above can be found\nat https://www.cve.org/.\n    \n<b>PSIRT Evaluation:</b>\n\nThe Cisco PSIRT has assigned this bug the following CVSS version 3.1 score. \nThe Base CVSS score as of the time of evaluation is: 6.8\n\nhttps://tools.cisco.com/security/center/cvssCalculator.x?version=3.1&vector=CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:N\n\nCVE ID CVE-2023-46445, CVE-2023-46446, CVE-2023-48795 have been assigned to document this issue.\n\nAdditional information on Cisco's security vulnerability policy can be \nfound at the following URL:\n\nhttp://www.cisco.com/en/US/products/products_security_vulnerability_policy.html\n",
+        "severity": "2",
+        "status": "F",
+        "behavior_changed": "",
+        "last_modified_date": "2026-11-18",
+        "product": "Cisco 1000 Series Integrated Services Routers,Cisco 4000 Series Integrated Services Routers,Cisco 8000 Series Routers,Cisco ASR 1000 Series Aggregation Services Routers,Cisco ASR 900 Series Aggregation Services Routers,Cisco ASR 9000 Series Aggregation Services Routers,Cisco Catalyst 8000V Edge Software,Cisco Catalyst 8200 Series Edge Platforms,Cisco Catalyst 8200 Series Edge uCPE,Cisco Catalyst 8300 Series Edge Platforms,Cisco Catalyst 8500 Series Edge Platforms,Cisco Catalyst 8500L Series Edge Platforms,Cisco Catalyst 9200 Series Switches,Cisco Catalyst 9300 Series Switches,Cisco Catalyst 9400 Series Switches,Cisco Catalyst 9500 Series Switches,Cisco Catalyst 9600 Series Switches,Cisco Catalyst 9800 Series Wireless Controllers,Cisco Catalyst ESS9300 Embedded Series Switches,Cisco Catalyst IE3200 Rugged Series,Cisco Catalyst IE3300 Rugged Series,Cisco Catalyst IE3400 Heavy Duty Series,Cisco Catalyst IE3400 Rugged Series,Cisco Catalyst IE9300 Rugged Series,Cisco Catalyst IR1100 Rugged Series Routers,Cisco Catalyst IR8100 Heavy Duty Series Routers,Cisco Catalyst IR8300 Rugged Series Router,Cisco ESR6300 Embedded Series Routers,Cisco Embedded Services 3300 Series Switches,Cisco Integrated Services Virtual Router",
+        "known_affected_releases": "17.15.1 Cupertino-17.9.1",
+        "known_fixed_releases": "17.12.5a 17.12.5b 17.12.5c 17.12.5d 17.12.6 17.12.6a 17.12.6b 17.12.7 17.12.7a 17.12.7b 17.12.8 17.15.3a 17.15.3b 17.15.4 17.15.4a 17.15.4b 17.15.4c 17.15.4d 17.15.4s1 17.15.5 17.15.5a 17.15.6 17.17.1 17.18.1 17.18.1a 17.18.1w 17.18.1x 17.18.1y 17.18.1z 17.18.2 17.18.3 17.18.3a 17.18.4 17.18.4a 17.18.5 17.18.5x 17.9.10 17.9.7a 17.9.7b 17.9.8 17.9.9 26.1.1 26.1.1a Cupertino-17.9.8 Dublin-17.12.6",
+        "support_case_count": "668"
+      },
+      {
+        "id": "3",
+        "base_pid": "C9300-48P",
+        "bug_id": "CSCwj73634",
+        "headline": "Full or partial 9800 configuration loss after HA SSO failover",
+        "description": "<B>Symptom:</B>\nBelow 3 key symptoms were observed post occurrence of the issue, however, the bug can cause portions of a configuration to disappear.\n- The controller going back to day 0 config post a switchover to the standby chassis 0. The cause of the switchover is irrelevant.\n- The controller will have its platform independent IOS-XE configuration intact like ip addresses, vlans, aaa configs etc. but will have lost its wireless and telemetry specific configuration\n- Inability to apply any wireless configuration. Doing so gives the below error.\nCountry XX is unsupported. Please configure supported country code\n\n<B>Conditions:</B>\n9800 in HA-SSO\n\n<B>Workaround:</B>\nYou can proactively monitor for one or more of the symptoms below:\n\n1. repm will have high CPU usage: \nshow processes cpu platform | include repm\nPid    PPid    5Sec    1Min    5Min  Status        Size  Name\n--------------------------------------------------------------------------------\n 17795   17785     83%     89%     89%  S           910372  repm\n \n2. Monitor the flap count field of the below command: \nshow platform software replication chassis st R0 peer details\n\n3. Monitor the Standby and Active chassis' running-configs for parity.\n- Active: \"show running-config\"\n- Standby: SSH to the RMI ip address of the standby controller and issue \"show running-config\"\n\nIf you have one or more of the above symptoms, you can do the below to recover:\n\n* Delete the persistent binary config file from both Active and Standby. All commands are issued in the Active WLC:\n\n delete /force /recursive bootflash:.dbpersist/persistent-config.tar.gz\n delete /force /recursive bootflash:.dbpersist/persistent-config.meta\n delete /force /recursive stby-bootflash:.dbpersist/persistent-config.tar.gz\n delete /force /recursive stby-bootflash:.dbpersist/persistent-config.meta\n\n\n* Reload the whole stack(Active and Standby together): reload -> This steps will cause a downtime for a few minutes until the Active controller reloads and comes back.\n\n<B>Further Problem Description:</B>\n",
+        "severity": "1",
+        "status": "F",
+        "behavior_changed": "",
+        "last_modified_date": "2026-11-18",
+        "product": "Cisco 1000 Series Integrated Services Routers,Cisco 4000 Series Integrated Services Routers,Cisco 8000 Series Routers,Cisco 9800 Series Wireless Controllers,Cisco ASR 1000 Series Aggregation Services Routers,Cisco ASR 900 Series Aggregation Services Routers,Cisco ASR 9000 Series Aggregation Services Routers,Cisco Catalyst 8000V Edge Software,Cisco Catalyst 8200 Series Edge Platforms,Cisco Catalyst 8200 Series Edge uCPE,Cisco Catalyst 8300 Series Edge Platforms,Cisco Catalyst 8300 Series Edge Universal CPE,Cisco Catalyst 8500 Series Edge Platforms,Cisco Catalyst 8500L Series Edge Platforms,Cisco Catalyst 9200 Series Switches,Cisco Catalyst 9300 Series Switches,Cisco Catalyst 9400 Series Switches,Cisco Catalyst 9500 Series Switches,Cisco Catalyst 9500H Series Switches,Cisco Catalyst 9600 Series Switches,Cisco Catalyst 9800 Series Wireless Controllers,Cisco Catalyst ESS9300 Embedded Series Switch,Cisco Catalyst IE3200 Rugged Series,Cisco Catalyst IE3300 Rugged Series,Cisco Catalyst IE3400 Heavy Duty Series,Cisco Catalyst IE3400 Rugged Series,Cisco Catalyst IE9300 Rugged Series,Cisco Catalyst IR1100 Rugged Series Routers,Cisco Catalyst IR8100 Heavy Duty Series Routers,Cisco Catalyst IR8300 Rugged Series Router,Cisco ESR6300 Embedded Series Routers,Cisco Embedded Services 3300 Series Switches,Cisco Integrated Services Virtual Router",
+        "known_affected_releases": "17.12.3 17.9.3 17.9.4a 17.9.5",
+        "known_fixed_releases": "17.12.1z4 17.12.1z5 17.12.1z6 17.12.4 17.12.4a 17.12.4b 17.12.5 17.12.5a 17.12.5b 17.12.5c 17.12.5d 17.12.6 17.12.6a 17.12.6b 17.12.7 17.12.7a 17.12.7b 17.12.8 17.15.1 17.15.1a 17.15.1x 17.15.1y 17.15.1z 17.15.2a 17.15.2b 17.15.2c 17.15.3 17.15.3a 17.15.3b 17.15.4 17.15.4a 17.15.4b 17.15.4c 17.15.4d 17.15.4s1 17.15.5 17.15.5a 17.15.6 17.16.1 17.16.1a 17.17.1 17.18.1 17.18.1a 17.18.1w 17.18.1x 17.18.1y 17.18.1z 17.18.2 17.18.3 17.18.3a 17.18.4 17.18.4a 17.18.5 17.18.5x 17.9.10 17.9.6 17.9.6a 17.9.6b 17.9.7 17.9.7a 17.9.7b 17.9.8 17.9.9 Cupertino-17.9.6 Dublin-17.12.4",
+        "support_case_count": "197"
+      }
+    ],
+    "pagination_response_record": {
+      "last_index": 139,
+      "page_index": 1,
+      "page_records": 10,
+      "self_link": "https://apix.cisco.com/bug/v2.0/bugs/products/product_id/C9300-48P/software_releases/17.15.4b?page_index=1&modified_date=5&sort_by=modified_date",
+      "title": "Bug API - Get Bugs by a Base Product Id and Software Releases",
+      "total_records": 1390
+    }
+  }
+}

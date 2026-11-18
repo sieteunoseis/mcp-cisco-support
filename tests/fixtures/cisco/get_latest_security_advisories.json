@@ -1,0 +1,109 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "advisories": [
+      {
+        "advisoryId": "cisco-sa-nov2026-java-rce-eCa6ss9z",
+        "advisoryTitle": "Vulnerability in Oracle OpenJDK (Java4Shell) Affecting Cisco Products: November 2026",
+        "bugIDs": [
+          "NA"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-114938"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z/cvrf/cisco-sa-nov2026-java-rce-eCa6ss9z_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z/csaf/cisco-sa-nov2026-java-rce-eCa6ss9z.json",
+        "cvssBaseScore": "NA",
+        "cwe": [
+          "NA"
+        ],
+        "firstPublished": "2026-11-18T16:00:00",
+        "lastUpdated": "2026-11-18T21:16:38",
+        "status": "Interim",
+        "version": "1.1",
+        "productNames": [
+          "NA"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z",
+        "sir": "High",
+        "summary": "<p>On November 17, 2026, Oracle announced the availability of fixes for a vulnerability in OpenJDK that could lead to remote code execution identified by CVE-2026-114938.</p>\r\n<p>The vulnerability affects OpenJDK Java 17.0.6 and later on x86-64 platforms when processing Base64 encoded content.&nbsp;</p>\r\n<p>For more information, see the <a href=\"https://www.oracle.com/security-alerts/cspunov2026.html\">Oracle Critical Security Patch Update Advisory - November 2026</a> and the <a href=\"https://openjdk.org/groups/vulnerability/advisories/2026-11-17\">OpenJDK Vulnerability Advisory: 2026/11/17</a>.</p>\r\n<p>For additional information, see the Talos blog post: <a href=\"https://blog.talosintelligence.com/java4shell/\">Talos Threat Advisory CVE-2026-114938: Critical vulnerability in OpenJDK JAVA</a></p>\r\n<p>This advisory will be updated as additional information becomes available.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-clamav-multi-e93M3vdA",
+        "advisoryTitle": "ClamAV Vulnerabilities Affecting Cisco Products: November 2026",
+        "bugIDs": [
+          "CSCwv96487",
+          "CSCwv98582",
+          "CSCwv99214"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-76411",
+          "CVE-2026-76414",
+          "CVE-2026-76415"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA/cvrf/cisco-sa-clamav-multi-e93M3vdA_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA/csaf/cisco-sa-clamav-multi-e93M3vdA.json",
+        "cvssBaseScore": "7.5",
+        "cwe": [
+          "CWE-120",
+          "CWE-122",
+          "CWE-124"
+        ],
+        "firstPublished": "2026-11-18T16:00:00",
+        "lastUpdated": "2026-11-18T16:00:00",
+        "status": "Final",
+        "version": "1.0",
+        "productNames": [
+          "Cisco Secure Endpoint ",
+          "Cisco Secure Endpoint 6.0.9",
+          "Cisco Secure Endpoint 6.0.7"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA",
+        "sir": "High",
+        "summary": "<p>Multiple vulnerabilities in ClamAV could allow a remote attacker to bypass configured file and scan time limits and cause a denial of service (DoS) condition, interrupting scanning operations.</p>\r\n<p>For more information about these vulnerabilities, see the&nbsp;<a href=\"#details\">Details</a>&nbsp;section of this advisory.</p>\r\n<p>For additional information on these vulnerabilities in ClamAV, see the&nbsp;<a href=\"https://blog.clamav.net\">ClamAV blog</a>.</p>\r\n<p>Cisco has released software updates that address these vulnerabilities in affected Cisco platforms. There are no workarounds that address these vulnerabilities.</p>\r\n<p><strong>Notes:</strong></p>\r\n<ul>\r\n<li>The Security Impact Rating (SIR) for these vulnerabilities is High only for Windows-based platforms because those platforms run the ClamAV scanning process in a privileged security context. The platforms that are highly impacted include Cisco Secure Endpoint Connector for Windows.</li>\r\n<li>The SIR for these vulnerabilities is Medium on other platforms, including Linux and Mac platforms, because those platforms run the ClamAV scanning process in a lower-privileged security context. The affected platforms include Secure Endpoint Connector for Linux and Mac.</li>\r\n<li>Cisco Secure Endpoint Private Cloud itself is not impacted by these vulnerabilities. Instead, the Cisco Secure Endpoint Connector software is impacted.</li>\r\n</ul>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA\" target=\"_blank\" rel=\"noopener\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA&nbsp;</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-oct2026-node-js-Jj3SQ19u",
+        "advisoryTitle": "Vulnerabilities in Node.js and Brotli Affecting Cisco Products: October 2026",
+        "bugIDs": [
+          "NA"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-105482",
+          "CVE-2026-105483",
+          "CVE-2026-106069"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-oct2026-node-js-Jj3SQ19u/cvrf/cisco-sa-oct2026-node-js-Jj3SQ19u_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-oct2026-node-js-Jj3SQ19u/csaf/cisco-sa-oct2026-node-js-Jj3SQ19u.json",
+        "cvssBaseScore": "7.4",
+        "cwe": [
+          "CWE-252",
+          "CWE-284",
+          "CWE-295"
+        ],
+        "firstPublished": "2026-10-27T21:30:00",
+        "lastUpdated": "2026-11-17T23:53:12",
+        "status": "Interim",
+        "version": "1.14",
+        "productNames": [
+          "Cisco Secure Firewall Adaptive Security Appliance (ASA) Software ",
+          "Cisco NX-OS Software ",
+          "Cisco Identity Services Engine Software "
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-oct2026-node-js-Jj3SQ19u",
+        "sir": "High",
+        "summary": "\r\n<p>On October 21, 2026, Node.js announced the availability of fixes for multiple vulnerabilities across the following supported release lines: 22.x, 24.x, and 26.x.&nbsp;</p>\r\n<p>These vulnerabilities impact critical operations such as the Brotli decoder, DNS resolution, and TLS certificate validation. The vulnerabilities pose risks for remote code execution and traffic interception. For more information, see <a href=\"https://nodejs.org/en/blog/vulnerability/october-2026-security-releases\" target=\"_blank\" rel=\"noopener\">Node.js Security Release</a>.&nbsp;</p>\r\n<p>The following vulnerabilities have a Security Impact Rating (SIR) of High and are addressed in this advisory:&nbsp;</p>\r\n<ul>\r\n<li>CVE-2026-111497 - Brotli decoder out-of-bounds write; potential remote code execution</li>\r\n<li>CVE-2026-105482 - DNS resolution truncation involving embedded NUL characters</li>\r\n<li>CVE-2026-105483 - TLS hostname validation bypass using fullwidth IP digits</li>\r\n<li>CVE-2026-106069 - TLS hostname validation bypass with noncanonical IP addresses</li>\r\n</ul>\r\n<p>For information about Splunk products and offerings, including AppDynamics, see <a href=\"https://advisory.splunk.com/advisories/SVD-2026-1015\">Vulnerabilities in Node.js (CVE-2026-111497, CVE-2026-105482, CVE-2026-105483, CVE-2026-106069) on Splunk Products - October 2026</a></p>\r\n<p>This investigation was expanded to cover Brotli outside of Node.js on October 30, 2026. The Brotli decoder flaw (CVE-2026-111497), which is in the Google Brotli C decoder, is often bundled with or linked to other software, so products beyond Node.js may be affected. For software that may be affected, see&nbsp;<a title=\"https://broccoli2shell.com/\" href=\"https://broccoli2shell.com/\" target=\"_blank\" rel=\"noopener noreferrer nofollow\" data-outlook-id=\"33538e9f-dac8-44dc-a9e3-abc25ad3b5de\">Broccoli2Shell</a>.</p>\r\n<p><strong>Important: </strong>If a product is not listed within this advisory, Cisco's review indicates that the product is not affected by this vulnerability.</p>\r\n<p>This advisory will be updated as additional information becomes available.</p>\r\n\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-oct2026-node-js-Jj3SQ19u\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-oct2026-node-js-Jj3SQ19u</a></p>"
+      }
+    ]
+  }
+}

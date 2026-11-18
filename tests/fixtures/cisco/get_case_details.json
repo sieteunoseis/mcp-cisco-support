@@ -1,0 +1,57 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "caseDetail": {
+      "user_id": "<user_id-1>",
+      "case_id": "<case_id-1>",
+      "title": "<title-3>",
+      "severity": "3",
+      "status": "Closed",
+      "creation_date": "2026-09-04T16:03:52.000Z",
+      "updated_date": "2026-09-15T03:14:43.000Z",
+      "serial_number": "",
+      "contract_id": "<contract_id-1>",
+      "contact_user_id": "<contact_user_id-1>",
+      "preferred_contact_method": "<preferred_contact_method-1>",
+      "contact_email_ids": [
+        "<contact_email_ids-1>"
+      ],
+      "contact_business_phone_numbers": [
+        "<contact_business_phone_numbers-1>"
+      ],
+      "contact_mobile_phone_numbers": [],
+      "owner_name": "<owner_name-1>",
+      "owner_email": "<owner_email-1>",
+      "close_date": "2026-09-14T12:52:11.000Z",
+      "technology_name": "<technology_name-1>",
+      "sub_technology_name": "<sub_technology_name-1>",
+      "tracking_number": "",
+      "problem_code_name": "<problem_code_name-1>",
+      "request_type": "Diagnose and Fix my Problem",
+      "rmas": [],
+      "bugs": [],
+      "notes": [
+        {
+          "note": "",
+          "note_detail": "<note_detail-1>",
+          "created_by": "<created_by-1>",
+          "creation_date": "2026-09-15T03:14:42.000Z"
+        },
+        {
+          "note": "",
+          "note_detail": "<note_detail-2>",
+          "created_by": "<created_by-2>",
+          "creation_date": "2026-09-14T12:52:12.000Z"
+        },
+        {
+          "note": "",
+          "note_detail": "<note_detail-3>",
+          "created_by": "<created_by-3>",
+          "creation_date": "2026-09-14T12:52:08.000Z"
+        }
+      ],
+      "contact_name": "<contact_name-1>"
+    }
+  }
+}

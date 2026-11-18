@@ -1,0 +1,66 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "pagination_response_record": {
+      "last_index": 1,
+      "page_index": 1,
+      "page_records": 4,
+      "self_link": "<self_link>",
+      "title": "<title-5>",
+      "total_records": 4
+    },
+    "cases": [
+      {
+        "item_entry_id": 100002,
+        "user_id": "<user_id-3>",
+        "case_id": "<case_id-3>",
+        "title": "<title-6>",
+        "severity": "3",
+        "contact_name": "<contact_name-3>",
+        "status_flag": "C",
+        "status": "Closed",
+        "creation_date": "2026-09-04T16:03:52.000Z",
+        "updated_date": "2026-09-15T03:14:43.000Z",
+        "serial_number": "",
+        "contract_id": "<contract_id-3>",
+        "rmas": [],
+        "bugs": []
+      },
+      {
+        "item_entry_id": 100003,
+        "user_id": "<user_id-4>",
+        "case_id": "<case_id-4>",
+        "title": "<title-7>",
+        "severity": "3",
+        "contact_name": "<contact_name-4>",
+        "status_flag": "C",
+        "status": "Closed",
+        "creation_date": "2026-09-16T18:16:51.000Z",
+        "updated_date": "2026-10-01T01:10:55.000Z",
+        "serial_number": "<serial_number-1>",
+        "contract_id": "<contract_id-4>",
+        "rmas": [
+          "<rmas-1>"
+        ],
+        "bugs": []
+      },
+      {
+        "item_entry_id": 100004,
+        "user_id": "<user_id-5>",
+        "case_id": "<case_id-5>",
+        "title": "<title-8>",
+        "severity": "4",
+        "contact_name": "<contact_name-5>",
+        "status_flag": "C",
+        "status": "Closed",
+        "creation_date": "2026-09-23T20:17:36.000Z",
+        "updated_date": "2026-10-09T13:49:34.000Z",
+        "serial_number": "<serial_number-2>",
+        "contract_id": "<contract_id-5>",
+        "rmas": [],
+        "bugs": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "advisories": [
+      {
+        "advisoryId": "cisco-sa-ucce-pcce-xss-2JVyg3uD",
+        "advisoryTitle": "Cisco Packaged Contact Center Enterprise and Cisco Unified Contact Center Enterprise Cross-Site Scripting Vulnerabilities",
+        "bugIDs": [
+          "CSCwp27481",
+          "CSCwr61043"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-20055",
+          "CVE-2026-20109"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-ucce-pcce-xss-2JVyg3uD/cvrf/cisco-sa-ucce-pcce-xss-2JVyg3uD_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-ucce-pcce-xss-2JVyg3uD/csaf/cisco-sa-ucce-pcce-xss-2JVyg3uD.json",
+        "cvssBaseScore": "4.8",
+        "cwe": [
+          "CWE-79"
+        ],
+        "firstPublished": "2026-01-21T16:00:00",
+        "lastUpdated": "2026-06-22T15:04:09",
+        "status": "Final",
+        "version": "1.1",
+        "productNames": [
+          "Cisco Unified Contact Center Enterprise ",
+          "Cisco Packaged Contact Center Enterprise 10.5(1)",
+          "Cisco Packaged Contact Center Enterprise 10.5(2)"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ucce-pcce-xss-2JVyg3uD",
+        "sir": "Medium",
+        "summary": "\r\n<p style=\"margin-bottom: 15px;\">Multiple vulnerabilities in the web-based management interface of Cisco Packaged Contact Center Enterprise (Packaged CCE) and Cisco Unified Contact Center Enterprise (Unified CCE) could allow an authenticated, remote attacker to conduct a cross-site scripting (XSS) attack against a user of the web-based management interface of an affected device.&nbsp;</p>\r\n<p style=\"margin-bottom: 15px;\">These vulnerabilities exist because the web-based management interface does not properly validate user-supplied input. An attacker could exploit these vulnerabilities by injecting malicious code into specific pages of the interface. A successful exploit could allow the attacker to execute arbitrary script code in the context of the affected interface or access sensitive, browser-based information. To exploit these vulnerabilities, the attacker must have valid administrative credentials.</p>\r\n\r\n<p style=\"margin-bottom: 15px;\">Cisco has released software updates that address these vulnerabilities. There are no workarounds that address these vulnerabilities.</p>\r\n<p style=\"margin-bottom: 15px;\">This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ucce-pcce-xss-2JVyg3uD\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ucce-pcce-xss-2JVyg3uD</a></p>\r\n\r\n"
+      },
+      {
+        "advisoryId": "cisco-sa-voice-rce-mORhqY4b",
+        "advisoryTitle": "Cisco Unified Communications Products Remote Code Execution Vulnerability",
+        "bugIDs": [
+          "CSCwr21851",
+          "CSCwr29208",
+          "CSCwr29216"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-20045"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-voice-rce-mORhqY4b/cvrf/cisco-sa-voice-rce-mORhqY4b_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-voice-rce-mORhqY4b/csaf/cisco-sa-voice-rce-mORhqY4b.json",
+        "cvssBaseScore": "8.2",
+        "cwe": [
+          "CWE-94"
+        ],
+        "firstPublished": "2026-01-21T16:00:00",
+        "lastUpdated": "2026-02-13T15:21:01",
+        "status": "Final",
+        "version": "1.1",
+        "productNames": [
+          "Cisco Unity Connection ",
+          "Cisco Unified Communications Manager ",
+          "Cisco Unified Communications Manager IM and Presence Service "
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-voice-rce-mORhqY4b",
+        "sir": "Critical",
+        "summary": "\r\n<p>A vulnerability in Cisco Unified Communications Manager (Unified CM), Cisco Unified Communications Manager Session Management Edition (Unified CM SME), Cisco Unified Communications Manager IM &amp; Presence Service (Unified CM IM&amp;P), Cisco Unity Connection, and Cisco Webex Calling Dedicated Instance could allow an unauthenticated, remote attacker to execute arbitrary commands on the underlying operating system of an affected device.&nbsp;</p>\r\n<p>This vulnerability is due to improper validation of user-supplied input in HTTP requests. An attacker could exploit this vulnerability by sending a sequence of crafted HTTP requests to the web-based management interface of an affected device. A successful exploit could allow the attacker to obtain user-level access to the underlying operating system and then elevate privileges to <em>root</em>.&nbsp;</p>\r\n<p><strong>Note:</strong> Cisco has assigned this security advisory a Security Impact Rating (SIR) of Critical rather than High as the score indicates. The reason is that exploitation of this vulnerability could result in an attacker elevating privileges to <em>root</em>.</p>\r\n\r\n<p>Cisco has released software updates that address this vulnerability. There are no workarounds that address this vulnerability.&nbsp;</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-voice-rce-mORhqY4b\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-voice-rce-mORhqY4b</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-snort3-dcerpc-vulns-J9HNF4tH",
+        "advisoryTitle": "Multiple Cisco Products Snort 3 Distributed Computing Environment/Remote Procedure Call Vulnerabilities",
+        "bugIDs": [
+          "CSCwq75339",
+          "CSCwq75359",
+          "CSCwr21376"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-20026",
+          "CVE-2026-20027"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH/cvrf/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH/csaf/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH.json",
+        "cvssBaseScore": "5.8",
+        "cwe": [
+          "CWE-200",
+          "CWE-415"
+        ],
+        "firstPublished": "2026-01-07T16:00:00",
+        "lastUpdated": "2026-02-10T20:42:07",
+        "status": "Final",
+        "version": "1.1",
+        "productNames": [
+          "Cisco Secure Firewall Threat Defense (FTD) Software 7.0.0",
+          "Cisco Secure Firewall Threat Defense (FTD) Software 7.0.0.1",
+          "Cisco Secure Firewall Threat Defense (FTD) Software 7.0.1"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH",
+        "sir": "Medium",
+        "summary": "<p>Multiple Cisco products are affected by vulnerabilities in the processing of Distributed Computing Environment Remote Procedure Call (DCE/RPC) requests that could allow an unauthenticated, remote attacker to cause the Snort 3 Detection Engine to leak sensitive information or to restart, which would result in an interruption of packet inspection.</p>\r\n<p>For more information about these vulnerabilities, see the <a href=\"#details\">Details</a> section of this advisory.</p>\r\n<p>Cisco has released software updates that address these vulnerabilities. There are workarounds that address these vulnerabilities.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-snort3-dcerpc-vulns-J9HNF4tH</a></p>"
+      }
+    ]
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "PaginationResponseRecord": {
+      "PageIndex": 1,
+      "LastIndex": 1,
+      "TotalRecords": 146,
+      "PageRecords": 146
+    },
+    "EOXRecord": [
+      {
+        "EOLProductID": "2911AIRCVTRNEBS-RF",
+        "ProductIDDescription": "Cisco 2911 Front-to-Back Air Flow converter for NEBS use",
+        "ProductBulletinNumber": "RFEOL14566",
+        "LinkToProductBulletinURL": "",
+        "EOXExternalAnnouncementDate": {
+          "value": "2021-11-09",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSaleDate": {
+          "value": "2027-05-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSWMaintenanceReleases": {
+          "value": "",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSecurityVulSupportDate": {
+          "value": "",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfRoutineFailureAnalysisDate": {
+          "value": "",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfServiceContractRenewal": {
+          "value": "2026-08-05",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "LastDateOfSupport": {
+          "value": "2027-05-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSvcAttachDate": {
+          "value": "2023-05-10",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "UpdatedTimeStamp": {
+          "value": "2026-01-21",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EOXMigrationDetails": {
+          "PIDActiveFlag": "Y",
+          "MigrationInformation": "",
+          "MigrationOption": "No Replacement Available",
+          "MigrationProductId": "",
+          "MigrationProductName": "No Replacement Product",
+          "MigrationStrategy": "",
+          "MigrationProductInfoURL": ""
+        },
+        "EOXInputType": "showEoXByDates",
+        "EOXInputValue": "2026-01-01 , 2026-01-31"
+      },
+      {
+        "EOLProductID": "2911AIRCVTRNEBS-WS",
+        "ProductIDDescription": "Cisco 2911 Front-to-Back Air Flow converter for NEBS use",
+        "ProductBulletinNumber": "RFEOL14566",
+        "LinkToProductBulletinURL": "",
+        "EOXExternalAnnouncementDate": {
+          "value": "2021-11-09",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSaleDate": {
+          "value": "2027-05-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSWMaintenanceReleases": {
+          "value": "",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSecurityVulSupportDate": {
+          "value": "",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfRoutineFailureAnalysisDate": {
+          "value": "",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfServiceContractRenewal": {
+          "value": "2026-08-05",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "LastDateOfSupport": {
+          "value": "2027-05-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSvcAttachDate": {
+          "value": "2023-05-10",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "UpdatedTimeStamp": {
+          "value": "2026-01-21",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EOXMigrationDetails": {
+          "PIDActiveFlag": "Y",
+          "MigrationInformation": "",
+          "MigrationOption": "No Replacement Available",
+          "MigrationProductId": "",
+          "MigrationProductName": "No Replacement Product",
+          "MigrationStrategy": "",
+          "MigrationProductInfoURL": ""
+        },
+        "EOXInputType": "showEoXByDates",
+        "EOXInputValue": "2026-01-01 , 2026-01-31"
+      },
+      {
+        "EOLProductID": "ASR1006-X",
+        "ProductIDDescription": "Cisco ASR1006-X Chassis",
+        "ProductBulletinNumber": "EOL15669",
+        "LinkToProductBulletinURL": "https://www.cisco.com/c/en/us/products/collateral/routers/asr-1000-series-aggregation-services-routers/asr1006-x-chassis-eol.html",
+        "EOXExternalAnnouncementDate": {
+          "value": "2026-01-30",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSaleDate": {
+          "value": "2026-07-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSWMaintenanceReleases": {
+          "value": "2027-07-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSecurityVulSupportDate": {
+          "value": "2029-07-30",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfRoutineFailureAnalysisDate": {
+          "value": "2027-07-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfServiceContractRenewal": {
+          "value": "2030-10-26",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "LastDateOfSupport": {
+          "value": "2031-07-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EndOfSvcAttachDate": {
+          "value": "2027-07-31",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "UpdatedTimeStamp": {
+          "value": "2026-01-29",
+          "dateFormat": "YYYY-MM-DD"
+        },
+        "EOXMigrationDetails": {
+          "PIDActiveFlag": "Y",
+          "MigrationInformation": "",
+          "MigrationOption": "See Migration Section",
+          "MigrationProductId": "",
+          "MigrationProductName": "",
+          "MigrationStrategy": "Customers should consider the Cisco 8500 Series Secure Routers.",
+          "MigrationProductInfoURL": ""
+        },
+        "EOXInputType": "showEoXByDates",
+        "EOXInputValue": "2026-01-01 , 2026-01-31"
+      }
+    ]
+  }
+}

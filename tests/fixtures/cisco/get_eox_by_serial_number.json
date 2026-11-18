@@ -1,0 +1,69 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "PaginationResponseRecord": {
+      "PageIndex": 1,
+      "LastIndex": 1,
+      "TotalRecords": 1,
+      "PageRecords": 1
+    },
+    "EOXRecord": [
+      {
+        "EOLProductID": "",
+        "ProductIDDescription": "",
+        "ProductBulletinNumber": "",
+        "LinkToProductBulletinURL": "",
+        "EOXExternalAnnouncementDate": {
+          "value": "",
+          "dateFormat": null
+        },
+        "EndOfSaleDate": {
+          "value": "",
+          "dateFormat": null
+        },
+        "EndOfSWMaintenanceReleases": {
+          "value": "",
+          "dateFormat": null
+        },
+        "EndOfRoutineFailureAnalysisDate": {
+          "value": "",
+          "dateFormat": null
+        },
+        "EndOfServiceContractRenewal": {
+          "value": "",
+          "dateFormat": null
+        },
+        "LastDateOfSupport": {
+          "value": "",
+          "dateFormat": null
+        },
+        "EndOfSvcAttachDate": {
+          "value": "",
+          "dateFormat": null
+        },
+        "UpdatedTimeStamp": {
+          "value": "",
+          "dateFormat": null
+        },
+        "EOXError": {
+          "ErrorID": "<ErrorID-1>",
+          "ErrorDescription": "<ErrorDescription-1>",
+          "ErrorDataType": "<ErrorDataType-1>",
+          "ErrorDataValue": "<ErrorDataValue-1>"
+        },
+        "EOXMigrationDetails": {
+          "PIDActiveFlag": "",
+          "MigrationInformation": "",
+          "MigrationOption": "",
+          "MigrationProductId": "",
+          "MigrationProductName": "",
+          "MigrationStrategy": "",
+          "MigrationProductInfoURL": ""
+        },
+        "EOXInputType": "ShowEOXBySerialNumber",
+        "EOXInputValue": "<EOXInputValue-1>"
+      }
+    ]
+  }
+}

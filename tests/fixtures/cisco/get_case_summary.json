@@ -1,0 +1,27 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "cases": [
+      {
+        "item_entry_id": 100001,
+        "user_id": "<user_id-2>",
+        "case_id": "<case_id-2>",
+        "title": "<title-4>",
+        "severity": "3",
+        "contact_name": "<contact_name-2>",
+        "status_flag": "C",
+        "status": "Closed",
+        "creation_date": "2026-09-04T16:03:52.000Z",
+        "updated_date": "2026-09-15T03:14:43.000Z",
+        "serial_number": "",
+        "contract_id": "<contract_id-2>",
+        "technology_name": "<technology_name-2>",
+        "sub_technology_name": "<sub_technology_name-2>",
+        "rmas": [],
+        "bugs": []
+      }
+    ],
+    "count": 100001
+  }
+}

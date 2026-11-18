@@ -1,0 +1,109 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "pagination_response_record": {
+      "last_index": 1,
+      "page_index": 1,
+      "page_records": 4,
+      "self_link": "<self_link>",
+      "title": "<title-2>",
+      "total_records": 4
+    },
+    "serial_numbers": [
+      {
+        "base_pid_list": [
+          {
+            "base_pid": ""
+          }
+        ],
+        "contract_site_customer_name": "",
+        "contract_site_address1": "",
+        "contract_site_city": "",
+        "contract_site_state_province": "",
+        "contract_site_country": "",
+        "covered_product_line_end_date": "",
+        "id": "<id-3>",
+        "is_covered": "NO",
+        "orderable_pid_list": [
+          {
+            "item_description": "<item_description-1>",
+            "item_position": "<item_position-1>",
+            "item_type": "<item_type-1>",
+            "orderable_pid": "C9300-48P-A",
+            "pillar_code": ""
+          }
+        ],
+        "parent_sr_no": "",
+        "service_contract_number": "",
+        "service_line_descr": "",
+        "sr_no": "<sr_no-6>",
+        "warranty_end_date": "2035-08-13",
+        "warranty_type": "",
+        "warranty_type_description": ""
+      },
+      {
+        "base_pid_list": [
+          {
+            "base_pid": ""
+          }
+        ],
+        "contract_site_customer_name": "",
+        "contract_site_address1": "",
+        "contract_site_city": "",
+        "contract_site_state_province": "",
+        "contract_site_country": "",
+        "covered_product_line_end_date": "",
+        "id": "<id-4>",
+        "is_covered": "NO",
+        "orderable_pid_list": [
+          {
+            "item_description": "<item_description-2>",
+            "item_position": "<item_position-2>",
+            "item_type": "<item_type-2>",
+            "orderable_pid": "C9300-48P-A",
+            "pillar_code": ""
+          }
+        ],
+        "parent_sr_no": "",
+        "service_contract_number": "",
+        "service_line_descr": "",
+        "sr_no": "<sr_no-7>",
+        "warranty_end_date": "2035-08-09",
+        "warranty_type": "",
+        "warranty_type_description": ""
+      },
+      {
+        "base_pid_list": [
+          {
+            "base_pid": ""
+          }
+        ],
+        "contract_site_customer_name": "",
+        "contract_site_address1": "",
+        "contract_site_city": "",
+        "contract_site_state_province": "",
+        "contract_site_country": "",
+        "covered_product_line_end_date": "",
+        "id": "<id-5>",
+        "is_covered": "NO",
+        "orderable_pid_list": [
+          {
+            "item_description": "<item_description-3>",
+            "item_position": "<item_position-3>",
+            "item_type": "<item_type-3>",
+            "orderable_pid": "C9300-48P-A",
+            "pillar_code": ""
+          }
+        ],
+        "parent_sr_no": "",
+        "service_contract_number": "",
+        "service_line_descr": "",
+        "sr_no": "<sr_no-8>",
+        "warranty_end_date": "2035-08-09",
+        "warranty_type": "",
+        "warranty_type_description": ""
+      }
+    ]
+  }
+}

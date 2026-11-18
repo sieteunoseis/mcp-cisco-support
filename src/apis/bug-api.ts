@@ -698,11 +698,11 @@ export class BugApi extends BaseApi {
         break;
         
       case 'search_bugs_by_product_name_affected':
-        endpoint = `/bugs/products/product_name/${encodeURIComponent(processedArgs.product_name)}/affected_releases/${encodeURIComponent(processedArgs.affected_releases)}`;
+        endpoint = `/bugs/product_name/${encodeURIComponent(processedArgs.product_name)}/affected_releases/${encodeURIComponent(processedArgs.affected_releases)}`;
         break;
         
       case 'search_bugs_by_product_name_fixed':
-        endpoint = `/bugs/products/product_name/${encodeURIComponent(processedArgs.product_name)}/fixed_in_releases/${encodeURIComponent(processedArgs.fixed_releases)}`;
+        endpoint = `/bugs/product_name/${encodeURIComponent(processedArgs.product_name)}/fixed_in_releases/${encodeURIComponent(processedArgs.fixed_releases)}`;
         break;
         
       // Enhanced search tools

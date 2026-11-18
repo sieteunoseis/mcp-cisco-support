@@ -1,0 +1,62 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "pagination_response_record": {
+      "last_index": 1,
+      "page_index": 1,
+      "page_records": 2,
+      "self_link": "https://apix.cisco.com/product/v1/information/product_ids/VG224,C9200-24P?page_index=1",
+      "title": "Product Info API - Get Product Information by Product Id(s)",
+      "total_records": 2
+    },
+    "product_list": [
+      {
+        "id": "1",
+        "product_id": "C9200-24P",
+        "product_name": "Cisco Catalyst 9200-24P Switch",
+        "product_type": "SWITCH",
+        "product_series": "Cisco Catalyst 9200 Series Switches",
+        "product_category": "Switches",
+        "product_subcategory": "C9200SERIES",
+        "release_date": "2019-01-18",
+        "orderable_status": "",
+        "dimensions": {
+          "dimensions_format": "",
+          "dimensions_value": ""
+        },
+        "weight": "",
+        "form_factor": "",
+        "product_support_page": "",
+        "visio_stencil_url": "",
+        "rich_media_urls": {
+          "small_image_url": "",
+          "large_image_url": ""
+        }
+      },
+      {
+        "id": "2",
+        "product_id": "VG224",
+        "product_name": "Cisco VG224 Analog Voice Gateway",
+        "product_type": "GATEWAY",
+        "product_series": "Cisco VG Series Gateways",
+        "product_category": "Unified Communications",
+        "product_subcategory": "VG224SER1",
+        "release_date": "2003-11-18",
+        "orderable_status": "O",
+        "dimensions": {
+          "dimensions_format": "",
+          "dimensions_value": ""
+        },
+        "weight": "",
+        "form_factor": "",
+        "product_support_page": "http://www.cisco.com/content/en/us/support/unified-communications/vg224-analog-voice-gateway/model.html",
+        "visio_stencil_url": "http://www.cisco.com/content/dam/assets/prod/visio/visio/product_visio_icon0900aecd800fcd3b.zip",
+        "rich_media_urls": {
+          "small_image_url": "",
+          "large_image_url": ""
+        }
+      }
+    ]
+  }
+}

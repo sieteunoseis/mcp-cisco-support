@@ -1,0 +1,66 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "pagination_response_record": {
+      "last_index": 1,
+      "page_index": 1,
+      "page_records": 2,
+      "self_link": "<self_link>",
+      "title": "<title-1>",
+      "total_records": 2
+    },
+    "product_list": [
+      {
+        "id": "<id-1>",
+        "sr_no": "<sr_no-1>",
+        "base_pid": "C9300-48P-A",
+        "orderable_pid": "C9300-48P-A",
+        "product_name": "<product_name-1>",
+        "product_type": "<product_type-1>",
+        "product_series": "<product_series-1>",
+        "product_category": "<product_category-1>",
+        "product_subcategory": "<product_subcategory-1>",
+        "release_date": "2017-05-31",
+        "orderable_status": "",
+        "dimensions": {
+          "dimensions_format": "",
+          "dimensions_value": ""
+        },
+        "weight": "",
+        "form_factor": "",
+        "product_support_page": "",
+        "visio_stencil_url": "",
+        "rich_media_urls": {
+          "small_image_url": "",
+          "large_image_url": ""
+        }
+      },
+      {
+        "id": "<id-2>",
+        "sr_no": "<sr_no-2>",
+        "base_pid": "C9300-48P-A",
+        "orderable_pid": "C9300-48P-A",
+        "product_name": "<product_name-2>",
+        "product_type": "<product_type-2>",
+        "product_series": "<product_series-2>",
+        "product_category": "<product_category-2>",
+        "product_subcategory": "<product_subcategory-2>",
+        "release_date": "2017-05-31",
+        "orderable_status": "",
+        "dimensions": {
+          "dimensions_format": "",
+          "dimensions_value": ""
+        },
+        "weight": "",
+        "form_factor": "",
+        "product_support_page": "",
+        "visio_stencil_url": "",
+        "rich_media_urls": {
+          "small_image_url": "",
+          "large_image_url": ""
+        }
+      }
+    ]
+  }
+}

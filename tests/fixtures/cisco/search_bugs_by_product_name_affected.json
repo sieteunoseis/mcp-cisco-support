@@ -1,0 +1,61 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "bugs": [
+      {
+        "id": "1",
+        "product_name": "Cisco Unified Communications Manager (CallManager)",
+        "bug_id": "CSCvg09774",
+        "headline": "Enhancement Request: VOS Applications to Support Custom Destination Ports for Remote Syslog",
+        "description": "<B>Symptom:</B>\nToday, VOS based applications like CUCM,CUC,IM&P allow an admin to configure remote syslog destination IP. However, the port number can either be 514, or 601, or 6514 where remote syslog servers would be listening. This is an enhancement request to allow an admin to define the destination port for remote syslog traffic. This feature is available in many of our products and applications such as CMS,VCS/Expressway,CIMC,IOS,etc. and can be used to segregate the traffic and map unique ports to each application for ease of management on the 3rd party syslog server.\n\nFor VOS, remote syslog protocol selection is supported; however, the destination ports are fixed to the supported protocol/port combinations please check below:\nUDP: port 514 (default)\nTCP: port 601\nTLS: port 6514\n\nThe CLI command below changes the protocol only; it does not provide an option to define a custom destination port:\nutils remotesyslog set protocol udp\nutils remotesyslog set protocol tcp\nutils remotesyslog set protocol tls\n\nNote: I tested these commands on CUCM, CUIC, Finesse, VVB version 15.0(1)\n\n<B>Conditions:</B>\nThis is applicable when admin wants to change the default destination port to a custom port for remote syslog.\n\n<B>Workaround:</B>\nNone\n\n<B>Further Problem Description:</B>\nNA\n",
+        "severity": "6",
+        "status": "T",
+        "behavior_changed": "",
+        "last_modified_date": "2026-11-10",
+        "product": "Cisco Unified Communications Manager (CallManager)",
+        "known_affected_releases": "11.5(1.10000.6) 12.0(1.10000.10) 12.5(1) 12.6(1.10001.2) 12.6(2.10000.161) 15.0(1.10300.248)",
+        "known_fixed_releases": "",
+        "support_case_count": "2"
+      },
+      {
+        "id": "2",
+        "product_name": "Cisco Unified Communications Manager (CallManager)",
+        "bug_id": "CSCvu03658",
+        "headline": "A consecutive UCM upgrade without switch-version requires system reboot before starting new upgrade",
+        "description": "<B>Symptom:</B>\nA consecutive UCM upgrade without switch-version requires system reboot before starting new upgrade\n\n<B>Conditions:</B>\nCUCM Version: Seen in 12.5(1), 14.0(1) and 15.0(1)\n\nSteps:\n\n1) First upgrade : 12.5.1.12900-9  to 12.5.1.12900-112. (Installation Passed)\n2) No switch-version\n3) Second Upgrade: 12.5.1.12900-112 to 12.5.1.12900-113. (Installation failed)\n\nThis is the issue where cucm cluster went through some upgrade  with out switch version, then if you try one more upgrade for the whole cluster starting from publisher, and it failed with the following error:\n01/22/2020 09:35:16 platform_post_install|File:/etc/opt/cisco/install/setup/setup_java_api.sh:45, Function: setup_java_api(), No source API jar files found|<LVL::Error>\n01/22/2020 09:35:16 upgrade_manager.sh|File:/common/download/12.5.1.12900-113/upgrade_manager.sh:2712, Function: main(), Platform upgrade failed|<LVL::Error>\n\n<B>Workaround:</B>\nRestart (utils system switch-version) the nodes that failed/passed the Upgrade and didn't switch-version before starting a new upgrade.\n\n<B>Further Problem Description:</B>\n",
+        "severity": "6",
+        "status": "O",
+        "behavior_changed": "",
+        "last_modified_date": "2026-11-01",
+        "product": "Cisco Unified Communications Manager (CallManager)",
+        "known_affected_releases": "12.5(1) 12.5(1.12900.115) 12.5(1.12900.9) 14.0 15.0",
+        "known_fixed_releases": "",
+        "support_case_count": "140"
+      },
+      {
+        "id": "3",
+        "product_name": "Cisco Unified Communications Manager (CallManager)",
+        "bug_id": "CSCvm00732",
+        "headline": "CAXL client enhancement to randomize login post failover",
+        "description": "<B>Symptom:</B>\nWhen connectivity to home node fails all clients will try to reconnect to a different node at the same time.\n\n<B>Conditions:</B>\nConnectivity to home node fails\n\n<B>Workaround:</B>\nNo workarounds\n\n<B>Further Problem Description:</B>\nIf all clients try to connect to a different node at the same time load on that server will suddenly increase\n",
+        "severity": "6",
+        "status": "F",
+        "behavior_changed": "",
+        "last_modified_date": "2026-10-19",
+        "product": "Cisco Unified Communications Manager (CallManager),Cisco Unified Communications Manager IM & Presence Service",
+        "known_affected_releases": "12.5(1)",
+        "known_fixed_releases": "",
+        "support_case_count": "0"
+      }
+    ],
+    "pagination_response_record": {
+      "last_index": 13,
+      "page_index": 1,
+      "page_records": 10,
+      "self_link": "https://apix.cisco.com/bug/v2.0/bugs/product_name/Cisco Unified Communications Manager (CallManager)/affected_releases/12.5(1)?page_index=1&modified_date=5&sort_by=modified_date",
+      "title": "Bug API - Get Bugs by Product Name and Affected Software Releases",
+      "total_records": 126
+    }
+  }
+}

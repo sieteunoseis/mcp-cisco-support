@@ -1,0 +1,55 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "paginationResponseRecord": {
+      "pageIndex": "1",
+      "lastIndex": "1",
+      "totalRecords": "1",
+      "pageRecords": "1",
+      "selfLink": "https://api.cisco.com/software/suggestion/v2/suggestions/releases/productIds/C9300-48P",
+      "title": "Software Suggestions"
+    },
+    "productList": [
+      {
+        "id": "1",
+        "product": {
+          "basePID": "C9300-48P",
+          "mdfId": "286315874",
+          "productName": "Catalyst 9300 Switch",
+          "softwareType": "IOS XE Software"
+        },
+        "suggestions": [
+          {
+            "id": "1",
+            "isSuggested": "Y",
+            "releaseFormat1": "17.18.4",
+            "releaseFormat2": "17.18.4",
+            "releaseDate": "05-Aug-2026",
+            "majorRelease": "17",
+            "releaseTrain": "17.18",
+            "releaseLifeCycle": "MD",
+            "relDispName": "IOSXE-17.18.4",
+            "trainDispName": "IOSXE-17.18",
+            "errorDetailsResponse": null
+          },
+          {
+            "id": "2",
+            "isSuggested": "Y",
+            "releaseFormat1": "17.15.6",
+            "releaseFormat2": "17.15.6",
+            "releaseDate": "05-Aug-2026",
+            "majorRelease": "17",
+            "releaseTrain": "17.15",
+            "releaseLifeCycle": "MD",
+            "relDispName": "IOSXE-17.15.6",
+            "trainDispName": "IOSXE-17.15",
+            "errorDetailsResponse": null
+          }
+        ]
+      }
+    ],
+    "status": "Success",
+    "errorDetailsResponse": null
+  }
+}

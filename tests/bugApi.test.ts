@@ -265,7 +265,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/affected_releases/12.5');
+        expect(url).toContain('/bugs/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/affected_releases/12.5');
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -289,7 +289,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        expect(url).toContain('/bugs/products/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/fixed_in_releases/12.5');
+        expect(url).toContain('/bugs/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/fixed_in_releases/12.5');
         return Promise.resolve({
           ok: true,
           status: 200,

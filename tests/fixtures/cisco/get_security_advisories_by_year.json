@@ -1,0 +1,105 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "advisories": [
+      {
+        "advisoryId": "cisco-sa-clamav-multi-e93M3vdA",
+        "advisoryTitle": "ClamAV Vulnerabilities Affecting Cisco Products: November 2026",
+        "bugIDs": [
+          "CSCwv96487",
+          "CSCwv98582",
+          "CSCwv99214"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-76411",
+          "CVE-2026-76414",
+          "CVE-2026-76415"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA/cvrf/cisco-sa-clamav-multi-e93M3vdA_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA/csaf/cisco-sa-clamav-multi-e93M3vdA.json",
+        "cvssBaseScore": "7.5",
+        "cwe": [
+          "CWE-120",
+          "CWE-122",
+          "CWE-124"
+        ],
+        "firstPublished": "2026-11-18T16:00:00",
+        "lastUpdated": "2026-11-18T16:00:00",
+        "status": "Final",
+        "version": "1.0",
+        "productNames": [
+          "Cisco Secure Endpoint ",
+          "Cisco Secure Endpoint 6.0.9",
+          "Cisco Secure Endpoint 6.0.7"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA",
+        "sir": "High",
+        "summary": "<p>Multiple vulnerabilities in ClamAV could allow a remote attacker to bypass configured file and scan time limits and cause a denial of service (DoS) condition, interrupting scanning operations.</p>\r\n<p>For more information about these vulnerabilities, see the&nbsp;<a href=\"#details\">Details</a>&nbsp;section of this advisory.</p>\r\n<p>For additional information on these vulnerabilities in ClamAV, see the&nbsp;<a href=\"https://blog.clamav.net\">ClamAV blog</a>.</p>\r\n<p>Cisco has released software updates that address these vulnerabilities in affected Cisco platforms. There are no workarounds that address these vulnerabilities.</p>\r\n<p><strong>Notes:</strong></p>\r\n<ul>\r\n<li>The Security Impact Rating (SIR) for these vulnerabilities is High only for Windows-based platforms because those platforms run the ClamAV scanning process in a privileged security context. The platforms that are highly impacted include Cisco Secure Endpoint Connector for Windows.</li>\r\n<li>The SIR for these vulnerabilities is Medium on other platforms, including Linux and Mac platforms, because those platforms run the ClamAV scanning process in a lower-privileged security context. The affected platforms include Secure Endpoint Connector for Linux and Mac.</li>\r\n<li>Cisco Secure Endpoint Private Cloud itself is not impacted by these vulnerabilities. Instead, the Cisco Secure Endpoint Connector software is impacted.</li>\r\n</ul>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA\" target=\"_blank\" rel=\"noopener\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-multi-e93M3vdA&nbsp;</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-nov2026-java-rce-eCa6ss9z",
+        "advisoryTitle": "Vulnerability in Oracle OpenJDK (Java4Shell) Affecting Cisco Products: November 2026",
+        "bugIDs": [
+          "NA"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-114938"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z/cvrf/cisco-sa-nov2026-java-rce-eCa6ss9z_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z/csaf/cisco-sa-nov2026-java-rce-eCa6ss9z.json",
+        "cvssBaseScore": "NA",
+        "cwe": [
+          "NA"
+        ],
+        "firstPublished": "2026-11-18T16:00:00",
+        "lastUpdated": "2026-11-18T21:16:38",
+        "status": "Interim",
+        "version": "1.1",
+        "productNames": [
+          "NA"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z",
+        "sir": "High",
+        "summary": "<p>On November 17, 2026, Oracle announced the availability of fixes for a vulnerability in OpenJDK that could lead to remote code execution identified by CVE-2026-114938.</p>\r\n<p>The vulnerability affects OpenJDK Java 17.0.6 and later on x86-64 platforms when processing Base64 encoded content.&nbsp;</p>\r\n<p>For more information, see the <a href=\"https://www.oracle.com/security-alerts/cspunov2026.html\">Oracle Critical Security Patch Update Advisory - November 2026</a> and the <a href=\"https://openjdk.org/groups/vulnerability/advisories/2026-11-17\">OpenJDK Vulnerability Advisory: 2026/11/17</a>.</p>\r\n<p>For additional information, see the Talos blog post: <a href=\"https://blog.talosintelligence.com/java4shell/\">Talos Threat Advisory CVE-2026-114938: Critical vulnerability in OpenJDK JAVA</a></p>\r\n<p>This advisory will be updated as additional information becomes available.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-nov2026-java-rce-eCa6ss9z</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-cucm-xss-5mQn2U5z",
+        "advisoryTitle": "Cisco Unified Communications Manager Cross-Site Scripting Vulnerability",
+        "bugIDs": [
+          "CSCwv01048"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-76419"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-cucm-xss-5mQn2U5z/cvrf/cisco-sa-cucm-xss-5mQn2U5z_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-cucm-xss-5mQn2U5z/csaf/cisco-sa-cucm-xss-5mQn2U5z.json",
+        "cvssBaseScore": "6.1",
+        "cwe": [
+          "CWE-79"
+        ],
+        "firstPublished": "2026-11-04T16:00:00",
+        "lastUpdated": "2026-11-04T16:00:00",
+        "status": "Final",
+        "version": "1.0",
+        "productNames": [
+          "Cisco Unified Communications Manager ",
+          "Cisco Unified Communications Manager 14",
+          "Cisco Unified Communications Manager 15"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cucm-xss-5mQn2U5z",
+        "sir": "Medium",
+        "summary": "\r\n<p>A vulnerability in the web-based management interface of Cisco Unified Communications Manager (Unified CM) and Cisco Unified Communications Manager Session Management Edition (Unified CM SME) could allow an unauthenticated, remote attacker to conduct a cross-site scripting (XSS) attack against a user of the interface.</p>\r\n<p>This vulnerability exists because the web-based management interface does not properly validate user-supplied input. An attacker could exploit this vulnerability by persuading a user of the interface to click a crafted link. A successful exploit could allow the attacker to execute arbitrary script code in the context of the affected interface or access sensitive, browser-based information.</p>\r\n\r\n<p>Cisco has released software updates that address this vulnerability. There are no workarounds that address this vulnerability.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cucm-xss-5mQn2U5z\" target=\"_blank\" rel=\"noopener\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cucm-xss-5mQn2U5z</a></p>"
+      }
+    ]
+  }
+}

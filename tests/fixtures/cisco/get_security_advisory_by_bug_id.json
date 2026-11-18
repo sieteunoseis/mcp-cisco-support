@@ -1,0 +1,41 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "advisories": [
+      {
+        "advisoryId": "cisco-sa-iosxe-webui-privesc-j22SaA4z",
+        "advisoryTitle": "Multiple Vulnerabilities in Cisco IOS XE Software Web UI Feature",
+        "bugIDs": [
+          "CSCwh87343"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2023-20198",
+          "CVE-2023-20273"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-iosxe-webui-privesc-j22SaA4z/cvrf/cisco-sa-iosxe-webui-privesc-j22SaA4z_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-iosxe-webui-privesc-j22SaA4z/csaf/cisco-sa-iosxe-webui-privesc-j22SaA4z.json",
+        "cvssBaseScore": "10.0",
+        "cwe": [
+          "CWE-420",
+          "CWE-78"
+        ],
+        "firstPublished": "2023-10-16T15:00:00",
+        "lastUpdated": "2023-11-01T15:44:28",
+        "status": "Final",
+        "version": "2.6",
+        "productNames": [
+          "Cisco IOS XE Software 16.1.1",
+          "Cisco IOS XE Software 16.1.2",
+          "Cisco IOS XE Software 16.1.3"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-webui-privesc-j22SaA4z",
+        "sir": "Critical",
+        "summary": "\r\n<p>Cisco is providing an update for the ongoing investigation into observed exploitation of the web UI feature in Cisco IOS XE Software. We are updating the list of fixed releases and adding the Software Checker.</p>\r\n<p>Fix information can be found in the <a href=\"#fs\">Fixed Software</a> section of this advisory.</p>\r\n<p>Our investigation has determined that the actors exploited two previously unknown issues.</p>\r\n<p>The attacker first exploited CVE-2023-20198 to gain initial access and issued a privilege 15 command to create a local user and password combination. This allowed the user to log in with normal user access.</p>\r\n<p>The attacker then exploited another component of the web UI feature, leveraging the new local user to elevate privilege to <em>root</em> and write the implant to the file system. Cisco has assigned CVE-2023-20273 to this issue.</p>\r\n<ul>\r\n<li><strong>CVE-2023-20198</strong> has been assigned a CVSS Score of 10.0.</li>\r\n<li><strong>CVE-2023-20273</strong> has been assigned a CVSS Score of 7.2.</li>\r\n</ul>\r\n<p>Both of these CVEs are being tracked by <a href=\"https://bst.cloudapps.cisco.com/bugsearch/bug/CSCwh87343\">CSCwh87343</a>.</p>\r\n<p>For steps to close the attack vector for these vulnerabilities, see the <a href=\"#REC\" rel=\"nofollow\">Recommendations</a> section of this advisory.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-webui-privesc-j22SaA4z\" rel=\"nofollow\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-webui-privesc-j22SaA4z</a></p>\r\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "serial_numbers": [
+      {
+        "sr_no": "<sr_no-3>",
+        "is_covered": "NO",
+        "coverage_end_date": ""
+      },
+      {
+        "sr_no": "<sr_no-4>",
+        "is_covered": "NO",
+        "coverage_end_date": ""
+      },
+      {
+        "sr_no": "<sr_no-5>",
+        "is_covered": "NO",
+        "coverage_end_date": ""
+      }
+    ]
+  }
+}

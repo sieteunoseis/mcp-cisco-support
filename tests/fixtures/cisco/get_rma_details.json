@@ -1,0 +1,154 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3; customer data replaced with placeholders",
+  "status": 200,
+  "body": {
+    "APIPagination": {
+      "pageIndex": "1",
+      "lastIndex": "1",
+      "totalRecords": "1",
+      "pageRecords": "1",
+      "title": "<title-9>",
+      "selfLink": "<self_link>"
+    },
+    "returns": {
+      "RmaRecord": [
+        {
+          "rmaNo": 100001,
+          "status": "Booked",
+          "orderDate": "2026-10-07T17:53:38.000Z",
+          "caseId": "<caseId-1>",
+          "requestedShipDate": "2026-10-08T22:00:00.000Z",
+          "originator": "<originator-1>",
+          "allowPartialShipment": "",
+          "failureClass": "Operational Failure",
+          "failureCode": "HW Fail - Boot Up",
+          "contractId": "<contractId-1>",
+          "serviceLevel": "Advance Replacement - Next Business Day",
+          "deliveryType": "",
+          "plannedDeliveryReason": "",
+          "plannedDeliveryWindow": "",
+          "plannedDeliveryDate": "2026-10-09T00:00:00.000Z",
+          "customerRefInfo": {
+            "customerPONumber": "",
+            "origSalesOrderNumber": "<origSalesOrderNumber-1>",
+            "customerRefNumber": "",
+            "customerProvidedSN": ""
+          },
+          "shipToInfo": {
+            "customerName": "<customerName-1>",
+            "address1": "<address1-1>",
+            "address2": "",
+            "address3": "",
+            "address4": "",
+            "city": "<city-1>",
+            "state": "<state-1>",
+            "country": "<country-1>",
+            "postalCode": "<postalCode-1>",
+            "stateProv": "<stateProv-1>",
+            "siteUseId": "<siteUseId-1>",
+            "ackUserId": "<ackUserId-1>",
+            "ackPhone": "<ackPhone-1>",
+            "ackEmail": "<ackEmail-1>",
+            "ackName": "<ackName-1>",
+            "shipToContactName": "<shipToContactName-1>",
+            "shipToContactPhone": "<shipToContactPhone-1>",
+            "shipToContactEmail": "<shipToContactEmail-1>"
+          },
+          "billToInfo": {
+            "customerName": "<customerName-2>",
+            "address1": "<address1-2>",
+            "address2": "<address2-1>",
+            "address3": "",
+            "address4": "",
+            "city": "<city-2>",
+            "state": "",
+            "country": "<country-2>",
+            "postalCode": "<postalCode-2>",
+            "stateProv": "<stateProv-2>",
+            "siteUseId": "<siteUseId-2>"
+          },
+          "replacementParts": {
+            "partsLineDetails": [
+              {
+                "partsLineRef": "<partsLineRef-1>",
+                "partsLineStatus": "Closed",
+                "partsTransactionType": "<partsTransactionType-1>",
+                "shippedPartNo": "<shippedPartNo-1>",
+                "partsDescription": "<partsDescription-1>",
+                "partsQtyAuth": "<partsQtyAuth-1>",
+                "partsScheduledShipTime": "<partsScheduledShipTime-1>",
+                "partsqtyShipped": "<partsqtyShipped-1>",
+                "partsShipDate": "2026-10-07T22:50:02.000Z",
+                "partsShipmentWarehouse": "<partsShipmentWarehouse-1>",
+                "partsDispatchStatus": "DISPATCHED",
+                "shippedSerialID": "<shippedSerialID-1>",
+                "plannedDeliveryDate": "2026-10-09T00:00:00.000Z",
+                "partsRequestShipDate": "2026-10-09T00:00:00.000Z",
+                "partsPromiseDate": "2026-10-08T22:00:00.000Z",
+                "trackingInfo": [
+                  {
+                    "trackingNumber": "<trackingNumber-1>",
+                    "courierList": "<courierList-1>",
+                    "shipDate": "2026-10-07T22:50:02.000Z",
+                    "receivedBy": "<receivedBy-1>",
+                    "receivedDate": "2026-10-08T18:27:00.000Z",
+                    "eta": "<eta-1>",
+                    "trackingUrl": "<trackingUrl-1>"
+                  }
+                ]
+              }
+            ]
+          },
+          "returnLines": {
+            "returnParts": [
+              {
+                "returnLineRef": "<returnLineRef-1>",
+                "returnLineStatus": "Overdue",
+                "returnTransactionType": "<returnTransactionType-1>",
+                "receivedPartNo": "<receivedPartNo-1>",
+                "returnDescription": "<returnDescription-1>",
+                "returnQtyAuth": "<returnQtyAuth-1>",
+                "returnToCiscoBy": "<returnToCiscoBy-1>",
+                "reqturnQtyReceived": "",
+                "returnDateReceived": "",
+                "returnWarehouse": "<returnWarehouse-1>",
+                "receivedSerialNumber": "",
+                "pickupRequestedDate": "",
+                "pickupScheduledDate": "",
+                "pickupDeliveredDate": "",
+                "deliveryPodMadeDate": "",
+                "pickupRequestSentDate": "",
+                "receivedDateAtCisco": ""
+              }
+            ]
+          },
+          "laborDetails": {
+            "fieldEngineerName": "",
+            "fieldEngineerPhone": "",
+            "fieldEngineerOnRouteTime": "",
+            "fieldEngineerArrivedTime": "",
+            "fieldEngineerReleasedTime": "",
+            "laborLines": [
+              {
+                "laborTaskNumber": "",
+                "laborStatus": "",
+                "primaryProductFamily": "",
+                "laborScheduledTime": "",
+                "laborDispatch": "",
+                "laborDispatchOrCancellationNotes": ""
+              }
+            ]
+          },
+          "notes": {
+            "addlComments": "",
+            "failureDescription": "<failureDescription-1>",
+            "fieldEngineerInstructions": "",
+            "partDeliveryInstructions": "",
+            "partialShipmentNote": "<partialShipmentNote-1>",
+            "specialInstructions": ""
+          }
+        }
+      ]
+    }
+  }
+}
