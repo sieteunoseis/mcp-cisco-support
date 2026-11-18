@@ -27,9 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retry with backoff when Cisco rate-limits (403 "Developer Over Qps").
 - Recorded Cisco API responses in `tests/fixtures/cisco` and a fixture-driven test suite, plus protocol-level tests (SDK client over an in-memory transport).
 - Cancellation: a cancelled tool call aborts its Cisco requests and any rate-limit backoff.
+- MCP Apps (`io.modelcontextprotocol/ui`, spec 2026-01-26): for clients that advertise the extension, `bug_get`, `bug_search`, `psirt_get`, `psirt_search`, `device_lookup` and `assess_upgrade` link to `ui://mcp-cisco-support/results.html`, a self-contained view with sortable tables, severity filters, Cisco links and next-page loading; those results also carry `structuredContent`. Other clients get the same text output as before.
 
 ### Removed
 - Smart Bonding API (untested, write operations).
+- Legacy HTTP+SSE transport (`/sse`, `/messages`); use Streamable HTTP at `/mcp`.
 - Sampling "AI" tools (two sent placeholder data instead of Cisco data), `smart_search_strategy`, `progressive_bug_search`, `comprehensive_analysis`, `product_name_resolver`, the web-search helper, and the `enhanced_analysis`/`sampling`/`smart_bonding` modes.
 - `search_rmas_by_serial` (the Return API has no serial endpoint) and `get_coverage_summary_by_instance`.
 - Product autocomplete resource (scraped bst.cloudapps.cisco.com with a browser cookie, `CISCO_WEB_COOKIE`) and the "recent bugs" resources (keyword searches for "cisco"/"bug").

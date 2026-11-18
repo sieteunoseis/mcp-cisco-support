@@ -26,6 +26,7 @@ import {
   getEnabledAPIs,
 } from "./apis/index.js";
 import { encodeResult } from "./utils/gcf.js";
+import { UI_EXTENSION_ID, UI_MIME_TYPE, RESULTS_APP_URI, RESULTS_APP_HTML, UI_TOOLS } from "./ui/results-app.js";
 import { setLogging, logger } from "./utils/logger.js";
 import { SERVER_ICON } from "./utils/icon.js";
 import { registerProgressContext } from "./utils/progress.js";
@@ -246,6 +247,12 @@ export function createMCPServer(): Server {
   ENABLED_APIS = getEnabledAPIs(); // Refresh enabled APIs list
   const apiRegistry = createApiRegistry(server);
 
+  // MCP Apps: only clients that advertise the UI extension get UI links and structuredContent
+  const clientSupportsUi = (): boolean => {
+    const ext = (server.getClientCapabilities() as any)?.extensions?.[UI_EXTENSION_ID];
+    return Array.isArray(ext?.mimeTypes) && ext.mimeTypes.includes(UI_MIME_TYPE);
+  };
+
   // Ping handler
   server.setRequestHandler(PingRequestSchema, async () => {
     logger.info("Ping request received");
@@ -254,8 +261,14 @@ export function createMCPServer(): Server {
 
   // List tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const tools = apiRegistry.getAvailableTools();
+    if (!clientSupportsUi()) return { tools };
     return {
-      tools: apiRegistry.getAvailableTools(),
+      tools: tools.map((tool) =>
+        UI_TOOLS.includes(tool.name)
+          ? { ...tool, _meta: { ...tool._meta, ui: { resourceUri: RESULTS_APP_URI } } }
+          : tool,
+      ),
     };
   });
 
@@ -301,6 +314,8 @@ export function createMCPServer(): Server {
 
       return {
         content: [content],
+        // The results view renders structuredContent; plain clients only get the text
+        ...(clientSupportsUi() && UI_TOOLS.includes(name) ? { structuredContent: result } : {}),
         isError: false,
       };
     } catch (error) {
@@ -457,6 +472,12 @@ export function createMCPServer(): Server {
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const { uri } = request.params;
     logger.info("Read resource request", { uri });
+
+    if (uri === RESULTS_APP_URI) {
+      return {
+        contents: [{ uri, mimeType: UI_MIME_TYPE, text: RESULTS_APP_HTML, _meta: { ui: { prefersBorder: true } } }],
+      };
+    }
 
     let tool: string | undefined;
     let args: Record<string, any> = {};

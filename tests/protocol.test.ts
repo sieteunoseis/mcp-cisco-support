@@ -27,10 +27,12 @@ async function readJson(client: Client, uri: string): Promise<any> {
   return JSON.parse((contents[0] as { text: string }).text);
 }
 
-async function connect(supportApi: string) {
+async function connect(supportApi: string, options: { ui?: boolean } = {}) {
   process.env.SUPPORT_API = supportApi;
   const server = createMCPServer();
-  const client = new Client({ name: 'test', version: '1.0.0' });
+  const client = new Client({ name: 'test', version: '1.0.0' }, options.ui ? {
+    capabilities: { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: ['text/html;profile=mcp-app'] } } } as any,
+  } : undefined);
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
   return { client, server };
@@ -134,5 +136,37 @@ describe('resources', () => {
     const { client } = await connect('bug');
     await expect(client.readResource({ uri: 'cisco://products/autocomplete/9300' })).rejects.toMatchObject({ code: -32602 });
     await expect(client.readResource({ uri: 'cisco://bugs/recent/critical' })).rejects.toMatchObject({ code: -32602 });
+  });
+});
+
+describe('MCP Apps (io.modelcontextprotocol/ui)', () => {
+  test('plain clients get no UI metadata and no structuredContent', async () => {
+    const { client } = await connect('bug');
+    const { tools } = await client.listTools();
+    expect(tools.some(t => (t._meta as any)?.ui)).toBe(false);
+    const r: any = await client.callTool({ name: 'bug_get', arguments: { bug_ids: 'CSCwh87343' } });
+    expect(r.structuredContent).toBeUndefined();
+  });
+
+  test('UI clients get resourceUri on result tools and structuredContent', async () => {
+    const { client } = await connect('all', { ui: true });
+    const { tools } = await client.listTools();
+    const withUi = tools.filter(t => (t._meta as any)?.ui?.resourceUri === 'ui://mcp-cisco-support/results.html').map(t => t.name).sort();
+    expect(withUi).toEqual(['assess_upgrade', 'bug_get', 'bug_search', 'device_lookup', 'psirt_get', 'psirt_search']);
+
+    const r: any = await client.callTool({ name: 'bug_get', arguments: { bug_ids: 'CSCwh87343' } });
+    expect(r.structuredContent.bugs[0].bug_id).toBe('CSCwh87343');
+    expect(r.content[0].text).toContain('CSCwh87343'); // text fallback stays
+  });
+
+  test('the view resource is a self-contained MCP App document', async () => {
+    const { client } = await connect('bug', { ui: true });
+    const { contents } = await client.readResource({ uri: 'ui://mcp-cisco-support/results.html' });
+    const item = contents[0] as { mimeType: string; text: string; _meta?: any };
+    expect(item.mimeType).toBe('text/html;profile=mcp-app');
+    expect(item.text).toMatch(/^<!doctype html>/i);
+    expect(item.text).toContain('ui/initialize');
+    // no external scripts, styles or fetches (default CSP blocks them anyway)
+    expect(item.text).not.toMatch(/<script[^>]+src=|<link[^>]+href=|fetch\(/);
   });
 });
