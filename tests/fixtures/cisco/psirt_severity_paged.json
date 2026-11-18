@@ -1,0 +1,109 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "advisories": [
+      {
+        "advisoryId": "cisco-sa-hardening-meraki-os-drbEX9GH",
+        "advisoryTitle": "Cisco Meraki Security Hardening Release: October 2026",
+        "bugIDs": [
+          "NA"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-76463",
+          "CVE-2026-76464",
+          "CVE-2026-76467"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-hardening-meraki-os-drbEX9GH/cvrf/cisco-sa-hardening-meraki-os-drbEX9GH_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-hardening-meraki-os-drbEX9GH/csaf/cisco-sa-hardening-meraki-os-drbEX9GH.json",
+        "cvssBaseScore": "9.6",
+        "cwe": [
+          "CWE-119",
+          "CWE-20",
+          "CWE-284"
+        ],
+        "firstPublished": "2026-10-07T16:00:00",
+        "lastUpdated": "2026-11-09T17:55:54",
+        "status": "Final",
+        "version": "1.3",
+        "productNames": [
+          "Cisco Meraki MR Wireless Access Points Software ",
+          "Cisco Meraki MX Firmware ",
+          "Cisco Meraki MV Firmware "
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-meraki-os-drbEX9GH",
+        "sir": "Critical",
+        "summary": "<p>As part of Cisco's ongoing commitment to proactive security and product quality, engineering teams conducted a comprehensive internal security review. This review resulted in software hardening releases that address multiple internally discovered vulnerabilities.</p>\r\n<p>These vulnerabilities were found during internal testing and are not known to be actively exploited. To assist customers in patching and streamline the disclosure process, Cisco has grouped these issues by their underlying vulnerability class &mdash; Common Weakness Enumeration (CWE) &mdash; and assigned a single Common Vulnerabilities and Exposures identifier (CVE ID) to each CWE grouping.</p>\r\n<p>Cisco has released software updates that address these vulnerabilities. There are no workarounds that address these vulnerabilities.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-meraki-os-drbEX9GH\" target=\"_blank\" rel=\"noopener\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-meraki-os-drbEX9GH</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-php-october26-Jj384Daq",
+        "advisoryTitle": "Vulnerabilities in PHP Affecting Cisco Products: October 2026",
+        "bugIDs": [
+          "NA"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-109618",
+          "CVE-2026-109619"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-php-october26-Jj384Daq/cvrf/cisco-sa-php-october26-Jj384Daq_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-php-october26-Jj384Daq/csaf/cisco-sa-php-october26-Jj384Daq.json",
+        "cvssBaseScore": "NA",
+        "cwe": [
+          "NA"
+        ],
+        "firstPublished": "2026-10-21T19:12:00",
+        "lastUpdated": "2026-11-06T14:21:13",
+        "status": "Final",
+        "version": "1.11",
+        "productNames": [
+          "NA"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-php-october26-Jj384Daq",
+        "sir": "Critical",
+        "summary": "<p>On October 21, the PHP Foundation announced the availability of a Critical PHP Security release addressing two critical vulnerabilities:&nbsp;</p>\r\n<ul>\r\n<li>CVE-2026-109618 - RCE via OOM corruption</li>\r\n<li>CVE-2026-109619 - RCE via stale global state</li>\r\n</ul>\r\n<p>For information about these vulnerabilities, see the advisories <a href=\"https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w\" target=\"_blank\" rel=\"noopener\">GHSA-w8hw-w9fx-j79w</a> and <a href=\"https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp\" target=\"_blank\" rel=\"noopener\">GHSA-6wmf-4rv5-p3rp</a>. These vulnerabilities are being referenced as PHP2shell.</p>\r\n<p style=\"-qt-block-indent: 0; text-indent: 0px; margin: 0px;\">For information about Splunk products and offerings, see <a href=\"https://advisory.splunk.com/advisories/SVD-2026-1013\" target=\"_blank\" rel=\"noopener\">Vulnerabilities in PHP (CVE-2026-109618, CVE-2026-109619) on Splunk Products - October 2026</a>.</p>\r\n<p><strong>Important: </strong>If a product is not listed within this advisory, Cisco's review indicates that the product is not affected by this vulnerability.</p>\r\n<p>This advisory will be updated as additional information becomes available.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-php-october26-Jj384Daq\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-php-october26-Jj384Daq</a></p>"
+      },
+      {
+        "advisoryId": "cisco-sa-esa-inj-2bLVGmhX",
+        "advisoryTitle": "Cisco Secure Email Gateway SQL Injection Vulnerability",
+        "bugIDs": [
+          "CSCwu56234"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-76461"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-esa-inj-2bLVGmhX/cvrf/cisco-sa-esa-inj-2bLVGmhX_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-esa-inj-2bLVGmhX/csaf/cisco-sa-esa-inj-2bLVGmhX.json",
+        "cvssBaseScore": "9.8",
+        "cwe": [
+          "CWE-89"
+        ],
+        "firstPublished": "2026-09-14T16:00:00",
+        "lastUpdated": "2026-11-03T17:05:12",
+        "status": "Final",
+        "version": "1.2",
+        "productNames": [
+          "Cisco Secure Email ",
+          "Cisco Secure Email 13.0.0-392",
+          "Cisco Secure Email 13.0.5-007"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-esa-inj-2bLVGmhX",
+        "sir": "Critical",
+        "summary": "\r\n<p>A vulnerability in the email parsing of Cisco AsyncOS Software for Cisco Secure Email Gateway could allow an unauthenticated, remote attacker to execute arbitrary commands with <em>root</em> privileges on the underlying operating system.</p>\r\n<p>This vulnerability is due to insufficient validation in the email parsing logic. An attacker could exploit this vulnerability by sending a crafted email message that contains malicious SQL statements through an affected device. A successful exploit could allow the attacker to execute arbitrary SQL statements, leading to command execution with <em>root</em> privileges on the underlying operating system.</p>\r\n\r\n<p>Cisco has released software updates that address this vulnerability. There are no workarounds that address this vulnerability.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-esa-inj-2bLVGmhX\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-esa-inj-2bLVGmhX</a></p>"
+      }
+    ],
+    "paging": {
+      "next": "/severity/critical?pageIndex=2&pageSize=5",
+      "prev": "NA",
+      "count": 405
+    }
+  }
+}

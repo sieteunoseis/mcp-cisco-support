@@ -368,20 +368,13 @@ ${args.search_context ? `- Context: ${args.search_context}` : ""}
 - Include web search guidance: ${includeWebGuidance}
 
 **Recommended Approach:**
-1. **Start with Smart Search Strategy**: Use \`smart_search_strategy\` tool to analyze the query and get optimal search recommendations
-2. **Execute Comprehensive Analysis**: Use \`comprehensive_analysis\` tool with the product identifier and version detected
-3. **Apply Progressive Search**: If initial results are limited, the system will automatically try broader search terms
-4. **Multi-Severity Coverage**: For high-priority searches, automatically search multiple severity levels
-${includeWebGuidance ? "5. **Web Search Guidance**: Get specific web search queries for additional research on Cisco.com" : ""}
+1. **Identify the product**: use \`product_get\` (or \`device_lookup\` for serial numbers) to confirm the product ID and series
+2. **Search bugs**: use \`bug_search\` with product_id or product_series plus releases; pass severity ["1","2","3"] for high-priority searches
+3. **Check security**: use \`psirt_search\` with os_type and version to list advisories affecting the release
+4. **Plan upgrades**: use \`assess_upgrade\` to compare the current release with a target (or Cisco's suggested release)
+${includeWebGuidance ? "5. **Further research**: suggest specific Cisco.com searches for anything the APIs don't cover" : ""}
 
-**Enhanced Features Available:**
-- **Product ID Resolution**: Converts technical product codes (ISR4431/K9) to full product names
-- **Version Normalization**: Tries multiple version formats (17.09.06 → 17.09 → 17)
-- **Automatic Refinement**: Broadens search scope when specific queries return no results
-- **Parallel Severity Search**: Searches multiple severity levels simultaneously
-- **Lifecycle Integration**: Includes end-of-life status and upgrade recommendations
-
-Please execute this intelligent search strategy using the enhanced tools to provide comprehensive results.`,
+If a search returns nothing, follow the hint in the result (broader keyword, base product ID without the license suffix, or the full series name).`,
           },
         },
       ];
@@ -871,12 +864,12 @@ export function createMCPServer(): Server {
       // Bug resources
       if (uri === "cisco://bugs/recent/critical") {
         description = "Recent critical bugs (severity 1-2) from last 7 days";
-        const bugs1 = await apiRegistry.executeTool("search_bugs_by_keyword", {
+        const bugs1 = await apiRegistry.executeLegacyTool("search_bugs_by_keyword", {
           keyword: "cisco",
           severity: "1",
           modified_date: "1",
         });
-        const bugs2 = await apiRegistry.executeTool("search_bugs_by_keyword", {
+        const bugs2 = await apiRegistry.executeLegacyTool("search_bugs_by_keyword", {
           keyword: "cisco",
           severity: "2",
           modified_date: "1",
@@ -889,17 +882,17 @@ export function createMCPServer(): Server {
       } else if (uri === "cisco://bugs/recent/high") {
         description =
           "Recent high-severity bugs (severity 1-3) from last 30 days";
-        const bugs1 = await apiRegistry.executeTool("search_bugs_by_keyword", {
+        const bugs1 = await apiRegistry.executeLegacyTool("search_bugs_by_keyword", {
           keyword: "bug",
           severity: "1",
           modified_date: "2",
         });
-        const bugs2 = await apiRegistry.executeTool("search_bugs_by_keyword", {
+        const bugs2 = await apiRegistry.executeLegacyTool("search_bugs_by_keyword", {
           keyword: "bug",
           severity: "2",
           modified_date: "2",
         });
-        const bugs3 = await apiRegistry.executeTool("search_bugs_by_keyword", {
+        const bugs3 = await apiRegistry.executeLegacyTool("search_bugs_by_keyword", {
           keyword: "bug",
           severity: "3",
           modified_date: "2",
@@ -914,7 +907,7 @@ export function createMCPServer(): Server {
         // Dynamic bug lookup: cisco://bugs/{bug_id}
         const bugId = uri.replace("cisco://bugs/", "");
         description = `Bug details for ${bugId}`;
-        const bugResult = await apiRegistry.executeTool("get_bug_details", {
+        const bugResult = await apiRegistry.executeLegacyTool("get_bug_details", {
           bug_ids: bugId,
         });
         result = bugResult.result;
@@ -1113,7 +1106,7 @@ See the main documentation for more details on MCP resources and Cisco API integ
           };
         } else {
           description = `Product information for ${productId}`;
-          const productResult = await apiRegistry.executeTool(
+          const productResult = await apiRegistry.executeLegacyTool(
             "get_product_info_by_product_ids",
             {
               product_ids: productId,
@@ -1123,7 +1116,7 @@ See the main documentation for more details on MCP resources and Cisco API integ
         }
       } else if (uri === "cisco://security/advisories/recent") {
         description = "Latest 20 security advisories";
-        const advisories = await apiRegistry.executeTool(
+        const advisories = await apiRegistry.executeLegacyTool(
           "get_latest_security_advisories",
           {
             number: 20,
@@ -1133,7 +1126,7 @@ See the main documentation for more details on MCP resources and Cisco API integ
         result = advisories.result;
       } else if (uri === "cisco://security/advisories/critical") {
         description = "Critical severity security advisories";
-        const advisories = await apiRegistry.executeTool(
+        const advisories = await apiRegistry.executeLegacyTool(
           "get_security_advisories_by_severity",
           {
             severity: "critical",
@@ -1146,7 +1139,7 @@ See the main documentation for more details on MCP resources and Cisco API integ
         // Dynamic advisory lookup: cisco://security/advisories/{advisory_id}
         const advisoryId = uri.replace("cisco://security/advisories/", "");
         description = `Security advisory ${advisoryId}`;
-        const advisory = await apiRegistry.executeTool(
+        const advisory = await apiRegistry.executeLegacyTool(
           "get_security_advisory_by_id",
           {
             advisory_id: advisoryId,
@@ -1158,7 +1151,7 @@ See the main documentation for more details on MCP resources and Cisco API integ
         // CVE lookup: cisco://security/cve/{cve_id}
         const cveId = uri.replace("cisco://security/cve/", "");
         description = `Security advisory for ${cveId}`;
-        const advisory = await apiRegistry.executeTool(
+        const advisory = await apiRegistry.executeLegacyTool(
           "get_security_advisory_by_cve",
           {
             cve_id: cveId,

@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-18
+
+### Changed
+- **BREAKING: 58 tools replaced by 12.** `bug_get`, `bug_search`, `assess_upgrade`, `psirt_get`, `psirt_search`, `eox_get`, `device_lookup`, `product_get`, `software_get`, `case_get`, `case_search`, `rma_get`. Calling a 2.x name returns an error naming its replacement. tools/list is about 13 KB (down from 51 KB).
+- Concise output by default (`response_format: "detailed"` for more), normalized `paging` on every list tool, hints on empty results.
+- `bug_search` takes several severities in one call and reports the API's real totals.
+- `SUPPORT_API` values are now `bug, psirt, eox, product, serial, software, case, rma, all`. `enhanced_analysis` maps to `bug`; an unknown value falls back to `bug` instead of enabling nothing.
+- Node 20+ required; Docker image uses Node 22.
+
+### Added
+- `psirt_search` with `os_type` + `version`: advisories affecting a release, with first fixed releases.
+- `assess_upgrade` rebuilt on real data: open bugs on current and target, bugs the target fixes, advisories fixed/remaining/new, EoX; defaults to Cisco's suggested release.
+- `device_lookup`: coverage, product and EoX per serial number in one call.
+- Retry with backoff when Cisco rate-limits (403 "Developer Over Qps").
+- Recorded Cisco API responses in `tests/fixtures/cisco` and a fixture-driven test suite.
+
+### Removed
+- Smart Bonding API (untested, write operations).
+- Sampling "AI" tools (two sent placeholder data instead of Cisco data), `smart_search_strategy`, `progressive_bug_search`, `comprehensive_analysis`, `product_name_resolver`, the web-search helper, and the `enhanced_analysis`/`sampling`/`smart_bonding` modes.
+- `search_rmas_by_serial` (the Return API has no serial endpoint) and `get_coverage_summary_by_instance`.
+
+### Fixed
+- Bug product-name searches returned 404 (wrong path).
+- Product IDs containing `/` returned 400 (the gateway rejects `%2F`).
+- PSIRT "no data" (404 NO_DATA_FOUND) is reported as zero advisories, not an error.
+- Unknown bug IDs are reported in `not_found` instead of as empty bugs.
+- HTTP mode: one MCP server per session, header-only bearer auth, origin checks, `HOST` binding, redacted logs (see 2.x hardening commits).
+- 401 retry fetched the same cached token; RMA paths/params; Case paging started at page 5; PSIRT severity field and 2025 year cap.
+
 ## [2.0.0] - 2026-11-18
 
 ### Removed

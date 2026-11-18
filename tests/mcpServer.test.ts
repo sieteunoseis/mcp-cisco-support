@@ -63,9 +63,8 @@ const isIntegrationMode = !mockFetch;
       const tools = getAvailableTools();
       const names = tools.map(t => t.name);
 
-      // Bug API: 8 core search tools + 6 enhanced analysis tools, nothing from other APIs
-      expect(tools.length).toBe(14);
-      expect(names.some(n => n.includes('case') || n.includes('eox') || n.includes('psirt'))).toBe(false);
+      // Bug API only: bug tools plus assess_upgrade, nothing from other APIs
+      expect([...names].sort()).toEqual(['assess_upgrade', 'bug_get', 'bug_search']);
     });
   });
 
@@ -176,7 +175,7 @@ const isIntegrationMode = !mockFetch;
       // Here we test the underlying function
       try {
         const { executeTool } = await import('../src/mcp-server');
-        await executeTool('search_bugs_by_keyword', { keyword: 'test' });
+        await executeTool('bug_search', { keyword: 'test' });
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toBe('Network error');

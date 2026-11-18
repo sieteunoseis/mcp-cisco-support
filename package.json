@@ -1,7 +1,7 @@
 {
   "name": "mcp-cisco-support",
-  "version": "2.0.0",
-  "description": "MCP server for Cisco Support APIs including Bug Search and future tools",
+  "version": "3.0.0",
+  "description": "MCP server for the Cisco Support APIs: bugs, security advisories, end-of-life, coverage, software, cases and RMAs",
   "main": "dist/src/index.js",
   "bin": {
     "mcp-cisco-support": "dist/src/index.js"
@@ -9,12 +9,10 @@
   "files": [
     "dist/**/*",
     "README.md",
-    "CLAUDE.md",
     "LICENSE",
     ".env.example",
     "Dockerfile",
-    "docker-compose.yml",
-    "wadl/**/*"
+    "docker-compose.yml"
   ],
   "scripts": {
     "build": "tsc",
@@ -24,8 +22,6 @@
     "stdio": "node dist/src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:tool": "npm run build && node test-tool.js",
-    "test:tool:real": "npm run build && node test-tool.js",
     "test:jest-tool": "node scripts/test-specific-tool.js",
     "test:integration": "npm test -- --testNamePattern=\"Integration\"",
     "test:coverage": "jest --coverage",
@@ -80,6 +76,6 @@
     "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

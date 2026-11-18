@@ -1,5 +1,5 @@
 # Multi-stage build for optimization
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Build arguments
 ARG BUILDTIME
@@ -22,7 +22,7 @@ COPY src/ ./src/
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine AS production
+FROM node:22-alpine AS production
 
 # Build arguments
 ARG BUILDTIME
@@ -76,4 +76,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   }).on('error', () => process.exit(1));"
 
 # Start the application
-CMD ["node", "dist/index.js", "--http"]
+ENTRYPOINT ["node", "dist/index.js"]
+CMD ["--http"]

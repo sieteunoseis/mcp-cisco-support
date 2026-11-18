@@ -1,0 +1,124 @@
+{
+  "_source": "Recorded from apix.cisco.com 2026-11-18; lists trimmed to 3",
+  "status": 200,
+  "body": {
+    "advisories": [
+      {
+        "advisoryId": "cisco-sa-hardening-iosxe-V8NMuMZJ",
+        "advisoryTitle": "Cisco IOS XE Software Security Hardening Release: August 2026",
+        "bugIDs": [
+          "NA"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-20267",
+          "CVE-2026-20268",
+          "CVE-2026-20269"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-hardening-iosxe-V8NMuMZJ/cvrf/cisco-sa-hardening-iosxe-V8NMuMZJ_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-hardening-iosxe-V8NMuMZJ/csaf/cisco-sa-hardening-iosxe-V8NMuMZJ.json",
+        "cvssBaseScore": "9.8",
+        "cwe": [
+          "CWE-119",
+          "CWE-20",
+          "CWE-284"
+        ],
+        "iosRelease": [
+          "17.15.4b"
+        ],
+        "firstFixed": [],
+        "firstPublished": "2026-08-05T16:00:00",
+        "lastUpdated": "2026-10-02T19:21:28",
+        "status": "Final",
+        "version": "1.1",
+        "productNames": [
+          "Cisco IOS XE Software ",
+          "Cisco IOS XE Software 3.2.0SG",
+          "Cisco IOS XE Software 3.2.1SG"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-iosxe-V8NMuMZJ",
+        "sir": "Critical",
+        "summary": "<p>As part of Cisco's ongoing commitment to proactive security and product quality, the Cisco IOS XE Software engineering team has conducted a comprehensive internal security review. This review resulted in software hardening releases that address multiple internally discovered vulnerabilities.&nbsp; &nbsp;</p>\r\n<p>These vulnerabilities were found during internal testing and are not known to be actively exploited. To assist customers in patching and streamline the disclosure process, Cisco has grouped these issues by their underlying vulnerability class &mdash; Common Weakness Enumeration (CWE) &mdash; and assigned a single Common Vulnerabilities and Exposures identifier (CVE ID).</p>\r\n<p>Cisco has released software updates that address these vulnerabilities. There are no workarounds that address these vulnerabilities.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-iosxe-V8NMuMZJ\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-hardening-iosxe-V8NMuMZJ</a></p>",
+        "smu": "NA"
+      },
+      {
+        "advisoryId": "cisco-sa-ios-xmcp-thbAr34t",
+        "advisoryTitle": "Cisco IOS Software and IOS XE Software Extensible Messaging Client Protocol Denial of Service Vulnerability",
+        "bugIDs": [
+          "CSCwu20827"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-20301"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-ios-xmcp-thbAr34t/cvrf/cisco-sa-ios-xmcp-thbAr34t_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-ios-xmcp-thbAr34t/csaf/cisco-sa-ios-xmcp-thbAr34t.json",
+        "cvssBaseScore": "8.6",
+        "cwe": [
+          "CWE-606"
+        ],
+        "iosRelease": [
+          "17.15.4b"
+        ],
+        "firstFixed": [
+          "17.15.6"
+        ],
+        "firstPublished": "2026-08-05T16:00:00",
+        "lastUpdated": "2026-08-05T16:00:00",
+        "status": "Final",
+        "version": "1.0",
+        "productNames": [
+          "Cisco IOS ",
+          "Cisco IOS XE Software ",
+          "Cisco IOS 15.3(3)S10"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ios-xmcp-thbAr34t",
+        "sir": "High",
+        "summary": "\r\n<p>A vulnerability in the Extensible Messaging Client Protocol (XMCP), also referred to as the External Client protocol, of Cisco IOS Software and Cisco IOS XE Software could allow an unauthenticated, remote attacker to cause a denial of service (DoS) condition on an affected device.</p>\r\n<p>This vulnerability is due to improper handling of malformed XMCP packets. An attacker could exploit this vulnerability by sending a malformed XMCP packet to an affected device. A successful exploit could allow the attacker to cause the affected device to reload unexpectedly, resulting in a DoS condition. The attacker does not need the XMCP client username to exploit this vulnerability.</p>\r\n\r\n<p>Cisco has released software updates that address this vulnerability. There are no workarounds that address this vulnerability. There is a mitigation that addresses this vulnerability.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ios-xmcp-thbAr34t\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ios-xmcp-thbAr34t</a></p>",
+        "smu": "NA"
+      },
+      {
+        "advisoryId": "cisco-sa-iosxe-bing-MGHrFAkd",
+        "advisoryTitle": "Cisco IOS XE Software Blocks Extensible Exchange Protocol Denial of Service Vulnerability",
+        "bugIDs": [
+          "CSCwu46548"
+        ],
+        "ipsSignatures": [
+          "NA"
+        ],
+        "cves": [
+          "CVE-2026-20263"
+        ],
+        "cvrfUrl": "https://sec.cloudapps.cisco.com/security/center/contentxml/CiscoSecurityAdvisory/cisco-sa-iosxe-bing-MGHrFAkd/cvrf/cisco-sa-iosxe-bing-MGHrFAkd_cvrf.xml",
+        "csafUrl": "https://sec.cloudapps.cisco.com/security/center/contentjson/CiscoSecurityAdvisory/cisco-sa-iosxe-bing-MGHrFAkd/csaf/cisco-sa-iosxe-bing-MGHrFAkd.json",
+        "cvssBaseScore": "8.6",
+        "cwe": [
+          "CWE-388"
+        ],
+        "iosRelease": [
+          "17.15.4b"
+        ],
+        "firstFixed": [
+          "17.15.6"
+        ],
+        "firstPublished": "2026-08-05T16:00:00",
+        "lastUpdated": "2026-08-05T16:00:00",
+        "status": "Final",
+        "version": "1.0",
+        "productNames": [
+          "Cisco IOS XE Software ",
+          "Cisco IOS XE Software 16.6.1",
+          "Cisco IOS XE Software 16.6.2"
+        ],
+        "publicationUrl": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-bing-MGHrFAkd",
+        "sir": "High",
+        "summary": "\r\n<p>A vulnerability in the Blocks Extensible Exchange Protocol (BEEP) feature of Cisco IOS XE Software could allow an unauthenticated, remote attacker to cause a denial of service (DoS) condition on an affected device.</p>\r\n<p>This vulnerability is due to improper handling when parsing a specific BEEP SOAP request. An attacker could exploit this vulnerability by sending a specific BEEP SOAP request to an affected device. A successful exploit could allow the attacker to cause the device to reload unexpectedly, resulting in a DoS condition.</p>\r\n\r\n<p>Cisco has released software updates that address this vulnerability. There are no workarounds that address these vulnerabilities.</p>\r\n<p>This advisory is available at the following link:<br><a href=\"https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-bing-MGHrFAkd\">https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-bing-MGHrFAkd</a></p>",
+        "smu": "NA"
+      }
+    ]
+  }
+}

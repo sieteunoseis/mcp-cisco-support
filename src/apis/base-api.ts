@@ -16,6 +16,11 @@ export abstract class BaseApi {
   abstract executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse>;
 
   // Make authenticated API call
+  /** Raw GET against this API's base URL (used by the v3 tool layer) */
+  async request(endpoint: string, params: Record<string, any> = {}): Promise<any> {
+    return this.makeApiCall(endpoint, params);
+  }
+
   /** Encode one path segment taken from tool input */
   protected seg(value: unknown): string {
     return BaseApi.encodePathValue(String(value ?? '').trim());
@@ -43,7 +48,26 @@ export abstract class BaseApi {
     return encodeURIComponent(value).replace(/%2F/gi, '/');
   }
 
+  /**
+   * Cisco's gateway rate-limits per second and answers with
+   * 403 "Developer Over Qps" (or 429). Back off and retry those.
+   */
   protected async makeApiCall(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {
+    const delays = [1000, 2000, 4000];
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.makeApiCallOnce(endpoint, params);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '';
+        const rateLimited = /Over Qps|Over Rate|\b429\b/i.test(message);
+        if (!rateLimited || attempt >= delays.length) throw error;
+        logger.warn(`${this.apiName} API rate limited, retrying`, { endpoint, attempt: attempt + 1, delayMs: delays[attempt] });
+        await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+      }
+    }
+  }
+
+  private async makeApiCallOnce(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {
     const token = await getValidToken();
     
     // Build query string

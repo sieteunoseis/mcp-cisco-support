@@ -21,6 +21,11 @@ const isIntegrationMode = !mockFetch;
       await expect(executeTool('unknown_tool', {})).rejects.toThrow('Unknown tool: unknown_tool');
     });
 
+    test('should point 2.x tool names at their replacement', async () => {
+      await expect(executeTool('search_bugs_by_keyword', { keyword: 'x' }))
+        .rejects.toThrow('replaced by "bug_search" in v3.0.0');
+    });
+
     test('should validate severity parameter enum values', async () => {
       // Mock successful OAuth
       mockFetch!.mockImplementation((url, init) => {
@@ -41,7 +46,7 @@ const isIntegrationMode = !mockFetch;
       });
 
       // This should pass with valid severity
-      const result = await executeTool('search_bugs_by_keyword', { 
+      const result = await executeTool('bug_search', { 
         keyword: 'test', 
         severity: '3' 
       });
@@ -67,7 +72,7 @@ const isIntegrationMode = !mockFetch;
       });
 
       // This should pass with valid status
-      const result = await executeTool('search_bugs_by_keyword', { 
+      const result = await executeTool('bug_search', { 
         keyword: 'test', 
         status: 'O' 
       });
@@ -93,7 +98,7 @@ const isIntegrationMode = !mockFetch;
       });
 
       // This should pass with valid modified_date
-      const result = await executeTool('search_bugs_by_keyword', { 
+      const result = await executeTool('bug_search', { 
         keyword: 'test', 
         modified_date: '3' 
       });
@@ -112,21 +117,21 @@ const isIntegrationMode = !mockFetch;
         } as Response)
       );
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('OAuth2 authentication failed: 401 Unauthorized - Invalid credentials');
     });
 
     test('should handle OAuth2 timeout errors', async () => {
       mockFetch!.mockImplementationOnce(() => Promise.reject(mockTimeoutError));
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('OAuth2 authentication connection timed out');
     });
 
     test('should handle OAuth2 abort errors', async () => {
       mockFetch!.mockImplementationOnce(() => Promise.reject(mockAbortError));
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('OAuth2 authentication timed out after 30 seconds');
     });
   });
@@ -152,7 +157,7 @@ const isIntegrationMode = !mockFetch;
         } as Response);
       });
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('Bug API call failed: 500 Internal Server Error');
     });
 
@@ -171,7 +176,7 @@ const isIntegrationMode = !mockFetch;
         return Promise.reject(mockTimeoutError);
       });
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('Bug API connection timed out while waiting for response headers');
     });
 
@@ -190,7 +195,7 @@ const isIntegrationMode = !mockFetch;
         return Promise.reject(mockAbortError);
       });
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('Bug API call timed out after 60 seconds');
     });
 
@@ -224,8 +229,8 @@ const isIntegrationMode = !mockFetch;
         }
       });
 
-      const result = await executeTool('search_bugs_by_keyword', { keyword: 'test' });
-      expect(result.bugs).toEqual([]);
+      const result: any = await executeTool('bug_search', { keyword: 'test' });
+      expect(result.count).toBe(0);
       expect(mockFetch).toHaveBeenCalledTimes(4); // 2 OAuth + 1 failed API + 1 successful API
     });
   });
@@ -249,9 +254,9 @@ const isIntegrationMode = !mockFetch;
         } as Response);
       });
 
-      const result = await executeTool('search_bugs_by_keyword', { keyword: 'nonexistent' });
-      expect(result.bugs).toEqual([]);
-      expect(result.total_results).toBe(0);
+      const result: any = await executeTool('bug_search', { keyword: 'nonexistent' });
+      expect(result.count).toBe(0);
+      expect(result.hint).toMatch(/No bugs matched/);
     });
 
     test('should handle malformed JSON responses', async () => {
@@ -272,7 +277,7 @@ const isIntegrationMode = !mockFetch;
         } as Response);
       });
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('Unexpected end of JSON input');
     });
 
@@ -281,7 +286,7 @@ const isIntegrationMode = !mockFetch;
         Promise.reject(new Error('fetch failed'))
       );
 
-      await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
+      await expect(executeTool('bug_search', { keyword: 'test' }))
         .rejects.toThrow('fetch failed');
     });
   });
