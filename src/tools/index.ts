@@ -433,90 +433,86 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
   const current = normalizeVersion(String(args.current_version).trim());
   const maxSeverity = Math.min(6, Math.max(1, parseInt(args.max_severity ?? 3, 10) || 3));
   const notes: string[] = [];
-  const steps = 5;
-  let step = 0;
-  const tick = () => sendProgress(ctx.progressToken, ++step, steps);
+  const steps = 2;
+  sendProgress(ctx.progressToken, 0, steps);
 
-  // 1. Target: given, or Cisco's suggested release
-  let target = args.target_version ? normalizeVersion(String(args.target_version).trim()) : undefined;
-  let suggested: any;
-  if (ctx.enabled.has('software')) {
-    try {
-      const body = await ctx.apis.software.request(`/suggestions/software/productIds/${enc(pid)}`);
-      const releases = body.productList?.[0]?.suggestions || [];
-      const pick = releases.find((s: any) => s.isSuggested === 'Y') || releases[0];
-      if (pick) suggested = shapeSoftwareRelease(pick, 'concise');
-    } catch (e: any) { notes.push(`Software suggestion lookup failed: ${e.message}`); }
+  // Open bugs on a release, worst first: one call sorted by severity, a second
+  // page only while page 1 is still inside the severity limit (max 3 pages).
+  const openBugs = async (release: string) => {
+    const found: any[] = [];
+    let total: number | null = null;
+    for (let pageIndex = 1; pageIndex <= 3; pageIndex++) {
+      const body = await ctx.apis.bug.request(`/bugs/products/product_id/${enc(pid)}/software_releases/${enc(release)}`,
+        { status: 'O', sort_by: 'severity', modified_date: '5', page_index: pageIndex });
+      const bugs: any[] = body.bugs || [];
+      const paging = pagingFrom(body, pageIndex);
+      total = paging.total_records;
+      found.push(...bugs.filter(b => parseInt(b.severity, 10) <= maxSeverity));
+      const last = bugs[bugs.length - 1];
+      if (!paging.next_page || !last || parseInt(last.severity, 10) > maxSeverity) break;
+    }
+    const seen = new Set<string>();
+    return { bugs: found.filter(b => !seen.has(b.bug_id) && seen.add(b.bug_id)), total };
+  };
+  const attempt = async <T>(label: string, fn: () => Promise<T>): Promise<T | undefined> => {
+    try { return await fn(); } catch (e: any) { notes.push(`${label} failed: ${e.message}`); return undefined; }
+  };
+  const advisoriesFor = (release: string) =>
+    psirtRequest(ctx, `/OSType/${enc(args.os_type)}`, { version: release }).then(b => (b.advisories || []) as any[]);
+  const withPsirt = ctx.enabled.has('psirt') && !!args.os_type;
+  if (ctx.enabled.has('psirt') && !args.os_type) {
+    notes.push('Pass os_type (e.g. iosxe, ios, nxos, asa) to include security advisories for both releases');
   }
+
+  // Round 1 (parallel): everything about the current release, the suggested release and EoX
+  let target = args.target_version ? normalizeVersion(String(args.target_version).trim()) : undefined;
+  const [suggestedBody, current_, currentAdv, eoxBody] = await Promise.all([
+    ctx.enabled.has('software')
+      ? attempt('Software suggestion lookup', () => ctx.apis.software.request(`/suggestions/software/productIds/${enc(pid)}`))
+      : Promise.resolve(undefined),
+    attempt('Bug search on current release', () => openBugs(current)),
+    withPsirt ? attempt('PSIRT lookup (current)', () => advisoriesFor(current)) : Promise.resolve(undefined),
+    ctx.enabled.has('eox') ? attempt('EoX lookup', () => ctx.apis.eox.request(`/EOXByProductID/1/${enc(pid)}`)) : Promise.resolve(undefined),
+  ]);
+  sendProgress(ctx.progressToken, 1, steps);
+
+  const releases = suggestedBody?.productList?.[0]?.suggestions || [];
+  const pick = releases.find((s: any) => s.isSuggested === 'Y') || releases[0];
+  const suggested = pick ? shapeSoftwareRelease(pick, 'concise') : undefined;
   if (!target && suggested?.release) {
     target = suggested.release;
     notes.push(`target_version not given; using Cisco's suggested release ${target}`);
   }
   if (!target) throw new Error('target_version is required (no suggested release available; enable the software API or pass target_version)');
-  tick();
 
-  // 2. Bugs affecting the current release (severity 1..max), and whether the target fixes them
-  const bugsCurrent: any[] = [];
-  for (let sev = 1; sev <= maxSeverity; sev++) {
-    try {
-      const body = await ctx.apis.bug.request(`/bugs/products/product_id/${enc(pid)}/software_releases/${enc(current)}`,
-        { severity: String(sev), status: 'O', modified_date: '5' });
-      bugsCurrent.push(...(body.bugs || []));
-    } catch (e: any) { notes.push(`Bug search (severity ${sev}) failed: ${e.message}`); }
-  }
-  tick();
-  const dedupe = (bugs: any[]) => { const seen = new Set(); return bugs.filter(b => !seen.has(b.bug_id) && seen.add(b.bug_id)); };
-  bugsCurrent.splice(0, bugsCurrent.length, ...dedupe(bugsCurrent));
+  // Round 2 (parallel): the target release
+  const [target_, targetAdv] = await Promise.all([
+    attempt('Bug search on target release', () => openBugs(target!)),
+    withPsirt ? attempt('PSIRT lookup (target)', () => advisoriesFor(target!)) : Promise.resolve(undefined),
+  ]);
+  sendProgress(ctx.progressToken, 2, steps);
+
+  const bugsCurrent = current_?.bugs ?? [];
+  const bugsTarget = target_?.bugs ?? [];
   const fixedByTarget = bugsCurrent.filter(b => releaseList(b.known_fixed_releases).includes(target!));
   const stillOpen = bugsCurrent.filter(b => !fixedByTarget.includes(b));
 
-  // 3. Bugs known to affect the target release
-  const bugsTarget: any[] = [];
-  for (let sev = 1; sev <= maxSeverity; sev++) {
-    try {
-      const body = await ctx.apis.bug.request(`/bugs/products/product_id/${enc(pid)}/software_releases/${enc(target)}`,
-        { severity: String(sev), status: 'O', modified_date: '5' });
-      bugsTarget.push(...(body.bugs || []));
-    } catch (e: any) { notes.push(`Bug search on target (severity ${sev}) failed: ${e.message}`); }
-  }
-  bugsTarget.splice(0, bugsTarget.length, ...dedupe(bugsTarget));
-  tick();
-
-  // 4. PSIRT advisories for both releases (needs the OS type)
   let security: any;
-  if (ctx.enabled.has('psirt') && args.os_type) {
-    try {
-      const [cur, tgt] = await Promise.all([
-        psirtRequest(ctx, `/OSType/${enc(args.os_type)}`, { version: current }),
-        psirtRequest(ctx, `/OSType/${enc(args.os_type)}`, { version: target }),
-      ]);
-      const curIds = new Set((cur.advisories || []).map((a: any) => a.advisoryId));
-      const tgtAdv: any[] = tgt.advisories || [];
-      const tgtIds = new Set(tgtAdv.map(a => a.advisoryId));
-      security = {
-        current_affected: curIds.size,
-        target_affected: tgtIds.size,
-        fixed_by_upgrade: (cur.advisories || []).filter((a: any) => !tgtIds.has(a.advisoryId)).map((a: any) => shapeAdvisory(a, 'concise')),
-        still_affected_after_upgrade: tgtAdv.filter(a => curIds.has(a.advisoryId)).map(a => shapeAdvisory(a, 'concise')),
-        new_in_target: tgtAdv.filter(a => !curIds.has(a.advisoryId)).map(a => shapeAdvisory(a, 'concise')),
-      };
-    } catch (e: any) { notes.push(`PSIRT lookup failed: ${e.message}`); }
-  } else if (ctx.enabled.has('psirt')) {
-    notes.push('Pass os_type (e.g. iosxe, ios, nxos, asa) to include security advisories for both releases');
+  if (currentAdv && targetAdv) {
+    const curIds = new Set(currentAdv.map(a => a.advisoryId));
+    const tgtIds = new Set(targetAdv.map(a => a.advisoryId));
+    security = {
+      current_affected: curIds.size,
+      target_affected: tgtIds.size,
+      fixed_by_upgrade: currentAdv.filter(a => !tgtIds.has(a.advisoryId)).map(a => shapeAdvisory(a, 'concise')),
+      still_affected_after_upgrade: targetAdv.filter(a => curIds.has(a.advisoryId)).map(a => shapeAdvisory(a, 'concise')),
+      new_in_target: targetAdv.filter(a => !curIds.has(a.advisoryId)).map(a => shapeAdvisory(a, 'concise')),
+    };
   }
-  tick();
+  const eox = eoxBody?.EOXRecord?.[0] ? shapeEox(eoxBody.EOXRecord[0], 'concise') : undefined;
 
-  // 5. Hardware end-of-life
-  let eox: any;
-  if (ctx.enabled.has('eox')) {
-    try {
-      const body = await ctx.apis.eox.request(`/EOXByProductID/1/${enc(pid)}`);
-      if (body.EOXRecord?.[0]) eox = shapeEox(body.EOXRecord[0], 'concise');
-    } catch (e: any) { notes.push(`EoX lookup failed: ${e.message}`); }
-  }
-  tick();
-
-  const brief = (b: any) => compact({ bug_id: b.bug_id, severity: b.severity, headline: b.headline });
+  const brief = (b: any) => compact({ bug_id: b.bug_id, severity: b.severity, headline: b.headline,
+    url: `https://bst.cloudapps.cisco.com/bugsearch/bug/${b.bug_id}` });
   const limit = args.response_format === 'detailed' ? 50 : 10;
   return compact({
     product_id: pid,
@@ -538,7 +534,7 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
     security,
     eox,
     notes,
-    caveat: `Bug counts cover open bugs of severity 1-${maxSeverity}, first page per severity; "fixed by target" means the target appears in the bug's known fixed releases.`,
+    caveat: `Open bugs of severity 1-${maxSeverity} (worst first, up to 3 pages per release); "fixed by target" means the target appears in the bug's known fixed releases.`,
   });
 }
 
