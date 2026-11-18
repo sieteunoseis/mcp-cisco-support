@@ -149,6 +149,13 @@ export function createSSEServer(createServer: () => Server) {
   });
 
 
+  // No OAuth in this server (bearer token only; see issue #14). Answer OAuth
+  // discovery with 404 before auth runs, so clients see "no OAuth here"
+  // instead of a 401 that looks like broken OAuth and stop probing.
+  app.use('/.well-known', (_req, res) => {
+    res.status(404).json({ error: 'not_found', message: 'OAuth is not supported; use an Authorization: Bearer token' });
+  });
+
   // Apply bearer token authentication middleware
   if (enableAuth) {
     app.use(createAuthMiddleware(authToken, enableAuth));
