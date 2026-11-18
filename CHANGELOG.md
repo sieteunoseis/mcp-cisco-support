@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-18
+
+### Removed
+- **BREAKING:** Removed the built-in OAuth 2.1 authorization server (`AUTH_TYPE=oauth2.1`), including `/register`, `/authorize`, `/token` and the `/.well-known/oauth-*` endpoints, the `config/oauth-*.json` client configs and the `oauth:*` npm scripts. HTTP mode now supports only bearer-token auth (`MCP_BEARER_TOKEN`). The implementation had no user login, didn't verify client secrets, and only applied scopes to `tools/list`. Token validation against an external identity provider (Authelia / Kong) is tracked in [#14](https://github.com/sieteunoseis/mcp-cisco-support/issues/14).
+- Removed `OAUTH_SCRIPTS.md`, `test-oauth-endpoints.sh` and `docs/OAUTH_CLIENTS_CONFIG.md`.
+
+### Changed
+- Replaced TOON output with GCF (`@blackwell-systems/gcf`) for about 28.5% fewer tokens on Cisco API data (#11).
+
+### Fixed
+- EoX: stopped dropping vendor zeros, returning raw JSON for empty results and splitting acronyms (#13).
+
 ## [1.18.0] - 2025-11-15
 
 ### Added

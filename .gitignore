@@ -84,6 +84,3 @@ EOF < /dev/null
 !.env.project
 !.env.vault
 
-# OAuth clients configuration (contains secrets)
-config/oauth-clients.json
-config/oauth-secrets.json

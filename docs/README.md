@@ -14,7 +14,6 @@ All user-facing documentation has been moved to the GitHub Wiki for better organ
 - [Available Tools](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Available-Tools) - Complete tool reference
 
 ### Core Features
-- [OAuth 2.1 Authentication](https://github.com/sieteunoseis/mcp-cisco-support/wiki/OAuth-2.1-Authentication) 🔒 - Production OAuth server with scope-based access control
 - [TOON Format](https://github.com/sieteunoseis/mcp-cisco-support/wiki/TOON-Format) 📝 - Enhanced response formatting
 - [MCP Sampling](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Sampling) - AI-powered tools
 - [MCP Resources](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Resources) - Resource URIs and templates
@@ -35,14 +34,7 @@ This directory contains technical implementation documentation and reference mat
 
 ### Active Documentation
 
-1. **[OAUTH_CLIENTS_CONFIG.md](./OAUTH_CLIENTS_CONFIG.md)** - OAuth 2.1 Configuration Reference
-   - Detailed OAuth client configuration guide
-   - Configuration file schemas and examples
-   - Hot-reload configuration
-   - Security best practices
-   - **When to use:** Setting up OAuth 2.1 clients and troubleshooting config issues
-
-2. **[tool-examples.md](./tool-examples.md)** - MCP Tool Usage Examples
+1. **[tool-examples.md](./tool-examples.md)** - MCP Tool Usage Examples
    - Comprehensive examples for all 60+ MCP tools
    - Usage patterns and best practices
    - API parameter documentation
@@ -50,13 +42,13 @@ This directory contains technical implementation documentation and reference mat
 
 ### Implementation Analysis
 
-3. **[PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md](./PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md)** - Product Autocomplete Guide
+2. **[PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md](./PRODUCT_AUTOCOMPLETE_IMPLEMENTATION.md)** - Product Autocomplete Guide
    - MCP product autocomplete resources implementation
    - User-provided cookie authentication setup
    - Cookie lifecycle management
    - **When to use:** Understanding product autocomplete feature
 
-4. **[PRODUCT_AUTOCOMPLETE_SOLUTIONS.md](./PRODUCT_AUTOCOMPLETE_SOLUTIONS.md)** - Design Analysis
+3. **[PRODUCT_AUTOCOMPLETE_SOLUTIONS.md](./PRODUCT_AUTOCOMPLETE_SOLUTIONS.md)** - Design Analysis
    - Analysis of 5 different solution approaches
    - Design decision rationale
    - Future enhancement possibilities
@@ -64,13 +56,13 @@ This directory contains technical implementation documentation and reference mat
 
 ### Research Documents
 
-5. **[CISCO_COOKIE_ANALYSIS.md](./CISCO_COOKIE_ANALYSIS.md)** - Cookie Lifecycle Research
+4. **[CISCO_COOKIE_ANALYSIS.md](./CISCO_COOKIE_ANALYSIS.md)** - Cookie Lifecycle Research
    - Cookie authentication patterns
    - 24-hour validity analysis
    - Refresh strategies
    - **When to use:** Understanding Cisco API authentication behavior
 
-6. **[ISR4431_SEARCH_ANALYSIS.md](./ISR4431_SEARCH_ANALYSIS.md)** - Bug Fix Analysis
+5. **[ISR4431_SEARCH_ANALYSIS.md](./ISR4431_SEARCH_ANALYSIS.md)** - Bug Fix Analysis
    - Root cause analysis of search failures
    - Enhanced fallback logic
    - Multi-severity search improvements
