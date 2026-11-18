@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { getValidSmartBondingToken } from '../utils/smart-bonding-auth.js';
+import { getValidSmartBondingToken, resetSmartBondingToken } from '../utils/smart-bonding-auth.js';
 import { logger } from '../utils/logger.js';
 import { validateToolArgs, setDefaultValues, ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
@@ -102,13 +102,12 @@ export abstract class SmartBondingBaseApi {
         fetchOptions.body = JSON.stringify(body);
       }
 
-      const response = await fetch(url, fetchOptions);
-
-      clearTimeout(timeoutId);
+      const response = await fetch(url, fetchOptions).finally(() => clearTimeout(timeoutId));
 
       if (response.status === 401) {
         logger.warn('Smart Bonding API returned 401, token may be expired, refreshing...');
-        // Token expired, refresh and retry once
+        // Token rejected: drop the cached token so a new one is fetched, then retry once
+        resetSmartBondingToken();
         const newToken = await getValidSmartBondingToken();
         const retryController = new AbortController();
         const retryTimeoutId = setTimeout(() => retryController.abort(), 60000);
@@ -116,7 +115,7 @@ export abstract class SmartBondingBaseApi {
         const retryHeaders = { ...headers, 'Authorization': `Bearer ${newToken}` };
         const retryOptions = { ...fetchOptions, signal: retryController.signal, headers: retryHeaders };
 
-        const retryResponse = await fetch(url, retryOptions);
+        const retryResponse = await fetch(url, retryOptions).finally(() => clearTimeout(retryTimeoutId));
 
         clearTimeout(retryTimeoutId);
 

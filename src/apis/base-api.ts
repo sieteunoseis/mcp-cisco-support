@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { getValidToken } from '../utils/auth.js';
+import { getValidToken, resetToken } from '../utils/auth.js';
 import { logger } from '../utils/logger.js';
 import { validateToolArgs, setDefaultValues, buildApiParams, ToolArgs } from '../utils/validation.js';
 import { ApiResponse } from '../utils/formatting.js';
@@ -16,6 +16,21 @@ export abstract class BaseApi {
   abstract executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string }): Promise<ApiResponse>;
 
   // Make authenticated API call
+  /** Encode one path segment taken from tool input */
+  protected seg(value: unknown): string {
+    return encodeURIComponent(String(value ?? '').trim());
+  }
+
+  /** Encode a comma-separated list for a path segment (trims items, keeps commas) */
+  protected list(value: unknown): string {
+    return String(value ?? '')
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean)
+      .map(item => encodeURIComponent(item))
+      .join(',');
+  }
+
   protected async makeApiCall(endpoint: string, params: Record<string, any> = {}): Promise<ApiResponse> {
     const token = await getValidToken();
     
@@ -49,13 +64,12 @@ export abstract class BaseApi {
           'User-Agent': 'mcp-cisco-support/1.0'
         },
         signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
+      }).finally(() => clearTimeout(timeoutId));
 
       if (response.status === 401) {
         logger.warn('Received 401, token may be expired, refreshing...');
-        // Token expired, refresh and retry once
+        // Token rejected: drop the cached token so a new one is fetched, then retry once
+        resetToken();
         const newToken = await getValidToken();
         const retryController = new AbortController();
         const retryTimeoutId = setTimeout(() => retryController.abort(), 60000); // 60 second timeout
@@ -68,9 +82,7 @@ export abstract class BaseApi {
             'User-Agent': 'mcp-cisco-support/1.0'
           },
           signal: retryController.signal
-        });
-        
-        clearTimeout(retryTimeoutId);
+        }).finally(() => clearTimeout(retryTimeoutId));
         
         if (!retryResponse.ok) {
           const errorText = await retryResponse.text();

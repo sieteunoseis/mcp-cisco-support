@@ -62,18 +62,18 @@ export class RmaApi extends BaseApi {
             },
             from_date: {
               type: 'string',
-              description: 'Start date for RMA search in ISO 8601 format (e.g., "2023-01-01T00:00:00Z"). Maximum 90 days range.',
-              pattern: '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$'
+              description: 'Start date (GMT) in YYYY-MM-DD format, e.g. "2023-01-01". Maximum 90 days range.',
+              pattern: '^\\d{4}-\\d{2}-\\d{2}$'
             },
             to_date: {
               type: 'string',
-              description: 'End date for RMA search in ISO 8601 format (e.g., "2023-03-31T23:59:59Z"). Maximum 90 days from from_date.',
-              pattern: '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$'
+              description: 'End date (GMT) in YYYY-MM-DD format, e.g. "2023-03-31". Maximum 90 days from from_date.',
+              pattern: '^\\d{4}-\\d{2}-\\d{2}$'
             },
             status: {
               type: 'string',
-              description: 'Filter by RMA status (e.g., "Open", "Closed", "In Progress")',
-              enum: ['Open', 'Closed', 'In Progress', 'Cancelled']
+              description: 'Filter by a single RMA status',
+              enum: ['open', 'booked', 'hold', 'closed', 'cancelled']
             },
             page_index: {
               type: 'integer',
@@ -83,37 +83,6 @@ export class RmaApi extends BaseApi {
             }
           },
           required: ['user_id']
-        }
-      },
-      {
-        name: 'search_rmas_by_serial',
-        description: 'Search for RMAs associated with specific serial numbers. Returns RMA history for devices identified by their serial numbers.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            serial_numbers: {
-              type: 'string',
-              description: 'Comma-separated list of serial numbers (e.g., "SAL09232Q0Z,FOC0903N5J9")',
-              pattern: '^[A-Za-z0-9,\\s]+$'
-            },
-            from_date: {
-              type: 'string',
-              description: 'Start date for RMA search in ISO 8601 format (e.g., "2023-01-01T00:00:00Z")',
-              pattern: '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$'
-            },
-            to_date: {
-              type: 'string',
-              description: 'End date for RMA search in ISO 8601 format (e.g., "2023-03-31T23:59:59Z")',
-              pattern: '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$'
-            },
-            page_index: {
-              type: 'integer',
-              description: 'Page number for pagination (starts at 1)',
-              minimum: 1,
-              default: 1
-            }
-          },
-          required: ['serial_numbers']
         }
       }
     ];
@@ -125,45 +94,26 @@ export class RmaApi extends BaseApi {
     switch (name) {
       case 'get_rma_details': {
         const rmaNumber = processedArgs.rma_number as string;
-        const endpoint = `/returns/rma_numbers/${rmaNumber}`;
+        const endpoint = `/returns/rma_numbers/${encodeURIComponent(rmaNumber)}`;
         return await this.makeApiCall(endpoint) as RmaApiResponse;
       }
 
       case 'get_rmas_by_user': {
         const userId = processedArgs.user_id as string;
-        const endpoint = `/returns/user_ids/${userId}`;
+        // Path and camelCase query params per Cisco-Return-API-v1_0 WADL
+        const endpoint = `/returns/users/user_ids/${encodeURIComponent(userId)}`;
         const params: Record<string, any> = {
-          page_index: processedArgs.page_index
+          pageIndex: processedArgs.page_index
         };
 
         if (processedArgs.from_date) {
-          params.from_date = processedArgs.from_date;
+          params.fromDate = processedArgs.from_date;
         }
         if (processedArgs.to_date) {
-          params.to_date = processedArgs.to_date;
+          params.toDate = processedArgs.to_date;
         }
         if (processedArgs.status) {
           params.status = processedArgs.status;
-        }
-
-        return await this.makeApiCall(endpoint, params) as RmaApiResponse;
-      }
-
-      case 'search_rmas_by_serial': {
-        const serialNumbers = (processedArgs.serial_numbers as string)
-          .split(',')
-          .map(s => s.trim())
-          .join(',');
-        const endpoint = `/returns/serial_numbers/${serialNumbers}`;
-        const params: Record<string, any> = {
-          page_index: processedArgs.page_index
-        };
-
-        if (processedArgs.from_date) {
-          params.from_date = processedArgs.from_date;
-        }
-        if (processedArgs.to_date) {
-          params.to_date = processedArgs.to_date;
         }
 
         return await this.makeApiCall(endpoint, params) as RmaApiResponse;

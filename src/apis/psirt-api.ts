@@ -199,7 +199,6 @@ export class PsirtApi extends BaseApi {
             year: {
               type: 'integer',
               minimum: 2000,
-              maximum: 2025,
               description: 'Year to filter advisories (e.g., 2023)'
             },
             page_index: {
@@ -320,7 +319,7 @@ export class PsirtApi extends BaseApi {
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
-    const response = await this.makeApiCall(`/advisory/${args.advisory_id}`, params);
+    const response = await this.makeApiCall(`/advisory/${this.seg(args.advisory_id)}`, params);
     
     return this.formatSecurityAdvisoryResponse(response, `Security Advisory ${args.advisory_id}`);
   }
@@ -330,7 +329,7 @@ export class PsirtApi extends BaseApi {
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
-    const response = await this.makeApiCall(`/cve/${args.cve_id}`, params);
+    const response = await this.makeApiCall(`/cve/${this.seg(args.cve_id)}`, params);
     
     return this.formatSecurityAdvisoryResponse(response, `Security Advisory for CVE ${args.cve_id}`);
   }
@@ -342,7 +341,7 @@ export class PsirtApi extends BaseApi {
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
-    const response = await this.makeApiCall(`/severity/${args.severity}`, params);
+    const response = await this.makeApiCall(`/severity/${this.seg(args.severity)}`, params);
     
     return this.formatSecurityAdvisoryResponse(response, `${args.severity.toUpperCase()} Severity Security Advisories`);
   }
@@ -352,7 +351,7 @@ export class PsirtApi extends BaseApi {
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
-    const response = await this.makeApiCall(`/bugid/${args.bug_id}`, params);
+    const response = await this.makeApiCall(`/bugid/${this.seg(args.bug_id)}`, params);
     
     return this.formatSecurityAdvisoryResponse(response, `Security Advisory for Bug ${args.bug_id}`);
   }
@@ -362,7 +361,7 @@ export class PsirtApi extends BaseApi {
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
-    const response = await this.makeApiCall(`/latest/${args.number || 10}`, params);
+    const response = await this.makeApiCall(`/latest/${this.seg(args.number || 10)}`, params);
     
     return this.formatSecurityAdvisoryResponse(response, `Latest ${args.number || 10} Security Advisories`);
   }
@@ -374,7 +373,7 @@ export class PsirtApi extends BaseApi {
     if (args.summary_details) params.summaryDetails = args.summary_details;
     if (args.product_names) params.productNames = args.product_names;
 
-    const response = await this.makeApiCall(`/year/${args.year}`, params);
+    const response = await this.makeApiCall(`/year/${this.seg(args.year)}`, params);
     
     return this.formatSecurityAdvisoryResponse(response, `Security Advisories for ${args.year}`);
   }
@@ -434,7 +433,9 @@ export class PsirtApi extends BaseApi {
     return {
       advisory_id: advisory.advisoryId || advisory.advisory_id,
       advisory_title: advisory.advisoryTitle || advisory.title,
-      severity: advisory.severity,
+      // openVuln returns the Security Impact Rating as `sir`
+      severity: advisory.sir || advisory.severity,
+      cvss_base_score: advisory.cvssBaseScore ?? null,
       first_published: advisory.firstPublished || advisory.first_published,
       last_updated: advisory.lastUpdated || advisory.last_updated,
       status: advisory.status,

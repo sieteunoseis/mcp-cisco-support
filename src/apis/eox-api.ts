@@ -163,7 +163,7 @@ export class EoxApi extends BaseApi {
   private async getEoxByDate(args: ToolArgs): Promise<ApiResponse> {
     const { start_date, end_date, eox_attrib = 'UPDATED_TIMESTAMP', page_index = 1 } = args;
     
-    const endpoint = `/EOXByDates/${page_index}/${start_date}/${end_date}`;
+    const endpoint = `/EOXByDates/${this.seg(page_index)}/${this.seg(start_date)}/${this.seg(end_date)}`;
     const params: Record<string, any> = {};
     
     if (eox_attrib && eox_attrib !== 'UPDATED_TIMESTAMP') {
@@ -179,7 +179,7 @@ export class EoxApi extends BaseApi {
   private async getEoxByProductId(args: ToolArgs): Promise<ApiResponse> {
     const { product_ids, page_index = 1 } = args;
     
-    const endpoint = `/EOXByProductID/${page_index}/${product_ids}`;
+    const endpoint = `/EOXByProductID/${this.seg(page_index)}/${this.list(product_ids)}`;
     
     return this.makeApiCall(endpoint);
   }
@@ -190,7 +190,7 @@ export class EoxApi extends BaseApi {
   private async getEoxBySerialNumber(args: ToolArgs): Promise<ApiResponse> {
     const { serial_numbers, page_index = 1 } = args;
     
-    const endpoint = `/EOXBySerialNumber/${page_index}/${serial_numbers}`;
+    const endpoint = `/EOXBySerialNumber/${this.seg(page_index)}/${this.list(serial_numbers)}`;
     
     return this.makeApiCall(endpoint);
   }
@@ -201,7 +201,7 @@ export class EoxApi extends BaseApi {
   private async getEoxBySoftwareRelease(args: ToolArgs): Promise<ApiResponse> {
     const { page_index = 1, ...inputs } = args;
     
-    const endpoint = `/EOXBySWReleaseString/${page_index}`;
+    const endpoint = `/EOXBySWReleaseString/${this.seg(page_index)}`;
     const params: Record<string, any> = {};
     
     // Add software release inputs (input1-input5)

@@ -179,7 +179,7 @@ export class SoftwareApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.pageIndex = args.page_index;
 
-    const response = await this.makeApiCall(`/suggestions/software/productIds/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/suggestions/software/productIds/${this.list(args.product_ids)}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Software Suggestions for Product IDs: ${args.product_ids}`);
   }
@@ -199,7 +199,7 @@ export class SoftwareApi extends BaseApi {
     if (args.current_image) params.currentImage = args.current_image;
     if (args.current_release) params.currentRelease = args.current_release;
 
-    const response = await this.makeApiCall(`/suggestions/compatible/productId/${args.product_id}`, params);
+    const response = await this.makeApiCall(`/suggestions/compatible/productId/${this.seg(args.product_id)}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Compatible Software for Product ID: ${args.product_id}`);
   }
@@ -208,7 +208,7 @@ export class SoftwareApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.pageIndex = args.page_index;
 
-    const response = await this.makeApiCall(`/suggestions/software/mdfIds/${args.mdf_ids}`, params);
+    const response = await this.makeApiCall(`/suggestions/software/mdfIds/${this.list(args.mdf_ids)}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Software Suggestions for MDF IDs: ${args.mdf_ids}`);
   }
@@ -228,7 +228,7 @@ export class SoftwareApi extends BaseApi {
     if (args.current_image) params.currentImage = args.current_image;
     if (args.current_release) params.currentRelease = args.current_release;
 
-    const response = await this.makeApiCall(`/suggestions/compatible/mdfId/${args.mdf_id}`, params);
+    const response = await this.makeApiCall(`/suggestions/compatible/mdfId/${this.seg(args.mdf_id)}`, params);
     
     return this.formatSoftwareSuggestionResponse(response, `Compatible Software for MDF ID: ${args.mdf_id}`);
   }

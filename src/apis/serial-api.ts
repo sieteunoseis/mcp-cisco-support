@@ -37,7 +37,7 @@ export class SerialApi extends BaseApi {
     return [
       {
         name: 'get_coverage_status_by_serial',
-        description: 'Get detailed coverage status, warranty, and product information for up to 75 serial numbers. Returns comprehensive coverage details including warranty dates, contract information, and product identifiers.',
+        description: 'Quick yes/no coverage check for up to 75 serial numbers. Returns whether each serial is covered by a service contract (is_covered) and the coverage end date. Use get_coverage_summary_by_serial for contract, warranty and product details.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -48,7 +48,7 @@ export class SerialApi extends BaseApi {
             },
             page_index: {
               type: 'integer',
-              description: 'Page number for pagination (starts at 1). Each page returns up to 75 results.',
+              description: 'Page number for pagination (starts at 1). Each page returns up to 50 records.',
               minimum: 1,
               default: 1
             }
@@ -58,7 +58,7 @@ export class SerialApi extends BaseApi {
       },
       {
         name: 'get_coverage_summary_by_serial',
-        description: 'Get summary coverage information for up to 75 serial numbers. Returns brief coverage status and key dates. Use this for quick coverage lookups without full details.',
+        description: 'Detailed coverage for up to 75 serial numbers: contract number, service level, warranty type and end dates, and product IDs. Use get_coverage_status_by_serial for a quick yes/no coverage check.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -110,7 +110,7 @@ export class SerialApi extends BaseApi {
           .split(',')
           .map(s => s.trim())
           .join(',');
-        const endpoint = `/coverage/status/serial_numbers/${serialNumbers}`;
+        const endpoint = `/coverage/status/serial_numbers/${this.list(serialNumbers)}`;
         const params = { page_index: processedArgs.page_index };
         return await this.makeApiCall(endpoint, params) as SerialApiResponse;
       }
@@ -120,7 +120,7 @@ export class SerialApi extends BaseApi {
           .split(',')
           .map(s => s.trim())
           .join(',');
-        const endpoint = `/coverage/summary/serial_numbers/${serialNumbers}`;
+        const endpoint = `/coverage/summary/serial_numbers/${this.list(serialNumbers)}`;
         const params = { page_index: processedArgs.page_index };
         return await this.makeApiCall(endpoint, params) as SerialApiResponse;
       }
@@ -130,7 +130,7 @@ export class SerialApi extends BaseApi {
           .split(',')
           .map(s => s.trim())
           .join(',');
-        const endpoint = `/coverage/summary/instance_numbers/${instanceNumbers}`;
+        const endpoint = `/coverage/summary/instance_numbers/${this.list(instanceNumbers)}`;
         const params = { page_index: processedArgs.page_index };
         return await this.makeApiCall(endpoint, params) as SerialApiResponse;
       }

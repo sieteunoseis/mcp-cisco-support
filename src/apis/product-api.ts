@@ -104,7 +104,7 @@ export class ProductApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.page_index = args.page_index;
 
-    const response = await this.makeApiCall(`/serial_numbers/${args.serial_numbers}`, params);
+    const response = await this.makeApiCall(`/serial_numbers/${this.list(args.serial_numbers)}`, params);
     
     return this.formatProductInfoResponse(response, `Product Information for Serial Numbers: ${args.serial_numbers}`);
   }
@@ -123,7 +123,7 @@ export class ProductApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.page_index = args.page_index;
 
-    const response = await this.makeApiCall(`/product_ids/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/product_ids/${this.list(args.product_ids)}`, params);
     
     return this.formatProductInfoResponse(response, `Product Information for Product IDs: ${args.product_ids}`);
   }
@@ -142,7 +142,7 @@ export class ProductApi extends BaseApi {
     const params: Record<string, any> = {};
     if (args.page_index) params.page_index = args.page_index;
 
-    const response = await this.makeApiCall(`/product_ids_mdf/${args.product_ids}`, params);
+    const response = await this.makeApiCall(`/product_ids_mdf/${this.list(args.product_ids)}`, params);
     
     return this.formatProductMdfResponse(response, `Product MDF Information for Product IDs: ${args.product_ids}`);
   }

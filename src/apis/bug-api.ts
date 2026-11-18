@@ -83,6 +83,7 @@ export class BugApi extends BaseApi {
     const allBugs: any[] = [];
     let totalResults = 0;
     const severityCounts: Record<string, number> = {};
+    const failures: Record<string, string> = {};
 
     logger.info('Starting multi-severity search', { maxSeverity });
 
@@ -105,10 +106,16 @@ export class BugApi extends BaseApi {
           severityCounts[severity.toString()] = 0;
         }
       } catch (error) {
-        logger.warn(`Search failed for severity ${severity}`, { error: error instanceof Error ? error.message : error });
-        severityCounts[severity.toString()] = 0;
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(`Search failed for severity ${severity}`, { error: message });
+        failures[severity.toString()] = message;
         // Continue with other severities
       }
+    }
+
+    // Every severity failed: this is an error, not "no bugs found"
+    if (Object.keys(failures).length === maxSeverity) {
+      throw new Error(`Bug search failed for all severities: ${Object.values(failures)[0]}`);
     }
 
     // Remove duplicates by bug_id
@@ -124,9 +131,12 @@ export class BugApi extends BaseApi {
 
     return {
       bugs: uniqueBugs,
-      total_results: uniqueBugs.length,
+      // Sum of the API's own totals across severities; only page 1 of each is returned
+      total_results: totalResults,
+      returned_results: uniqueBugs.length,
       page_index: 1,
-      severity_breakdown: severityCounts
+      severity_breakdown: severityCounts,
+      ...(Object.keys(failures).length > 0 ? { failed_severities: failures } : {})
     };
   }
 

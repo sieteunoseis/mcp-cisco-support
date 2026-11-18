@@ -9,6 +9,7 @@ interface TokenData {
 // Global variables for OAuth2 token management
 let accessToken: string | null = null;
 let tokenExpiry: number | null = null;
+let pendingToken: Promise<string> | null = null;
 const TOKEN_REFRESH_MARGIN = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 // OAuth2 authentication
@@ -37,9 +38,7 @@ export async function authenticateWithCisco(): Promise<string> {
       },
       body: 'grant_type=client_credentials',
       signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -89,8 +88,12 @@ export async function getValidToken(): Promise<string> {
     return accessToken;
   }
   
-  logger.info('Token expired or missing, refreshing...');
-  return await authenticateWithCisco();
+  // Share one in-flight token request between concurrent callers
+  if (!pendingToken) {
+    logger.info('Token expired or missing, refreshing...');
+    pendingToken = authenticateWithCisco().finally(() => { pendingToken = null; });
+  }
+  return pendingToken;
 }
 
 // Reset token (for testing or manual refresh)

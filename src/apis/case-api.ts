@@ -79,9 +79,9 @@ export class CaseApi extends BaseApi {
             },
             page_index: {
               type: 'integer',
-              description: 'Page number for pagination (default: 5)',
+              description: 'Page number for pagination (default: 1)',
               minimum: 1,
-              default: 5
+              default: 1
             }
           },
           required: ['contract_ids']
@@ -121,9 +121,9 @@ export class CaseApi extends BaseApi {
             },
             page_index: {
               type: 'integer',
-              description: 'Page number for pagination (default: 5)',
+              description: 'Page number for pagination (default: 1)',
               minimum: 1,
-              default: 5
+              default: 1
             }
           },
           required: ['user_ids']
@@ -155,7 +155,7 @@ export class CaseApi extends BaseApi {
         if (processedArgs.date_created_from) apiParams.date_created_from = processedArgs.date_created_from;
         if (processedArgs.date_created_to) apiParams.date_created_to = processedArgs.date_created_to;
         apiParams.sort_by = processedArgs.sort_by || 'UPDATED_DATE';
-        apiParams.page_index = processedArgs.page_index || 5;
+        apiParams.page_index = processedArgs.page_index || 1;
         break;
         
       case 'search_cases_by_user':
@@ -165,7 +165,7 @@ export class CaseApi extends BaseApi {
         if (processedArgs.date_created_from) apiParams.date_created_from = processedArgs.date_created_from;
         if (processedArgs.date_created_to) apiParams.date_created_to = processedArgs.date_created_to;
         apiParams.sort_by = processedArgs.sort_by || 'UPDATED_DATE';
-        apiParams.page_index = processedArgs.page_index || 5;
+        apiParams.page_index = processedArgs.page_index || 1;
         break;
         
       default:
