@@ -5,72 +5,68 @@
  * Sends notifications/progress messages to clients that support them.
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { randomUUID } from 'node:crypto';
+import type { ServerNotification } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from './logger.js';
 
-// Global MCP server instance for progress notifications
-let mcpServerInstance: Server | null = null;
+type ProgressToken = string | number;
+type NotificationSender = (notification: ServerNotification) => Promise<void>;
 
 /**
- * Initialize the progress notification system with an MCP server instance
- * @param server - The MCP server instance to use for notifications
+ * Active progress contexts, keyed by an internal per-call token.
+ *
+ * Tool code only sees the internal token (passed as meta.progressToken), so
+ * two sessions that happen to use the same client token can't collide, and
+ * each notification goes back through the session that made the call.
  */
-export function initializeProgressNotifications(server: Server): void {
-  mcpServerInstance = server;
-  logger.info('Progress notifications initialized');
+const progressContexts = new Map<string, { clientToken: ProgressToken; send: NotificationSender }>();
+
+/**
+ * Register a progress context for one tool call.
+ * Returns the internal token to pass down as meta.progressToken, and a
+ * release() to call when the tool call finishes.
+ */
+export function registerProgressContext(
+  clientToken: ProgressToken | undefined,
+  send: NotificationSender
+): { token: string | undefined; release: () => void } {
+  if (clientToken === undefined) {
+    return { token: undefined, release: () => {} };
+  }
+  const token = randomUUID();
+  progressContexts.set(token, { clientToken, send });
+  return { token, release: () => { progressContexts.delete(token); } };
 }
 
 /**
  * Send a progress notification to the client
  *
- * @param progressToken - Optional progress token from the client request
+ * @param progressToken - Internal token from meta.progressToken (undefined = client didn't ask)
  * @param progress - Current progress value (e.g., 1, 2, 3)
  * @param total - Total number of steps (e.g., 5)
- *
- * @example
- * ```typescript
- * // Multi-step operation
- * sendProgress(meta?.progressToken, 0, 5); // Starting
- * sendProgress(meta?.progressToken, 1, 5); // 20% complete
- * sendProgress(meta?.progressToken, 2, 5); // 40% complete
- * sendProgress(meta?.progressToken, 5, 5); // 100% complete
- * ```
  */
 export function sendProgress(
   progressToken: string | undefined,
   progress: number,
   total: number
 ): void {
-  if (!progressToken || !mcpServerInstance) {
-    // Client didn't request progress or server not initialized
-    // Silently skip - this is normal for clients that don't support progress
+  const context = progressToken ? progressContexts.get(progressToken) : undefined;
+  if (!context) {
+    // Client didn't request progress, or the call already finished
     return;
   }
 
-  try {
-    mcpServerInstance.notification({
-      method: 'notifications/progress',
-      params: {
-        progressToken,
-        progress,
-        total
-      }
-    });
-
-    const percentage = Math.round((progress / total) * 100);
-    logger.info('Progress notification sent', {
-      progressToken: progressToken.substring(0, 8) + '...',
-      progress,
-      total,
-      percentage: `${percentage}%`
-    });
-  } catch (error) {
-    logger.error('Failed to send progress notification', {
+  // Never let a failed notification (e.g. session closed) crash the process
+  context.send({
+    method: 'notifications/progress',
+    params: { progressToken: context.clientToken, progress, total }
+  }).catch((error) => {
+    logger.warn('Failed to send progress notification', {
       error: error instanceof Error ? error.message : error,
       progress,
       total
     });
-  }
+  });
 }
 
 /**
@@ -139,12 +135,4 @@ export function createProgressTracker(
       percentage: Math.round((currentStep / totalSteps) * 100)
     })
   };
-}
-
-/**
- * Check if progress notifications are supported/enabled
- * @returns True if progress notifications can be sent
- */
-export function canSendProgress(): boolean {
-  return mcpServerInstance !== null;
 }

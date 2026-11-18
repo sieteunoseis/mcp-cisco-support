@@ -65,6 +65,23 @@ class PlaceholderApi extends BaseApi {
   }
 }
 
+// MCP tool annotations. Everything is a read-only lookup against Cisco
+// (open world) except the Smart Bonding ticket operations, which change state.
+const WRITE_TOOL_ANNOTATIONS: Record<string, Tool['annotations']> = {
+  create_smart_bonding_ticket: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+  update_smart_bonding_ticket: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+  upload_file_to_smart_bonding_ticket: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+  escalate_smart_bonding_ticket: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+  resolve_smart_bonding_ticket: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+  close_smart_bonding_ticket: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+  // Pulling consumes the pending-updates queue
+  pull_smart_bonding_tickets: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+};
+
+export function getToolAnnotations(name: string): Tool['annotations'] {
+  return { readOnlyHint: true, openWorldHint: true, ...WRITE_TOOL_ANNOTATIONS[name] };
+}
+
 // API registry
 export class ApiRegistry {
   private apis: Map<SupportedAPI, BaseApi> = new Map();
@@ -91,8 +108,15 @@ export class ApiRegistry {
     this.apis.set('smart_bonding', new SmartBondingApi() as any); // Cast needed due to different base class
   }
 
-  // Get all tools from enabled APIs
+  // Get all tools from enabled APIs, de-duplicated and annotated
   getAvailableTools(): Tool[] {
+    const seen = new Set<string>();
+    return this.collectTools()
+      .filter(tool => !seen.has(tool.name) && seen.add(tool.name))
+      .map(tool => ({ ...tool, annotations: { ...getToolAnnotations(tool.name), ...tool.annotations } }));
+  }
+
+  private collectTools(): Tool[] {
     const apisToUse = this.enabledApis;
 
     const availableTools: Tool[] = [];

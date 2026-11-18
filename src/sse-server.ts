@@ -2,7 +2,7 @@ import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import express from "express";
 import cors from 'cors';
 import helmet from 'helmet';
@@ -21,6 +21,33 @@ function generateAuthToken(): string {
   return randomUUID().replace(/-/g, '');
 }
 
+// Constant-time token comparison
+function tokensMatch(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+// Origins allowed to call the MCP endpoints from a browser (DNS-rebinding protection).
+// Requests without an Origin header (CLI tools, server-side clients) are always allowed.
+function getAllowedOrigins(): string[] {
+  return (process.env.MCP_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+}
+
+function isOriginAllowed(origin: string, allowed: string[]): boolean {
+  if (allowed.includes('*') || allowed.includes(origin)) return true;
+  try {
+    const { hostname } = new URL(origin);
+    // Local browser tools (e.g. MCP Inspector) are allowed by default
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+  } catch {
+    return false;
+  }
+}
+
 // Create authentication middleware
 function createAuthMiddleware(authToken: string, enableAuth: boolean) {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -33,30 +60,23 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
       return next();
     }
 
-    // Check for Bearer token in Authorization header (primary method)
+    // Bearer token in the Authorization header only (tokens in URLs end up in logs)
     const authHeader = req.headers['authorization'];
-    let token: string | undefined;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.replace('Bearer ', '');
-    } else {
-      // Fallback: check query parameter for convenience (less secure)
-      token = req.query.token as string;
-    }
+    const token = authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.slice('Bearer '.length).trim()
+      : undefined;
 
-    if (!token || token !== authToken) {
-      logger.warn('Unauthorized request', { 
-        path: req.path, 
+    if (!token || !tokensMatch(token, authToken)) {
+      logger.warn('Unauthorized request', {
+        path: req.path,
         method: req.method,
-        hasToken: !!token,
-        tokenMatch: token === authToken,
-        authHeader: !!authHeader
+        hasToken: !!token
       });
-      
+
       res.status(401).json({
         error: 'Unauthorized',
         message: 'Valid Bearer token required',
-        hint: 'Include "Authorization: Bearer <token>" header or ?token=<token> query parameter'
+        hint: 'Include an "Authorization: Bearer <token>" header'
       });
       return;
     }
@@ -65,40 +85,30 @@ function createAuthMiddleware(authToken: string, enableAuth: boolean) {
   };
 }
 
-export function createSSEServer(mcpServer: Server) {
+export function createSSEServer(createServer: () => Server) {
   const app = express();
 
   // Check environment variables for auth configuration
   const enableAuth = process.env.DANGEROUSLY_OMIT_AUTH !== 'true';
   const authToken = generateAuthToken();
   const port = process.env.PORT || 3000;
+  const host = process.env.HOST || '127.0.0.1';
+  const allowedOrigins = getAllowedOrigins();
 
   // Display authentication info prominently
   if (enableAuth) {
     console.log('Starting MCP Cisco Support server...');
-    console.log(`⚙️  Server listening on 127.0.0.1:${port}`);
+    console.log(`⚙️  Server listening on ${host}:${port}`);
     console.log('🔐 Authentication Type: BEARER');
-    console.log('');
-
-    {
-      const isEnvToken = !!process.env.MCP_BEARER_TOKEN;
-      console.log(`🔑 Bearer token: ${authToken}`);
-
-      if (isEnvToken) {
-        console.log('   ✅ Using token from MCP_BEARER_TOKEN environment variable');
-      } else {
-        console.log('   🎲 Generated random token (set MCP_BEARER_TOKEN to use custom token)');
-      }
-
-      console.log('Use this token to authenticate requests or set DANGEROUSLY_OMIT_AUTH=true to disable auth');
-      console.log('');
-      console.log('🔗 Access with Bearer token:');
-      console.log(`   curl -H "Authorization: Bearer ${authToken}" http://localhost:${port}/mcp`);
-      console.log(`   (Query parameter also supported: ?token=${authToken})`);
+    if (process.env.MCP_BEARER_TOKEN) {
+      console.log('   ✅ Using token from MCP_BEARER_TOKEN environment variable');
+    } else {
+      // Only a generated token is printed, since the operator has no other way to learn it
+      console.log(`🔑 Generated bearer token: ${authToken}`);
+      console.log('   Set MCP_BEARER_TOKEN to use your own token (it will not be printed)');
     }
-
     console.log('');
-    console.log(`🌐 MCP Server is up and running at http://127.0.0.1:${port} 🚀`);
+    console.log(`🌐 MCP Server is up and running at http://${host}:${port} 🚀`);
     console.log('');
   } else {
     console.log('⚠️  HTTP authentication DISABLED (DANGEROUSLY_OMIT_AUTH=true)');
@@ -116,10 +126,27 @@ export function createSSEServer(mcpServer: Server) {
       }
     }
   }));
-  app.use(cors());
-  app.use(morgan('combined'));
+  // CORS: only reflect allowed origins (no wildcard)
+  app.use(cors({
+    origin: (origin, cb) => cb(null, !origin || isOriginAllowed(origin, allowedOrigins)),
+    exposedHeaders: ['Mcp-Session-Id']
+  }));
+
+  // Access log without query strings (they can carry secrets)
+  morgan.token('path-only', (req: express.Request) => req.path);
+  app.use(morgan(':remote-addr - :method :path-only :status :res[content-length] - :response-time ms'));
   app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true }));
+
+  // Reject browser requests from unexpected origins (DNS rebinding protection)
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && !isOriginAllowed(origin, allowedOrigins)) {
+      logger.warn('Rejected request from disallowed origin', { origin, path: req.path });
+      res.status(403).json({ error: 'Forbidden', message: 'Origin not allowed' });
+      return;
+    }
+    next();
+  });
 
   // MCP Protocol Version header middleware
   app.use((req, res, next) => {
@@ -135,6 +162,7 @@ export function createSSEServer(mcpServer: Server) {
 
   const transportMap = new Map<string, SSEServerTransport>();
   const streamableTransports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+  const sessionServers = new Map<string, Server>();
   
   // Heartbeat configuration
   const HEARTBEAT_INTERVAL = 30000; // 30 seconds
@@ -170,6 +198,11 @@ export function createSSEServer(mcpServer: Server) {
   // Helper function to cleanup connection
   function cleanupConnection(sessionId: string, res?: express.Response) {
     transportMap.delete(sessionId);
+    const sessionServer = sessionServers.get(sessionId);
+    if (sessionServer) {
+      sessionServers.delete(sessionId);
+      sessionServer.close().catch(() => { /* already closed */ });
+    }
     stopHeartbeat(sessionId);
     
     if (res && !res.destroyed) {
@@ -214,8 +247,10 @@ export function createSSEServer(mcpServer: Server) {
       
       logger.info('SSE transport created', { sessionId: transport.sessionId });
       
-      // Connect MCP server to transport
-      await mcpServer.connect(transport);
+      // Each session gets its own MCP server instance
+      const sessionServer = createServer();
+      sessionServers.set(sessionId, sessionServer);
+      await sessionServer.connect(transport);
       
       logger.info('MCP server connected to SSE transport', { 
         sessionId: transport.sessionId,
@@ -319,6 +354,9 @@ export function createSSEServer(mcpServer: Server) {
           }
         });
         
+        // Each session gets its own MCP server instance
+        const sessionServer = createServer();
+
         // Set up cleanup handler
         transport.onclose = () => {
           const sid = transport.sessionId;
@@ -326,10 +364,10 @@ export function createSSEServer(mcpServer: Server) {
             logger.info('Transport closed, cleaning up', { sessionId: sid });
             delete streamableTransports[sid];
           }
+          sessionServer.close().catch(() => { /* already closed */ });
         };
-        
-        // Connect the transport to the MCP server
-        await mcpServer.connect(transport);
+
+        await sessionServer.connect(transport);
         await transport.handleRequest(req, res, req.body);
         return; // Already handled
       } else {
@@ -487,7 +525,6 @@ export function createSSEServer(mcpServer: Server) {
     if (enableAuth) {
       responseData.examples = {
         curl: `curl -H "Authorization: Bearer <token>" http://localhost:${port}/mcp`,
-        curlQuery: `curl http://localhost:${port}/mcp?token=<token>`,
         javascript: `fetch('http://localhost:${port}/mcp', { headers: { 'Authorization': 'Bearer <token>' } })`
       };
     }

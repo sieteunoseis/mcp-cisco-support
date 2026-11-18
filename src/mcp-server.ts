@@ -37,7 +37,7 @@ import {
 import { setLogging, logger } from "./utils/logger.js";
 import { SERVER_ICON } from "./utils/icon.js";
 import {
-  initializeProgressNotifications,
+  registerProgressContext,
   sendProgress,
   createProgressTracker,
 } from "./utils/progress.js";
@@ -516,6 +516,24 @@ async function formatResults(
 export { sendProgress, createProgressTracker } from "./utils/progress.js";
 
 // Create MCP server
+// Argument names whose values must never reach the logs
+const SENSITIVE_ARG_PATTERN = /token|secret|password|credential|auth|content|file_data|base64/i;
+
+function redactArgs(args: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!args) return args;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(args)) {
+    if (SENSITIVE_ARG_PATTERN.test(key)) {
+      out[key] = '[redacted]';
+    } else if (typeof value === 'string' && value.length > 200) {
+      out[key] = `${value.slice(0, 200)}… [${value.length} chars]`;
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 export function createMCPServer(): Server {
   const server = new Server(
     {
@@ -533,12 +551,9 @@ export function createMCPServer(): Server {
     },
   );
 
-  // Initialize progress notification system
-  initializeProgressNotifications(server);
-
-  // Reinitialize API registry with server instance for sampling support
+  // Per-server API registry (sampling requests go back through this server)
   ENABLED_APIS = getEnabledAPIs(); // Refresh enabled APIs list
-  apiRegistry = createApiRegistry(server);
+  const apiRegistry = createApiRegistry(server);
 
   // Ping handler
   server.setRequestHandler(PingRequestSchema, async () => {
@@ -592,15 +607,19 @@ export function createMCPServer(): Server {
   });
 
   // Call tool handler
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     const { name, arguments: args } = request.params;
-    const meta = request.params._meta as { progressToken?: string } | undefined;
+    const clientProgressToken = request.params._meta?.progressToken;
+
+    // Progress notifications are routed back to the session that made this call
+    const progress = registerProgressContext(clientProgressToken, extra.sendNotification);
+    const meta = { progressToken: progress.token };
 
     try {
       logger.info("Tool call started", {
         name,
-        args,
-        hasProgressToken: !!meta?.progressToken,
+        args: redactArgs(args),
+        hasProgressToken: clientProgressToken !== undefined,
       });
 
       const { result, apiName } = await apiRegistry.executeTool(
@@ -643,11 +662,11 @@ export function createMCPServer(): Server {
 
       if (errorMessage.includes("Unknown tool")) {
         errorMessage +=
-          "\n\nℹ️ Currently available tools:\n" +
+          "\n\nℹ️ Available tools: " +
           apiRegistry
             .getAvailableTools()
-            .map((t) => `• ${t.name}: ${t.description}`)
-            .join("\n");
+            .map((t) => t.name)
+            .join(", ");
 
         errorMessage += `\n\nℹ️ Enabled APIs: ${ENABLED_APIS.join(", ")}`;
       }
@@ -668,6 +687,8 @@ export function createMCPServer(): Server {
         content: [errorContent],
         isError: true,
       };
+    } finally {
+      progress.release();
     }
   });
 

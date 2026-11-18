@@ -2,7 +2,7 @@
 
 console.error('[MCP DEBUG] Starting imports...');
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { mcpServer, setLogging, logger } from './mcp-server.js';
+import { createMCPServer, setLogging, logger } from './mcp-server.js';
 import { createSSEServer } from './sse-server.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -142,7 +142,8 @@ async function main() {
   if (isHTTP) {
     // Run as SSE HTTP server
     const PORT = process.env.PORT || 3000;
-    const sseServer = createSSEServer(mcpServer);
+    const HOST = process.env.HOST || '127.0.0.1';
+    const sseServer = createSSEServer(createMCPServer);
     
     // Graceful shutdown handling
     const cleanup = () => {
@@ -153,8 +154,8 @@ async function main() {
     process.on('SIGTERM', cleanup);
     process.on('SIGINT', cleanup);
     
-    sseServer.listen(PORT, () => {
-      logger.info(`Cisco Support MCP SSE Server started on port ${PORT}`, {
+    sseServer.listen(Number(PORT), HOST, () => {
+      logger.info(`Cisco Support MCP SSE Server started on ${HOST}:${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
         version: VERSION,
         mode: 'sse-http'
@@ -168,7 +169,7 @@ async function main() {
     console.error('[MCP DEBUG] Creating StdioServerTransport');
     const transport = new StdioServerTransport();
     console.error('[MCP DEBUG] Connecting to transport');
-    await mcpServer.connect(transport);
+    await createMCPServer().connect(transport);
 
     console.error('[MCP DEBUG] Connected successfully');
     logger.info('Cisco Support MCP Server connected via stdio');

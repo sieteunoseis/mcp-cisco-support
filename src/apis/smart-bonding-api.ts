@@ -413,15 +413,25 @@ export class SmartBondingApi extends SmartBondingBaseApi {
     const filename = args.filename as string;
     const fileContent = args.file_content as string;
 
-    // Decode Base64 file content
-    let fileBuffer: Buffer;
-    try {
-      fileBuffer = Buffer.from(fileContent, 'base64');
-    } catch (error) {
-      throw new Error('Invalid Base64 file content');
+    // Only upload to Cisco hosts. The domain comes from the ticket response
+    // (Field80) via the model, so it must not be able to point anywhere else.
+    const domain = uploadDomain.trim().toLowerCase();
+    if (!/^([a-z0-9-]+\.)*cisco\.com$/.test(domain)) {
+      throw new Error(`Refusing to upload to "${uploadDomain}": upload_domain must be a cisco.com host (e.g. cxd.cisco.com)`);
     }
 
-    const uploadUrl = `https://${uploadDomain}/home/${filename}`;
+    // Filename must be a single path segment
+    if (!filename || /[\/\\]/.test(filename) || filename === '.' || filename === '..') {
+      throw new Error('filename must be a plain file name without path separators');
+    }
+
+    // Decode Base64 file content (Buffer.from never throws, so validate explicitly)
+    if (!/^[A-Za-z0-9+/\r\n]*={0,2}\s*$/.test(fileContent || '')) {
+      throw new Error('Invalid Base64 file content');
+    }
+    const fileBuffer = Buffer.from(fileContent, 'base64');
+
+    const uploadUrl = `https://${domain}/home/${encodeURIComponent(filename)}`;
     const credentials = Buffer.from(`${ticketNumber}:${uploadToken}`).toString('base64');
 
     try {
@@ -453,7 +463,7 @@ export class SmartBondingApi extends SmartBondingBaseApi {
           _note: 'Files cannot be modified after upload. Submit new files for corrections.'
         };
       } else {
-        const errorText = await response.text();
+        const errorText = (await response.text()).slice(0, 500);
         throw new Error(`File upload failed: ${response.status} ${response.statusText} - ${errorText}`);
       }
     } catch (error) {

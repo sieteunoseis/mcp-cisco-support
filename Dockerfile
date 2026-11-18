@@ -62,6 +62,8 @@ COPY --chown=nodeuser:nodejs .env.example ./
 RUN mkdir -p logs && chown -R nodeuser:nodejs logs
 
 # Expose port
+# Containers must listen on all interfaces; publish the port deliberately
+ENV HOST=0.0.0.0
 EXPOSE 3000
 
 # Switch to non-root user
