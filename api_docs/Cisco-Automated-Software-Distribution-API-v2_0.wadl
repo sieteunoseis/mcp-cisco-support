@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xml:lang="en" title="Cisco Automated Software Distribution API v2.0"/>
+  <resources base="https://api.cisco.com">
+    <resource path="software" id="software">
+      <doc xml:lang="en" title="software"/>
+      <resource path="{version}" id="version">
+        <doc xml:lang="en" title="version"/>
+        <param name="version" default="v2.0" type="xs:string" required="true" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <doc xml:lang="en" title="version Parameter">Version of this API (e.g. v2.0)</doc>
+        </param>
+        <resource path="metadata" id="metadata">
+          <doc xml:lang="en" title="metadata"/>
+          <resource path="pids/{pids}/current_releases/{current_releases}/output_releases/{output_releases}" id="Software Release by Product ID (PID)">
+            <doc xml:lang="en" title="Software Release by Product ID (PID)"/>
+            <param name="pids" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="pids Parameter">PID for which to return software release information.  One value is required; up to 5 values are permitted. delimited by comma; e.g. WS-C2960-8TC-S</doc>
+            </param>
+            <param name="current_releases" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="current_releases Parameter">Current release version on which to filter the results. One value is required; up to 5 values are permitted.Delimiter is a comma  e.g. 15.0.2-SE5</doc>
+            </param>
+            <param name="output_releases" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="output_releases Parameter">Must be either Latest or Above per PID/Current Release. Output release version on which to filter the results;multiple values separated by comma e.g Latest</doc>
+              <option value="Latest"/>
+              <option value="Above"/>
+              <option value=""/>
+            </param>
+            <param name="page_index" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="page_index Parameter">Index number of the page to return. A maximum of 25 records per page are returned. (default is page index 1)</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="200">
+                <representation mediaType="application/json" element="abov:Response" xmlns:abov="https://api.cisco.com/software/v2.0/metadata/pids/SLM2008/current_releases/1.0.1/output_releases/Above"/>
+              </response>
+            </method>
+          </resource>
+          <resource path="pid/{pid}/image_names/{images_names}" id="Software Release by Product ID (PID) and Software Image Names">
+            <doc xml:lang="en" title="Software Release by Product ID (PID) and Software Image Names"/>
+            <param name="pid" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="pid Parameter">PID for which to return software release information. Only one value is permitted e.g. WS-C2960-8TC-S</doc>
+            </param>
+            <param name="images_names" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="images_names Parameter">Name of the software images for which to return software release information. One value is required; up to 25 values are permitted; multiple entries separated by comma  e.g. c2960-lanlitek9-mz.150-2.SE5.bin,c2960-lanlitek9-mz.150-2.SE7.bin</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="200">
+                <representation mediaType="application/json" element="slm:Response" xmlns:slm="https://api.cisco.com/software/v2.0/metadata/pid/SLM2008/image_names/SLM2008v2.0.0.10.wrp"/>
+              </response>
+            </method>
+          </resource>
+        </resource>
+        <resource path="checksum" id="checksum">
+          <doc xml:lang="en" title="checksum"/>
+          <resource path="image_names/{image_names}" id="Checksum Value by Software Image Names">
+            <doc xml:lang="en" title="Checksum Value by Software Image Names"/>
+            <param name="image_names" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="image_names Parameter">Name of the software image for which to return checksum values. One value is required; up to 5 values are permitted (command delimited). e.g. c1841-adventerprisek9-mz.151-4.M6.bin</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+              <response status="200">
+                <representation mediaType="application/json" element="slm:Response" xmlns:slm="https://api.cisco.com/software/v2.0/checksum/image_names/SLM2008v2.0.0.10.wrp"/>
+              </response>
+            </method>
+          </resource>
+        </resource>
+        <resource path="downloads" id="downloads">
+          <doc xml:lang="en" title="downloads"/>
+          <resource path="urls" id="urls">
+            <doc xml:lang="en" title="urls"/>
+            <resource path="cart" id="Software Download URLs for Download Cart Images">
+              <doc xml:lang="en" title="Software Download URLs for Download Cart Images"/>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="200">
+                  <representation mediaType="application/json" element="cart:Response" xmlns:cart="https://api.cisco.com/software/v2.0/downloads/urls/cart"/>
+                </response>
+              </method>
+            </resource>
+            <resource path="pid/{pid}/mdf_id/{mdf_id}/metadata_trans_id/{metadata_trans_id}/image_guids/{image_guids}" id="Software Download URLs by Product ID (PID)">
+              <doc xml:lang="en" title="Software Download URLs by Product ID (PID)"/>
+              <param name="pid" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="pid Parameter">PID for which to return software release information. Only one value is permitted. e.g. WS-C2960-8TC-S</doc>
+              </param>
+              <param name="mdf_id" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="mdf_id Parameter">MDF ID of the product for which to return software release information. Only one value is permitted. e.g 282202801</doc>
+              </param>
+              <param name="metadata_trans_id" type="xs:int" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="metadata_trans_id Parameter">ID of the metadata transaction; this value is obtained from the GET Software Release methods. Only one value is permitted. e.g. 5014532</doc>
+              </param>
+              <param name="image_guids" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="image_guids Parameter">GUID for the software image; this value is obtained from the GET Software Release methods. One value is required; up to 25 values are permitted; multiple values seperated by comma  e.g. 67031436039C6DDBADD3CD80CFA644660719129A</doc>
+              </param>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+                <response status="403">
+                  <representation mediaType="text/xml" element="h1"/>
+                </response>
+                <response status="200">
+                  <representation mediaType="application/json" element="c34:Response" xmlns:c34="https://api.cisco.com/software/v2.0/downloads/urls/pid/SLM2008/mdf_id/282414081/metadata_trans_id/6259686/image_guids/5C34794C241E777BE34AE86AEAB95C39219DC208"/>
+                </response>
+              </method>
+            </resource>
+          </resource>
+          <resource path="statistics" id="Download Statistics">
+            <doc xml:lang="en" title="Download Statistics"/>
+            <param name="download_completion_time" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="download_completion_time Parameter">Time the download was completed (in milliseconds). Only one value is permitted   e.g. 200000</doc>
+            </param>
+            <param name="download_file_size" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="download_file_size Parameter">Size of the downloaded files. Only one value is permitted. e.g. 164280</doc>
+            </param>
+            <param name="download_session_id" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="download_session_id Parameter">ID for the download session; this value is obtained from the Get Software Download URLs methods. Only one value is permitted  e.g 3353</doc>
+            </param>
+            <param name="download_status" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="download_status Parameter">Status of the download; one of the following values: (Success or Failure) Only one value is permitted  e.g. Success</doc>
+              <option value="Success"/>
+              <option value="Failure"/>
+              <option value=""/>
+            </param>
+            <param name="image_guid" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="image_guid Parameter">GUID for the software image. Only one value is permitted. e.g 225C34794C241E777BE34AE86AEAB95C39219DC208</doc>
+            </param>
+            <method name="POST" id="POST">
+              <doc xml:lang="en" title="POST"/>
+              <request>
+                <representation mediaType="application/json"/>
+              </request>
+              <response status="">
+                <representation mediaType="application/json"/>
+              </response>
+              <response status="200">
+                <representation mediaType="application/json" element="stat:Response" xmlns:stat="https://api.cisco.com/software/v2.0/downloads/statistics"/>
+              </response>
+            </method>
+          </resource>
+        </resource>
+        <resource path="compliance" id="compliance">
+          <doc xml:lang="en" title="compliance"/>
+          <resource path="forms" id="forms">
+            <doc xml:lang="en" title="forms"/>
+            <resource path="k9" id="K9 Agreement">
+              <doc xml:lang="en" title="K9 Agreement"/>
+              <param name="business_div_function" type="xs:string" required="true" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="business_div_function Parameter">Business division function; only this value is permitted: COMM_OR_CIVIL</doc>
+                <option value="COMM_OR_CIVIL"/>
+                <option value=""/>
+              </param>
+              <param name="confirmation" type="xs:string" required="true" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="confirmation Parameter">User confirmation; only this value is permitted: Confirm_Checked</doc>
+                <option value="Confirm_Checked"/>
+                <option value=""/>
+              </param>
+              <param name="user_action" type="xs:string" required="true" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="user_action Parameter">User response to the K9 agreement; one of the following values: (Accepted or Declined) Only one value permitted</doc>
+                <option value="Accepted"/>
+                <option value="Declined"/>
+                <option value=""/>
+              </param>
+              <param name="download_session_id" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="download_session_id Parameter">ID for the download session; this value is obtained from the Get Software Download URLs methods. Only one value is permitted.  e.g. 3654559</doc>
+              </param>
+              <param name="gov_mil_defense_contractor" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="gov_mil_defense_contractor Parameter">Government entity, military entity, or defense contractor, only this value is permitted GOV_OR_MIL</doc>
+                <option value="GOV_OR_MIL"/>
+                <option value=""/>
+              </param>
+              <param name="image_file_name" type="xs:string" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="image_file_name Parameter">Name of the software image. Only one value is permitted. e.g. c2960c405-universalk9-mz.150-2.SE5.bin</doc>
+              </param>
+              <method name="POST" id="POST">
+                <doc xml:lang="en" title="POST"/>
+                <request>
+                  <representation mediaType="application/json"/>
+                </request>
+                <response status="">
+                  <representation mediaType="application/json"/>
+                </response>
+                <response status="200">
+                  <representation mediaType="application/json" element="k9:Response" xmlns:k9="https://api.cisco.com/software/v2.0/compliance/forms/k9"/>
+                </response>
+              </method>
+            </resource>
+            <resource path="eula" id="EULA Agreement">
+              <doc xml:lang="en" title="EULA Agreement"/>
+              <param name="download_session_id" type="xs:int" required="false" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="download_session_id Parameter">ID for the download session; this value is obtained from the Get Software Download URLs methods. Only one value is permitted.  e.g. 3654559</doc>
+              </param>
+              <param name="user_action" type="xs:string" required="true" default="" style="query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <doc xml:lang="en" title="user_action Parameter">User response to the EULA agreement; one of the following values: (Accepted or Declined) Only one value permitted</doc>
+              </param>
+              <method name="POST" id="POST">
+                <doc xml:lang="en" title="POST"/>
+                <request>
+                  <representation mediaType="application/json"/>
+                </request>
+                <response status="200">
+                  <representation mediaType="application/json" element="eula:Response" xmlns:eula="https://api.cisco.com/software/v2.0/compliance/forms/eula"/>
+                </response>
+		<response status="">
+                  <representation mediaType="application/json"/>
+                </response>
+              </method>
+            </resource>
+            <resource path="GetK9Form" id="Get K9 Agreement">
+              <doc xml:lang="en" title="Get K9 Agreement"/>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+              </method>
+            </resource>
+            <resource path="GetEULAForm" id="Get EULA Agreement">
+              <doc xml:lang="en" title="Get EULA Agreement"/>
+              <method name="GET" id="GET">
+                <doc xml:lang="en" title="GET"/>
+                <request/>
+              </method>
+            </resource>
+          </resource>
+        </resource>
+        <resource path="swstatus" id="softwarestatus">
+          <doc xml:lang="en" title="softwarestatus"/>
+          <resource path="image_names/{image_names}" id="Software status by Software Image Names">
+            <doc xml:lang="en" title="Software status by Software Image Names"/>
+            <param name="image_names" type="xs:string" required="true" default="" style="template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <doc xml:lang="en" title="image_names Parameter">Name of the software image for which to return software status. One value is required; up to 25 values are permitted.  Multiple values must be separated by commas. For example: c1841-adventerprisek9-mz.151-4.M6.bin</doc>
+            </param>
+            <method name="GET" id="GET">
+              <doc xml:lang="en" title="GET"/>
+              <request/>
+            </method>
+          </resource>
+        </resource>
+      </resource>
+    </resource>
+  </resources>
+</application>
