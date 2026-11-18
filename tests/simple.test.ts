@@ -16,8 +16,14 @@ describe('Simple Tests', () => {
 
   test('should have bug API tools', () => {
     const tools = getAvailableTools();
-    const bugTools = tools.filter(tool => tool.name.includes('bug'));
-    expect(bugTools.length).toBe(8); // 8 bug API tools
+    const names = tools.map(tool => tool.name);
+    // SUPPORT_API=bug exposes the 8 core bug search tools plus the enhanced analysis tools
+    for (const name of ['get_bug_details', 'search_bugs_by_keyword', 'search_bugs_by_product_id', 'search_bugs_by_product_and_release',
+      'search_bugs_by_product_series_affected', 'search_bugs_by_product_series_fixed',
+      'search_bugs_by_product_name_affected', 'search_bugs_by_product_name_fixed']) {
+      expect(names).toContain(name);
+    }
+    expect(tools.length).toBe(14);
   });
 
   test('should have tool descriptions', () => {

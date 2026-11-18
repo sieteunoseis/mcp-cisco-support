@@ -17,13 +17,6 @@ on:
       - '.env.example'
       - '.gitignore'
       
-      # Test files (since we removed tests)
-      - 'test/**'
-      - 'tests/**'
-      - '**/*.test.ts'
-      - '**/*.test.js'
-      - 'jest.config.js'
-      
       # GitHub-specific files that don't affect container build
       - '.github/**'
       - '!.github/workflows/docker-build.yml'
@@ -45,7 +38,12 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Images are only built and pushed after type check, tests and build pass
+  test:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,6 +65,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Read package version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -77,6 +79,7 @@ jobs:
             type=ref,event=pr
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=v${{ steps.version.outputs.version }},enable={{is_default_branch}}
             type=raw,value=${{ github.event.inputs.tag_suffix }},enable=${{ github.event.inputs.tag_suffix != '' }}
       
       - name: Build and push Docker image

@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
       
@@ -37,6 +37,19 @@ jobs:
       
       - name: Run type checking
         run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test -- --ci
+
+      - name: Check release tag matches package.json
+        if: github.event_name == 'release'
+        run: |
+          PKG="v$(node -p "require('./package.json').version")"
+          TAG="${{ github.event.release.tag_name }}"
+          if [ "$PKG" != "$TAG" ]; then
+            echo "Release tag $TAG does not match package.json version $PKG"
+            exit 1
+          fi
 
       # Version is managed manually in package.json before release
       # - name: Update package version (release only)

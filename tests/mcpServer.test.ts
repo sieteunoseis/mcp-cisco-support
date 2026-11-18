@@ -61,10 +61,11 @@ const isIntegrationMode = !mockFetch;
 
     test('should include only Bug API tools', () => {
       const tools = getAvailableTools();
-      const bugTools = tools.filter(t => t.name.includes('bug'));
-      
-      expect(bugTools.length).toBe(8); // Only bug API tools
-      expect(tools.every(t => t.name.startsWith('get_bug') || t.name.startsWith('search_bugs'))).toBe(true);
+      const names = tools.map(t => t.name);
+
+      // Bug API: 8 core search tools + 6 enhanced analysis tools, nothing from other APIs
+      expect(tools.length).toBe(14);
+      expect(names.some(n => n.includes('case') || n.includes('eox') || n.includes('psirt'))).toBe(false);
     });
   });
 

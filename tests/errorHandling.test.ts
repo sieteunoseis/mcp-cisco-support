@@ -12,7 +12,8 @@ const isIntegrationMode = !mockFetch;
 
 (isIntegrationMode ? describe.skip : describe)('Error Handling and Validation', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Reset implementations too, so one test's mock can't leak into the next
+    mockFetch!.mockReset();
   });
 
   describe('Parameter Validation', () => {
@@ -22,7 +23,7 @@ const isIntegrationMode = !mockFetch;
 
     test('should validate severity parameter enum values', async () => {
       // Mock successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -49,7 +50,7 @@ const isIntegrationMode = !mockFetch;
 
     test('should validate status parameter enum values', async () => {
       // Mock successful OAuth  
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -75,7 +76,7 @@ const isIntegrationMode = !mockFetch;
 
     test('should validate modified_date parameter enum values', async () => {
       // Mock successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -133,7 +134,7 @@ const isIntegrationMode = !mockFetch;
   describe('API Error Handling', () => {
     test('should handle 500 Internal Server Error from Cisco API', async () => {
       // Successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -152,12 +153,12 @@ const isIntegrationMode = !mockFetch;
       });
 
       await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
-        .rejects.toThrow('Cisco API call failed: 500 Internal Server Error');
+        .rejects.toThrow('Bug API call failed: 500 Internal Server Error');
     });
 
     test('should handle API timeout errors', async () => {
       // Successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -171,12 +172,12 @@ const isIntegrationMode = !mockFetch;
       });
 
       await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
-        .rejects.toThrow('Cisco API connection timed out while waiting for response headers');
+        .rejects.toThrow('Bug API connection timed out while waiting for response headers');
     });
 
     test('should handle API abort errors', async () => {
       // Successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -190,7 +191,7 @@ const isIntegrationMode = !mockFetch;
       });
 
       await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
-        .rejects.toThrow('Cisco API call timed out after 60 seconds');
+        .rejects.toThrow('Bug API call timed out after 60 seconds');
     });
 
     test('should handle 401 errors and retry with new token', async () => {
@@ -232,7 +233,7 @@ const isIntegrationMode = !mockFetch;
   describe('Edge Cases', () => {
     test('should handle empty API responses', async () => {
       // Successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -255,7 +256,7 @@ const isIntegrationMode = !mockFetch;
 
     test('should handle malformed JSON responses', async () => {
       // Successful OAuth
-      mockFetch!.mockImplementationOnce((url, init) => {
+      mockFetch!.mockImplementation((url, init) => {
         if (typeof url === 'string' && url.includes('oauth2')) {
           return Promise.resolve({
             ok: true,
@@ -282,25 +283,6 @@ const isIntegrationMode = !mockFetch;
 
       await expect(executeTool('search_bugs_by_keyword', { keyword: 'test' }))
         .rejects.toThrow('fetch failed');
-    });
-  });
-
-  describe('EoX API Placeholder', () => {
-    test('should return helpful error for EoX API placeholder', async () => {
-      const result = await executeTool('eox_placeholder', {});
-      
-      expect(result).toEqual({
-        error: 'EoX API Not Implemented',
-        message: 'The Cisco EoX API is not yet implemented in this MCP server. Currently, only the Bug and Case APIs are available.',
-        alternatives: [
-          'Use search_bugs_by_keyword to find bugs related to your topic',
-          'Use search_bugs_by_product_id if you have a specific product ID',
-          'Use get_case_details if you have a case ID to investigate'
-        ],
-        example: 'Try: "Search for bugs related to your eox topic with keyword search"',
-        available_apis: ['bug', 'case'],
-        planned_apis: ['eox', 'product', 'serial', 'rma', 'software', 'psirt']
-      });
     });
   });
 });

@@ -172,14 +172,8 @@ const isIntegrationMode = !mockFetch;
       const tools = getAvailableTools();
       const rmaTools = tools.filter(tool => tool.name.includes('rma'));
 
-      expect(rmaTools.length).toBeGreaterThanOrEqual(3);
-
-      const toolNames = rmaTools.map(t => t.name);
-      expect(toolNames).toEqual(expect.arrayContaining([
-        'get_rma_details',
-        'get_rmas_by_user',
-        'search_rmas_by_serial'
-      ]));
+      // The Return API has no serial-number endpoint, so only 2 RMA tools exist
+      expect(rmaTools.map(t => t.name).sort()).toEqual(['get_rma_details', 'get_rmas_by_user']);
     });
 
     test('should have proper input schemas for RMA tools', () => {
@@ -239,7 +233,7 @@ const isIntegrationMode = !mockFetch;
       const rmaTools = tools.filter(tool => tool.name.includes('rma'));
 
       expect(serialTools.length).toBeGreaterThanOrEqual(3);
-      expect(rmaTools.length).toBeGreaterThanOrEqual(3);
+      expect(rmaTools.length).toBe(2);
     });
   });
 });

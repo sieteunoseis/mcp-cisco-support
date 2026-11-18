@@ -10,7 +10,8 @@ if (!process.env.SUPPORT_API) {
 }
 
 // Check if we have real credentials for integration tests
-const hasRealCredentials = process.env.CISCO_CLIENT_ID && 
+const hasRealCredentials = process.env.RUN_INTEGRATION === '1' &&
+  process.env.CISCO_CLIENT_ID && 
   process.env.CISCO_CLIENT_SECRET &&
   process.env.CISCO_CLIENT_ID !== 'test_client_id' &&
   process.env.CISCO_CLIENT_SECRET !== 'test_client_secret';
@@ -36,6 +37,12 @@ if (hasRealCredentials) {
     abort: jest.fn(),
   })) as any;
 }
+
+// Each test starts without a cached Cisco token, so mocked OAuth calls line up
+import { resetToken } from '../src/utils/auth';
+beforeEach(() => {
+  resetToken();
+});
 
 // Export the mock for use in unit tests (undefined for integration tests)
 export { mockFetch };

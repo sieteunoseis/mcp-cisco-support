@@ -102,7 +102,7 @@ export abstract class BaseApi {
           params: params,
           errorText: errorText.substring(0, 500)
         });
-        throw new Error(`${this.apiName} API call failed: ${response.status} ${response.statusText} - URL: ${url} - ${errorText}`);
+        throw new Error(`${this.apiName} API call failed: ${response.status} ${response.statusText} - URL: ${url} - ${errorText.substring(0, 500)}`);
       }
 
       const data = await response.json() as ApiResponse;

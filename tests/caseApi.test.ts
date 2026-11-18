@@ -300,7 +300,7 @@ const isIntegrationMode = !mockFetch;
           } as Response);
         }
         
-        if (typeof url === 'string' && url.includes('contracts/contract_ids') && url.includes('status=O')) {
+        if (typeof url === 'string' && url.includes('contracts/contract_ids') && url.includes('status_flag=O')) {
           return Promise.resolve({
             ok: true,
             status: 200,
@@ -316,7 +316,7 @@ const isIntegrationMode = !mockFetch;
 
       const result = await executeTool('search_cases_by_contract', {
         contract_ids: 'CON123456',
-        status: 'O'
+        status_flag: 'O'
       });
 
       expect(result).toHaveProperty('cases');
@@ -327,7 +327,7 @@ const isIntegrationMode = !mockFetch;
     test('should support status_flag filtering', async () => {
       const result = await executeTool('search_cases_by_contract', {
         contract_ids: 'CON123456',
-        status_flag: 'Active'
+        status_flag: 'O'
       });
 
       expect(result).toHaveProperty('cases');
@@ -376,8 +376,7 @@ const isIntegrationMode = !mockFetch;
     test('should support status filtering', async () => {
       const result = await executeTool('search_cases_by_user', {
         user_ids: 'user123@company.com',
-        status: 'O',
-        status_flag: 'Active'
+        status_flag: 'O'
       });
 
       expect(result).toHaveProperty('cases');
@@ -475,15 +474,15 @@ const isIntegrationMode = !mockFetch;
       // Single status should work
       await expect(executeTool('search_cases_by_contract', {
         contract_ids: 'CON123456',
-        status: 'O'
+        status_flag: 'O'
       })).resolves.toBeDefined();
       
       // Multiple statuses should not be allowed by schema
       const tool = (await getAvailableTools()).find(t => t.name === 'search_cases_by_contract');
       expect(tool?.inputSchema?.properties).toBeDefined();
       if (tool?.inputSchema?.properties) {
-        const statusProperty = tool.inputSchema.properties.status as any;
-        expect(statusProperty?.enum).not.toContain('O,C');
+        const statusProperty = tool.inputSchema.properties.status_flag as any;
+        expect(statusProperty?.enum).toEqual(['O', 'C']);
       }
     });
   });

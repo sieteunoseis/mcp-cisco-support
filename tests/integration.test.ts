@@ -6,7 +6,8 @@
 
 import { executeTool } from '../src/mcp-server';
 
-const SKIP_INTEGRATION = !process.env.CISCO_CLIENT_ID || !process.env.CISCO_CLIENT_SECRET || process.env.SKIP_INTEGRATION === 'true';
+// Opt-in only: RUN_INTEGRATION=1 with real CISCO_CLIENT_ID/CISCO_CLIENT_SECRET
+const SKIP_INTEGRATION = process.env.RUN_INTEGRATION !== '1';
 
 describe('Integration Tests (Real API)', () => {
   // These tests are skipped by default as they require real API credentials
