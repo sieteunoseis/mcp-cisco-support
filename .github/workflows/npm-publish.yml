@@ -57,10 +57,13 @@ jobs:
 
       # Authenticates with OIDC via the npm trusted publisher for this repo and
       # workflow (no NPM_TOKEN); provenance is attached automatically.
+      # The trusted publisher only allows *staged* publishes: the version goes
+      # live after a maintainer approves it with 2FA (npmjs.com, or
+      # `npm stage list mcp-cisco-support` + `npm stage approve <id>`).
       - name: Publish to NPM (dry run)
         if: github.event.inputs.dry_run == 'true'
-        run: npm publish --dry-run
+        run: npm stage publish . --dry-run
 
-      - name: Publish to NPM
+      - name: Stage publish to NPM
         if: github.event_name == 'release' || github.event.inputs.dry_run == 'false'
-        run: npm publish
+        run: npm stage publish .
