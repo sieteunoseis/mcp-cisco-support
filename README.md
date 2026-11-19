@@ -180,6 +180,12 @@ npm run dev         # stdio, auto-reload   (npm run dev:http for HTTP)
 
 Live integration tests are opt-in: `RUN_INTEGRATION=1 CISCO_CLIENT_ID=... CISCO_CLIENT_SECRET=... npm test`. Code layout, verified Cisco API behaviour, fixtures and the release process: [CLAUDE.md](CLAUDE.md) and [Development Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Development-Guide).
 
+## Support
+
+If you find this project helpful, consider supporting development:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/automatebldrs)
+
 ## Links
 
 - [Wiki](https://github.com/sieteunoseis/mcp-cisco-support/wiki) · [Changelog](CHANGELOG.md) · [Issues](https://github.com/sieteunoseis/mcp-cisco-support/issues)

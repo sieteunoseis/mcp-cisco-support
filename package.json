@@ -52,6 +52,10 @@
     "url": "https://github.com/sieteunoseis/mcp-cisco-support/issues"
   },
   "homepage": "https://github.com/sieteunoseis/mcp-cisco-support#readme",
+  "funding": {
+    "type": "buymeacoffee",
+    "url": "https://buymeacoffee.com/automatebldrs"
+  },
   "dependencies": {
     "@blackwell-systems/gcf": "^2.1.2",
     "@modelcontextprotocol/node": "^2.1.2",
