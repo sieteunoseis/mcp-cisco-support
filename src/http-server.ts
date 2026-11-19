@@ -1,5 +1,5 @@
-import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createMcpHandler, type Server } from "@modelcontextprotocol/server";
+import { toNodeHandler } from "@modelcontextprotocol/node";
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import express from "express";
 import cors from 'cors';
@@ -177,16 +177,15 @@ export function createHttpServer(createServer: () => Server) {
     });
   });
 
+  // SDK v2 handler: serves 2026-07-28 requests (per-request envelope, no
+  // initialize) and 2025-era clients statelessly, a fresh server per request
+  const mcp = toNodeHandler(createMcpHandler(createServer, {
+    legacy: 'stateless',
+    onerror: (error) => logger.warn('MCP request rejected', { error: error.message }),
+  }));
   app.post("/mcp", async (req, res) => {
-    const server = createServer();
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
-    res.on('close', () => {
-      transport.close().catch(() => { /* already closed */ });
-      server.close().catch(() => { /* already closed */ });
-    });
     try {
-      await server.connect(transport);
-      await transport.handleRequest(req, res, req.body);
+      await mcp(req, res, req.body);
     } catch (error) {
       logger.error('Failed to handle MCP request', { error: error instanceof Error ? error.message : error });
       if (!res.headersSent) {

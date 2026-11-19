@@ -1,19 +1,12 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { Server } from "@modelcontextprotocol/server";
 import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  ListPromptsRequestSchema,
-  GetPromptRequestSchema,
-  PingRequestSchema,
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-  ListResourceTemplatesRequestSchema,
-  Prompt,
-  PromptMessage,
-  TextContent,
-  McpError,
-  ErrorCode,
-} from "@modelcontextprotocol/sdk/types.js";
+  type Prompt,
+  type PromptMessage,
+  type TextContent,
+  type ServerContext,
+  ProtocolError,
+  ProtocolErrorCode,
+} from "@modelcontextprotocol/server";
 import dotenv from "dotenv";
 
 // Import modular API system
@@ -22,6 +15,9 @@ import {
   ApiRegistry,
 } from "./apis/index.js";
 import { encodeResult } from "./utils/gcf.js";
+
+// _meta key carrying client capabilities on each request (protocol 2026-07-28)
+const CLIENT_CAPABILITIES_META_KEY = "io.modelcontextprotocol/clientCapabilities";
 import { UI_EXTENSION_ID, UI_MIME_TYPE, RESULTS_APP_URI, RESULTS_APP_HTML, UI_TOOLS, UI_RESULT_NOTE } from "./ui/results-app.js";
 import { setLogging, logger } from "./utils/logger.js";
 import { SERVER_ICON } from "./utils/icon.js";
@@ -124,7 +120,7 @@ ${line("Product IDs", args.product_ids)}${line("Serial numbers", args.serial_num
 Produce a timeline of end-of-sale, end-of-security-support and last-date-of-support, and flag devices without contract coverage.`);
 
     default:
-      throw new McpError(ErrorCode.InvalidParams, `Unknown prompt: ${name}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Unknown prompt: ${name}`);
   }
 }
 
@@ -152,6 +148,8 @@ function redactArgs(args: Record<string, unknown> | undefined): Record<string, u
   return out;
 }
 
+const HOUR = 60 * 60_000;
+
 export function createMCPServer(): Server {
   const server = new Server(
     {
@@ -165,6 +163,17 @@ export function createMCPServer(): Server {
         prompts: {},
         resources: {},
       },
+      // 2026-07-28 cache hints. Lists only change between releases; tools/list
+      // is private because the MCP Apps metadata depends on the client's UI
+      // support; resource reads are live Cisco data.
+      cacheHints: {
+        "server/discover": { ttlMs: HOUR, cacheScope: "public" },
+        "tools/list": { ttlMs: HOUR, cacheScope: "private" },
+        "prompts/list": { ttlMs: HOUR, cacheScope: "public" },
+        "resources/list": { ttlMs: HOUR, cacheScope: "public" },
+        "resources/templates/list": { ttlMs: HOUR, cacheScope: "public" },
+        "resources/read": { ttlMs: 5 * 60_000, cacheScope: "private" },
+      },
     },
   );
 
@@ -175,25 +184,26 @@ export function createMCPServer(): Server {
   // 'yes' / 'no' when the client declared its capabilities (initialize on
   // this server instance); 'unknown' on stateless HTTP requests that arrive
   // without an initialize on the same instance.
-  const uiSupport = (): 'yes' | 'no' | 'unknown' => {
-    const caps = server.getClientCapabilities() as any;
+  const uiSupport = (ctx?: ServerContext): 'yes' | 'no' | 'unknown' => {
+    const envelope = (ctx?.mcpReq as any)?.envelope as Record<string, any> | undefined;
+    const caps = (envelope?.[CLIENT_CAPABILITIES_META_KEY] ?? server.getClientCapabilities()) as any;
     if (!caps) return 'unknown';
     const ext = caps.extensions?.[UI_EXTENSION_ID];
     return Array.isArray(ext?.mimeTypes) && ext.mimeTypes.includes(UI_MIME_TYPE) ? 'yes' : 'no';
   };
 
   // Ping handler
-  server.setRequestHandler(PingRequestSchema, async () => {
+  server.setRequestHandler("ping", async () => {
     logger.info("Ping request received");
     return {};
   });
 
   // List tools handler
-  server.setRequestHandler(ListToolsRequestSchema, async () => {
+  server.setRequestHandler("tools/list", async (_request, ctx) => {
     const tools = apiRegistry.getAvailableTools();
     // Advertise the view unless the client said it has no UI support; hosts
     // without MCP Apps ignore _meta.ui
-    if (uiSupport() === 'no') return { tools };
+    if (uiSupport(ctx) === 'no') return { tools };
     return {
       tools: tools.map((tool) =>
         UI_TOOLS.includes(tool.name)
@@ -204,13 +214,13 @@ export function createMCPServer(): Server {
   });
 
   // Call tool handler
-  server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
+  server.setRequestHandler("tools/call", async (request, ctx) => {
     const { name, arguments: args } = request.params;
     const clientProgressToken = request.params._meta?.progressToken;
 
     // Progress notifications are routed back to the session that made this call
-    const progress = registerProgressContext(clientProgressToken, extra.sendNotification);
-    const meta = { progressToken: progress.token, signal: extra.signal };
+    const progress = registerProgressContext(clientProgressToken, (n) => ctx.mcpReq.notify(n as any));
+    const meta = { progressToken: progress.token, signal: ctx.mcpReq.signal };
 
     try {
       logger.info("Tool call started", {
@@ -241,7 +251,7 @@ export function createMCPServer(): Server {
       // When the client renders the MCP Apps view, the user already sees the
       // rows as a table. Tell the model, so it adds analysis instead of
       // rebuilding the same table in its reply.
-      const ui = UI_TOOLS.includes(name) ? uiSupport() : 'no';
+      const ui = UI_TOOLS.includes(name) ? uiSupport(ctx) : 'no';
       const content: TextContent = {
         type: "text",
         // Only claim the user sees a table when the client said it renders views
@@ -288,7 +298,7 @@ export function createMCPServer(): Server {
   });
 
   // List prompts handler
-  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  server.setRequestHandler("prompts/list", async () => {
     logger.info("List prompts request received");
     return {
       prompts: getAvailablePrompts(),
@@ -296,7 +306,7 @@ export function createMCPServer(): Server {
   });
 
   // Get prompt handler
-  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  server.setRequestHandler("prompts/get", async (request) => {
     const { name, arguments: args } = request.params;
 
     try {
@@ -377,17 +387,17 @@ export function createMCPServer(): Server {
   ];
 
 
-  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+  server.setRequestHandler("resources/list", async () => ({
     resources: staticResources
       .map(({ uri, name, description }) => ({ uri, name, description, mimeType: "application/json" })),
   }));
 
-  server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({
+  server.setRequestHandler("resources/templates/list", async () => ({
     resourceTemplates: templateResources
       .map(({ uriTemplate, name, description }) => ({ uriTemplate, name, description, mimeType: "application/json" })),
   }));
 
-  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  server.setRequestHandler("resources/read", async (request) => {
     const { uri } = request.params;
     logger.info("Read resource request", { uri });
 
@@ -417,7 +427,7 @@ export function createMCPServer(): Server {
     }
 
     if (!tool) {
-      throw new McpError(ErrorCode.InvalidParams, `Unknown resource URI: ${uri}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Unknown resource URI: ${uri}`);
     }
 
     const { result } = await apiRegistry.executeTool(tool, args);

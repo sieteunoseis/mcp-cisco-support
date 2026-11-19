@@ -1,6 +1,6 @@
 {
   "name": "mcp-cisco-support",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "description": "MCP server for the Cisco Support APIs: bugs, security advisories, end-of-life, coverage, software, cases and RMAs",
   "main": "dist/index.js",
   "bin": {
@@ -54,7 +54,8 @@
   "homepage": "https://github.com/sieteunoseis/mcp-cisco-support#readme",
   "dependencies": {
     "@blackwell-systems/gcf": "^2.1.2",
-    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@modelcontextprotocol/node": "^2.1.2",
+    "@modelcontextprotocol/server": "^2.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^5.3.0",
@@ -62,6 +63,7 @@
     "morgan": "^1.12.1"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
     "@types/jest": "^29.5.14",

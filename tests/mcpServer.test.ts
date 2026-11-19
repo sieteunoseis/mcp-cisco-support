@@ -1,5 +1,4 @@
 import { createMCPServer, getAvailableTools, getAvailablePrompts, generatePrompt } from '../src/mcp-server';
-import { CallToolRequestSchema, ListToolsRequestSchema, ListPromptsRequestSchema, GetPromptRequestSchema, PingRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { mockOAuthResponse, mockBugResponse } from './mockData';
 import { mockFetch } from './setup';
 

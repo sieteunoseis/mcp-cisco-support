@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { createMCPServer, setLogging, logger } from './mcp-server.js';
 import { createHttpServer } from './http-server.js';
 import { VERSION } from './utils/version.js';
@@ -124,7 +124,8 @@ async function main() {
     process.on('SIGTERM', shutdown);
     process.on('SIGINT', shutdown);
   } else {
-    await createMCPServer().connect(new StdioServerTransport());
+    // One server instance per stdio connection; serves 2026-07-28 and 2025-era clients
+    serveStdio(createMCPServer);
     logger.info('Cisco Support MCP Server connected via stdio');
   }
 }

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-19
+
+### Changed
+- **MCP TypeScript SDK v2** (`@modelcontextprotocol/server` 2.4, `@modelcontextprotocol/node`), replacing `@modelcontextprotocol/sdk` 1.x. The server speaks protocol **2026-07-28** and still serves 2025-era clients:
+  - stdio via `serveStdio`, HTTP via `createMcpHandler` (2025 clients served statelessly, as before).
+  - 2026-07-28 features come from the SDK: `server/discover`, per-request `_meta` envelope (protocol version, client info, capabilities), `resultType`, `Mcp-Method`/`Mcp-Name` header checks (400 on mismatch), unsupported-version errors.
+  - Cache hints: `tools/list` 1 h private (varies with the client's UI support), `prompts/list` and resource lists 1 h public, `resources/read` 5 min private.
+  - The MCP Apps capability is read from each request's `_meta` on 2026-07-28 connections, so the view works over stateless HTTP without the 3.0.2 fallback.
+- Error class `ProtocolError` / `ProtocolErrorCode` (was `McpError` / `ErrorCode`); unknown prompts and resources still return `-32602`.
+
+### Added
+- Tests for 2026-07-28 clients (SDK v2 client pinned to 2026-07-28, in-process and through the Express stack).
+
 ## [3.0.2] - 2026-11-19
 
 ### Fixed

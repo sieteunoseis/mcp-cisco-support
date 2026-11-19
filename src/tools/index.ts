@@ -6,7 +6,7 @@
  * and a concise view unless response_format = "detailed".
  */
 
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { Tool } from '@modelcontextprotocol/server';
 import { BaseApi } from '../apis/base-api.js';
 import { sendProgress } from '../utils/progress.js';
 import {

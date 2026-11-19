@@ -63,6 +63,32 @@ describe('stateless Streamable HTTP', () => {
   });
 });
 
+describe('protocol 2026-07-28 through the Express stack', () => {
+  test('a 2026-07-28 request (no initialize, envelope in _meta) is served', async () => {
+    const body = JSON.stringify({ jsonrpc: '2.0', id: 9, method: 'tools/list', params: { _meta: {
+      'io.modelcontextprotocol/protocolVersion': '2026-07-28',
+      'io.modelcontextprotocol/clientInfo': { name: 't', version: '1' },
+      'io.modelcontextprotocol/clientCapabilities': {},
+    } } });
+    const res = await call('POST', '/mcp', { body, headers: { ...auth, 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'tools/list' } });
+    expect(res.status).toBe(200);
+    const text = res.body.split('\n').find(l => l.startsWith('data: '));
+    const msg = JSON.parse(text ? text.slice(6) : res.body);
+    expect(msg.result.tools).toHaveLength(12);
+    expect(msg.result.cacheScope).toBe('private');
+  });
+
+  test('Mcp-Method header that disagrees with the body is rejected', async () => {
+    const body = JSON.stringify({ jsonrpc: '2.0', id: 10, method: 'tools/list', params: { _meta: {
+      'io.modelcontextprotocol/protocolVersion': '2026-07-28',
+      'io.modelcontextprotocol/clientInfo': { name: 't', version: '1' },
+      'io.modelcontextprotocol/clientCapabilities': {},
+    } } });
+    const res = await call('POST', '/mcp', { body, headers: { ...auth, 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'prompts/list' } });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('MCP Apps on stateless HTTP', () => {
   test('tools/list without initialize still advertises the results view', async () => {
     const res = await call('POST', '/mcp', { body: rpc('tools/list'), headers: auth });

@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/mcp-cisco-support.svg)](https://www.npmjs.com/package/mcp-cisco-support)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP](https://img.shields.io/badge/MCP-2025--11--25-green.svg)](https://modelcontextprotocol.io/)
+[![MCP](https://img.shields.io/badge/MCP-2026--07--28-green.svg)](https://modelcontextprotocol.io/specification/2026-07-28)
 [![Glama](https://img.shields.io/badge/Glama-MCP_Server-purple.svg)](https://glama.ai/mcp/servers/@sieteunoseis/mcp-cisco-support)
 [![Cisco Code Exchange](https://img.shields.io/badge/Cisco-Code_Exchange-00bceb.svg)](https://developer.cisco.com/codeexchange/github/repo/sieteunoseis/mcp-cisco-support)
 [![Docker](https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-blue.svg?logo=docker)](https://ghcr.io/sieteunoseis/mcp-cisco-support)
@@ -13,7 +13,8 @@ MCP server for the [Cisco Support APIs](https://developer.cisco.com/docs/support
 - **12 read-only tools**, concise output by default, normalized paging, recorded against the live Cisco APIs
 - **6 workflow prompts** and `cisco://` resources
 - **MCP Apps view**: interactive tables in clients that support it (Claude, MCPJam, VS Code, …); plain text elsewhere
-- **stdio** for local clients, **stateless Streamable HTTP** (`--http`) with bearer-token auth for remote use
+- **MCP 2026-07-28** (TypeScript SDK v2), and 2025-era clients too
+- **stdio** for local clients, **stateless Streamable HTTP** (`--http`) with bearer-token auth and rate limiting for remote use
 - npm (with provenance) and Docker (`linux/amd64`, `linux/arm64`)
 
 > **Upgrading from 2.x?** Tool names changed and several features were removed. See [Upgrading to 3.0](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Upgrading-to-3.0).

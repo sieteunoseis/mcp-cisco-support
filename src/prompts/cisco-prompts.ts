@@ -6,7 +6,7 @@
  * upgrade planning, and other Cisco-specific tasks.
  */
 
-import { Prompt } from '@modelcontextprotocol/sdk/types.js';
+import { Prompt } from '@modelcontextprotocol/server';
 
 /**
  * Cisco Support MCP Prompts

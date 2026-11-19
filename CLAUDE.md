@@ -1,6 +1,6 @@
 # Cisco Support MCP Server: developer guide
 
-TypeScript MCP server for the Cisco Support APIs (Bug, PSIRT, EoX, Product, Serial/coverage, Software Suggestion, Case, RMA). stdio by default; `--http` serves stateless Streamable HTTP at `/mcp` with bearer-token auth.
+TypeScript MCP server (SDK v2, protocol 2026-07-28 plus 2025-era clients) for the Cisco Support APIs (Bug, PSIRT, EoX, Product, Serial/coverage, Software Suggestion, Case, RMA). stdio by default; `--http` serves stateless Streamable HTTP at `/mcp` with bearer-token auth.
 
 ## Layout
 
@@ -8,7 +8,7 @@ TypeScript MCP server for the Cisco Support APIs (Bug, PSIRT, EoX, Product, Seri
 src/
   index.ts            entry point: stdio or --http
   mcp-server.ts       createMCPServer(): tools, prompts, cisco:// resources
-  http-server.ts      stateless Streamable HTTP (new MCP server per POST), bearer auth, origin checks
+  http-server.ts      Express: bearer auth, origin checks, rate limit, then the SDK's createMcpHandler (stateless)
   tools/index.ts      the 12 v3 tools: schemas + handlers (TOOL_SPECS, RENAMED_TOOLS)
   tools/shape.ts      concise/detailed shaping and pagination normalization
   apis/*.ts           one client per Cisco API (base URL, auth, request()); index.ts = registry

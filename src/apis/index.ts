@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { Tool } from '@modelcontextprotocol/server';
+import { Server } from '@modelcontextprotocol/server';
 import { BaseApi } from './base-api.js';
 import { BugApi } from './bug-api.js';
 import { CaseApi } from './case-api.js';
