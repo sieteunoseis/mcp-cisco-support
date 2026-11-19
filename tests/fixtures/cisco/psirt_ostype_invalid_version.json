@@ -1,0 +1,8 @@
+{
+ "_source": "Recorded from apix.cisco.com 2026-11-19",
+ "status": 406,
+ "body": {
+  "errorCode": "INVALID_IOSXE_VERSION",
+  "errorMessage": "IOSXE version not found"
+ }
+}

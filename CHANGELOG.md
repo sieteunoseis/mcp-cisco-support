@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-11-19
+
+### Added
+- **Exact-release questions (elicitation).** A partial release ("17", "17.9") or one Cisco rejects (406 `INVALID_<OS>_VERSION`) makes the server ask the user to choose, using PSIRT's list of known releases (`/OS_version/OS_data`); with more than 40 candidates it asks for the train first, then the release.
+  - `psirt_search` (`os_type` + `version`) and `assess_upgrade` (`current_version`, `target_version`) need an exact release.
+  - `bug_search` gains optional `os_type`: a train ("17.9") is a valid Bug API release, so it offers the exact releases and keeps the train as a choice; only the partial item of a `releases` list is replaced.
+  - 2025-era clients are asked with `elicitation/create`; 2026-07-28 clients get an `input_required` result (choices carried in `requestState` across rounds).
+  - Clients without elicitation get `status: needs_exact_release` with the candidates (or, for a `bug_search` train, the train results plus a `release_hint`), so the model asks the user.
+
 ## [3.1.0] - 2026-11-19
 
 ### Changed

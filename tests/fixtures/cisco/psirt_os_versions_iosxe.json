@@ -1,0 +1,630 @@
+{
+ "_source": "Recorded from apix.cisco.com 2026-11-19 (full list)",
+ "status": 200,
+ "body": [
+  {
+   "nos_version": "17.12.8",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.7b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.7a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.7",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.6b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.6a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.6",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.5d",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.5c",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.5b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.5a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.5",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.4b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.4a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.4",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.3a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.2a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z6",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z5",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z4",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1z",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1y",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1w",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.11.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.12.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.11.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1w",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.8.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.8.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.7.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.7.1b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.7.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.7.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.6.1w",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.5.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.5.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.6",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.5a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.5",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.4c",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.4b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.4a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.4",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.2a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.1z",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.1x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.1w",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.7E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.6E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.5E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.4E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.3aE",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.3E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.2E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.1aE",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.1E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.0E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.15E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.14E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.13E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.12E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.11E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.10E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.9E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "3.11.8E",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.2.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.2.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.1.3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.1.2s1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.1.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.1.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "26.1.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "21.1.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "18.1.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.10",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.9",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.8",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.7b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.7a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.7",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.6a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.6",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.5f",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.5e",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.5b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.5a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.5",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.4a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.4",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.3a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.2a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1y1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1y",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1x1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.9.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.8a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.8",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.7",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.3.5b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.19.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.5x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.5",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.4x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.4a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.4",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.3a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.1z",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.1y",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.1x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.1w",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.18.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.17.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.16.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.16.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.7",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.6",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.5a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.5",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.4d",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.4",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.3b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.3a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.3",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.2c",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.2b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.2a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.2",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1z",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1y",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1x",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1w",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1b",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.15.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.14.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.14.1",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.13.1a",
+   "nos_type": "IOSXE"
+  },
+  {
+   "nos_version": "17.13.1",
+   "nos_type": "IOSXE"
+  }
+ ]
+}

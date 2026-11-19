@@ -66,6 +66,8 @@ Requires Node.js 20+.
 | `case_search` | TAC cases by contract or user ID |
 | `rma_get` | An RMA by number, or RMAs for a user ID |
 
+**Exact releases:** if you give a partial release ("17", "17.9") where Cisco needs an exact one (`psirt_search`, `assess_upgrade`), the server asks you to pick, first the train and then the release, using Cisco's list of known releases. For `bug_search` (with `os_type`) a train is valid, so it offers the exact releases and lets you keep the train. Clients without elicitation support get the candidates in the result, and the model asks you instead.
+
 All tools are always listed. Results are concise unless `response_format: "detailed"`; list results include `paging` (`total_records`, `next_page`) and empty results include a `hint`. If your credentials aren't entitled to a Cisco API, its tools return "access denied (403) … not entitled to the X API". Arguments and examples: [Available Tools](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Available-Tools).
 
 ## Prompts

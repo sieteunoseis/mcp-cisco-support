@@ -55,7 +55,7 @@ export class ApiRegistry {
   }
 
   // Execute a tool call
-  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string; signal?: AbortSignal }): Promise<{ result: ApiResponse; apiName: string }> {
+  async executeTool(name: string, args: ToolArgs, meta?: { progressToken?: string; signal?: AbortSignal; acceptPartial?: Set<string> }): Promise<{ result: ApiResponse; apiName: string }> {
     const spec = TOOL_SPECS.find(s => s.tool.name === name);
     if (!spec) {
       const renamed = RENAMED_TOOLS[name];
@@ -74,7 +74,7 @@ export class ApiRegistry {
         { request: (endpoint: string, params: Record<string, any> = {}) => api.request(endpoint, params, signal) },
       ]),
     ) as Record<SupportedAPI, ApiClient>;
-    const result = await spec.handler(args as Record<string, any>, { apis, progressToken: meta?.progressToken });
+    const result = await spec.handler(args as Record<string, any>, { apis, progressToken: meta?.progressToken, acceptPartial: meta?.acceptPartial });
     return { result, apiName: spec.requires[0] };
   }
 }

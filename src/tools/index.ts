@@ -9,6 +9,7 @@
 import { Tool } from '@modelcontextprotocol/server';
 import { BaseApi } from '../apis/base-api.js';
 import { sendProgress } from '../utils/progress.js';
+import { VersionNeeded, requireExactRelease, raiseVersionNeeded, isInvalidVersionError, isPartialRelease } from './versions.js';
 import {
   ResponseFormat, Paging, compact, pagingFrom,
   shapeBug, shapeAdvisory, shapeEox, shapeProduct, shapeCoverage,
@@ -25,6 +26,8 @@ export interface ApiClient {
 export interface ToolContext {
   apis: Record<ApiName, ApiClient>;
   progressToken?: string;
+  /** "argument:value" pairs the user chose to keep as given (e.g. a whole Bug API train) */
+  acceptPartial?: Set<string>;
 }
 
 type Args = Record<string, any>;
@@ -122,6 +125,15 @@ function bugSearchEndpoint(args: Args): string {
 }
 
 async function bugSearch(args: Args, ctx: ToolContext) {
+  // A train ("17.9") is a valid Bug API release, but an exact one gives more
+  // precise results: offer the exact releases (the train stays a choice)
+  if (args.releases && args.os_type) {
+    for (const rel of list(args.releases, 75, 'releases')) {
+      if (isPartialRelease(rel) && !ctx.acceptPartial?.has(`releases:${rel}`)) {
+        await raiseVersionNeeded(ctx.apis.psirt, 'releases', rel, args.os_type, { allowAsIs: true, listItem: true });
+      }
+    }
+  }
   const endpoint = bugSearchEndpoint(args);
   const pageNum = pageOf(args);
   const severities: string[] = Array.isArray(args.severity) ? args.severity.map(String)
@@ -207,6 +219,7 @@ async function psirtSearch(args: Args, ctx: ToolContext) {
   switch (mode) {
     case 'os_type':
       if (!args.version) throw new Error('version is required with os_type (e.g. os_type "iosxe", version "17.9.4")');
+      await requireExactRelease(ctx.apis.psirt, 'version', String(args.version), args.os_type);
       path = `/OSType/${enc(args.os_type)}`;
       params = { version: args.version };     // not paged by Cisco
       break;
@@ -220,7 +233,16 @@ async function psirtSearch(args: Args, ctx: ToolContext) {
       params = { ...paged, startDate: args.first_published_from, endDate: args.first_published_to };
   }
 
-  const body = await psirtRequest(ctx, path, params);
+  let body: any;
+  try {
+    body = await psirtRequest(ctx, path, params);
+  } catch (error) {
+    // Cisco doesn't know this exact release: offer the known ones instead
+    if (mode === 'os_type' && isInvalidVersionError(error)) {
+      await raiseVersionNeeded(ctx.apis.psirt, 'version', String(args.version), args.os_type);
+    }
+    throw error;
+  }
   let advisories: any[] = body.advisories || [];
   let paging = pagingFrom(body, pageNum, pageSize);
 
@@ -431,6 +453,11 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
   const pid = String(args.product_id).trim();
   const current = normalizeVersion(String(args.current_version).trim());
   const maxSeverity = Math.min(6, Math.max(1, parseInt(args.max_severity ?? 3, 10) || 3));
+  // Comparing releases needs exact ones ("17.9" isn't one)
+  await requireExactRelease(ctx.apis.psirt, 'current_version', current, args.os_type);
+  if (args.target_version) {
+    await requireExactRelease(ctx.apis.psirt, 'target_version', normalizeVersion(String(args.target_version).trim()), args.os_type);
+  }
   const notes: string[] = [];
   const steps = 2;
   sendProgress(ctx.progressToken, 0, steps);
@@ -454,10 +481,19 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
     return { bugs: found.filter(b => !seen.has(b.bug_id) && seen.add(b.bug_id)), total };
   };
   const attempt = async <T>(label: string, fn: () => Promise<T>): Promise<T | undefined> => {
-    try { return await fn(); } catch (e: any) { notes.push(`${label} failed: ${e.message}`); return undefined; }
+    try { return await fn(); } catch (e: any) {
+      if (e instanceof VersionNeeded) throw e; // ask the user rather than note it
+      notes.push(`${label} failed: ${e.message}`);
+      return undefined;
+    }
   };
-  const advisoriesFor = (release: string) =>
-    psirtRequest(ctx, `/OSType/${enc(args.os_type)}`, { version: release }).then(b => (b.advisories || []) as any[]);
+  const advisoriesFor = (release: string, argument: string) =>
+    psirtRequest(ctx, `/OSType/${enc(args.os_type)}`, { version: release })
+      .then(b => (b.advisories || []) as any[])
+      .catch(async (error) => {
+        if (isInvalidVersionError(error)) await raiseVersionNeeded(ctx.apis.psirt, argument, release, args.os_type);
+        throw error;
+      });
   const withPsirt = !!args.os_type;
   if (!args.os_type) {
     notes.push('Pass os_type (e.g. iosxe, ios, nxos, asa) to include security advisories for both releases');
@@ -468,7 +504,7 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
   const [suggestedBody, current_, currentAdv, eoxBody] = await Promise.all([
     attempt('Software suggestion lookup', () => ctx.apis.software.request(`/suggestions/software/productIds/${enc(pid)}`)),
     attempt('Bug search on current release', () => openBugs(current)),
-    withPsirt ? attempt('PSIRT lookup (current)', () => advisoriesFor(current)) : Promise.resolve(undefined),
+    withPsirt ? attempt('PSIRT lookup (current)', () => advisoriesFor(current, 'current_version')) : Promise.resolve(undefined),
     attempt('EoX lookup', () => ctx.apis.eox.request(`/EOXByProductID/1/${enc(pid)}`)),
   ]);
   sendProgress(ctx.progressToken, 1, steps);
@@ -485,7 +521,7 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
   // Round 2 (parallel): the target release
   const [target_, targetAdv] = await Promise.all([
     attempt('Bug search on target release', () => openBugs(target!)),
-    withPsirt ? attempt('PSIRT lookup (target)', () => advisoriesFor(target!)) : Promise.resolve(undefined),
+    withPsirt ? attempt('PSIRT lookup (target)', () => advisoriesFor(target!, 'target_version')) : Promise.resolve(undefined),
   ]);
   sendProgress(ctx.progressToken, 2, steps);
 
@@ -568,7 +604,8 @@ export const TOOL_SPECS: ToolSpec[] = [
       product_id: { type: 'string', description: 'Base product ID, e.g. "C9300-48P" or "ISR4431"' },
       product_series: { type: 'string', description: 'Full series name, e.g. "Cisco Catalyst 9300 Series Switches"' },
       product_name: { type: 'string', description: 'Exact product name, e.g. "Cisco Unified Communications Manager (CallManager)"' },
-      releases: { type: 'string', description: 'Comma-separated releases, e.g. "17.9.4,17.12.3" (leading zeros are removed). Required with product_series/product_name.' },
+      releases: { type: 'string', description: 'Comma-separated releases, e.g. "17.9.4,17.12.3" (leading zeros are removed). A train such as "17.9" searches the whole train. Required with product_series/product_name.' },
+      os_type: { type: 'string', enum: PSIRT_OS_TYPES, description: 'Optional OS of the releases (e.g. iosxe). With a train like "17.9", lets the server offer the exact releases.' },
       release_match: { type: 'string', enum: ['affected', 'fixed'], default: 'affected', description: 'Match bugs affecting the releases (default) or fixed in them. "fixed" works with product_series/product_name.' },
       severity: { type: 'array', items: { type: 'string', enum: ['1', '2', '3', '4', '5', '6'] }, description: 'Severities to include, e.g. ["1","2","3"]. Omit for all.' },
       status: { type: 'string', enum: ['O', 'F', 'T'], description: 'O = open, F = fixed, T = terminated' },

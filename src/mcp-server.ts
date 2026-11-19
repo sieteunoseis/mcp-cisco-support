@@ -6,7 +6,10 @@ import {
   type ServerContext,
   ProtocolError,
   ProtocolErrorCode,
+  inputRequired,
+  acceptedContent,
 } from "@modelcontextprotocol/server";
+import { VersionNeeded } from "./tools/versions.js";
 import dotenv from "dotenv";
 
 // Import modular API system
@@ -213,6 +216,134 @@ export function createMCPServer(): Server {
     };
   });
 
+  // ---------------------------------------------------------------------------
+  // Exact-release questions (elicitation). Tools raise VersionNeeded for a
+  // partial or unknown release; ask the user when the client can show a form,
+  // otherwise hand the candidates to the model.
+
+  const clientCapabilities = (ctx: ServerContext): any => {
+    const envelope = (ctx.mcpReq as any)?.envelope as Record<string, any> | undefined;
+    return envelope?.[CLIENT_CAPABILITIES_META_KEY] ?? server.getClientCapabilities();
+  };
+  const isModernRequest = (ctx: ServerContext) =>
+    !!((ctx.mcpReq as any)?.envelope?.[CLIENT_CAPABILITIES_META_KEY]);
+  const canElicitForm = (ctx: ServerContext) => {
+    const e = clientCapabilities(ctx)?.elicitation;
+    // A bare `elicitation: {}` means form mode (pre-2025-11 clients)
+    return !!e && (e.form !== undefined || Object.keys(e).length === 0 || e.url === undefined);
+  };
+
+  const releaseForm = (e: VersionNeeded) => {
+    const what = e.osType ? `${e.osType.toUpperCase()} ` : "";
+    const message = e.level === "train"
+      ? `"${e.given}" covers several ${what}trains. Which one?`
+      : e.options.length
+        ? `Which ${what}release did you mean by "${e.given}"?`
+        : `"${e.given}" isn't an exact ${what}release. Which release (for example 17.9.4)?`;
+    const fullMessage = e.allowAsIs && e.level === "release"
+      ? `"${e.given}" is a whole ${what}train. Pick an exact release for more precise results, or keep ${e.given}.`
+      : message;
+    const field: Record<string, unknown> = { type: "string", title: e.level === "train" ? "Train" : "Release" };
+    if (e.options.length) {
+      // A train can be kept as is (Bug API): offer it first
+      field.enum = e.allowAsIs ? [e.given, ...e.options.filter(o => o !== e.given)] : e.options;
+      if (e.allowAsIs) field.description = `Choose ${e.given} to search the whole train`;
+    } else field.description = "Exact release, e.g. 17.9.4";
+    return { mode: "form" as const, message: fullMessage, requestedSchema: { type: "object" as const, properties: { value: field as any }, required: ["value"] } };
+  };
+
+  const MAX_QUESTIONS = 3;
+  const runResolvingVersions = async (
+    name: string, args: Record<string, any>, meta: { progressToken?: string; signal?: AbortSignal }, ctx: ServerContext,
+  ): Promise<
+    | { kind: 'done'; result: any; apiName: string }
+    | { kind: 'input_required'; result: any }
+    | { kind: 'needs_version'; result: Record<string, unknown> }
+  > => {
+    const mcpReq = ctx.mcpReq as any;
+    // Answers from earlier rounds (2026-07-28 multi-round-trip) travel in requestState
+    let state: { resolved: Record<string, string>; keep: string[] } = { resolved: {}, keep: [] };
+    try {
+      // SDK v2 exposes it as an accessor function (ctx.mcpReq.requestState())
+      const raw = typeof mcpReq.requestState === "function" ? mcpReq.requestState() : mcpReq.requestState;
+      if (typeof raw === "string") state = { resolved: {}, keep: [], ...JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) };
+    } catch { /* ignore tampered state: it only carries the user's own choices */ }
+    let resolved = state.resolved;
+    const keep = new Set(state.keep);
+    let fallbackHint: Record<string, unknown> | undefined;
+
+    // Apply a chosen release: replace one item of a comma list, or the whole value
+    const choose = (e: VersionNeeded, value: string, current: Record<string, any>) => {
+      if (value === e.given) { keep.add(`${e.argument}:${e.given}`); return; }
+      const next = e.listItem
+        ? String(current[e.argument]).split(",").map(x => (x.trim() === e.given ? value : x.trim())).join(",")
+        : value;
+      resolved = { ...resolved, [e.argument]: next };
+    };
+
+    for (let round = 0; round <= MAX_QUESTIONS; round++) {
+      const effective = { ...args, ...resolved };
+      try {
+        const { result, apiName } = await apiRegistry.executeTool(name, effective, { ...meta, acceptPartial: keep });
+        return { kind: 'done', result: fallbackHint ? { ...result, release_hint: fallbackHint } : result, apiName };
+      } catch (error) {
+        if (!(error instanceof VersionNeeded) || round === MAX_QUESTIONS) throw error;
+        const key = `release:${error.argument}:${error.given}`;
+
+        // Answered in this round's input responses (2026-07-28)?
+        const answered = acceptedContent<{ value?: string }>(mcpReq.inputResponses, key)?.value;
+        if (answered) { choose(error, String(answered), effective); continue; }
+
+        if (!canElicitForm(ctx) && error.allowAsIs) {
+          // The partial value works as is: run it, and tell the model it can narrow it
+          keep.add(`${error.argument}:${error.given}`);
+          fallbackHint = {
+            searched: error.given,
+            note: `Results cover the whole ${error.given} train.`,
+            exact_releases: error.options,
+            hint: `For more precise results, ask the user which exact release they run and call ${name} again with it.`,
+          };
+          continue;
+        }
+
+        if (!canElicitForm(ctx)) {
+          return { kind: 'needs_version', result: {
+            status: "needs_exact_release",
+            argument: error.argument,
+            given: error.given,
+            [error.level === "train" ? "trains" : "candidates"]: error.options,
+            hint: error.options.length
+              ? `Ask the user which ${error.level === "train" ? "train, then which release," : "exact release"} they mean, then call ${name} again with ${error.argument} set to it.`
+              : `Ask the user for the exact release (for example 17.9.4), then call ${name} again with ${error.argument} set to it.`,
+          } };
+        }
+
+        const form = releaseForm(error);
+        if (isModernRequest(ctx)) {
+          const requestState = Buffer.from(JSON.stringify({ resolved, keep: [...keep] }), "utf8").toString("base64url");
+          return { kind: 'input_required', result: inputRequired({
+            inputRequests: { [key]: inputRequired.elicit(form) },
+            requestState,
+          }) };
+        }
+        // 2025-era connection: push an elicitation request and wait
+        const reply = await ctx.mcpReq.elicitInput(form);
+        const value = reply.action === "accept" ? (reply.content as any)?.value : undefined;
+        if (!value && error.allowAsIs) { keep.add(`${error.argument}:${error.given}`); continue; }
+        if (!value) {
+          return { kind: 'needs_version', result: {
+            status: "release_not_chosen",
+            argument: error.argument,
+            given: error.given,
+            hint: `The user didn't choose a release. Ask them which exact release they mean before calling ${name} again.`,
+          } };
+        }
+        choose(error, String(value), effective);
+      }
+    }
+    throw new Error("unreachable");
+  };
+
   // Call tool handler
   server.setRequestHandler("tools/call", async (request, ctx) => {
     const { name, arguments: args } = request.params;
@@ -229,11 +360,12 @@ export function createMCPServer(): Server {
         hasProgressToken: clientProgressToken !== undefined,
       });
 
-      const { result, apiName } = await apiRegistry.executeTool(
-        name,
-        args || {},
-        meta,
-      );
+      const outcome = await runResolvingVersions(name, { ...(args || {}) }, meta, ctx);
+      if (outcome.kind === 'input_required') return outcome.result;
+      if (outcome.kind === 'needs_version') {
+        return { content: [{ type: "text" as const, text: encodeResult(outcome.result) }], isError: false };
+      }
+      const { result, apiName } = outcome;
 
       logger.info("Tool call completed", {
         name,
