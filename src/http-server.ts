@@ -6,6 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { logger } from './mcp-server.js';
+import { RateLimiter, rateLimitKey } from './utils/rate-limit.js';
 
 // Generate a secure session token for authentication
 function generateAuthToken(): string {
@@ -163,6 +164,19 @@ export function createHttpServer(createServer: () => Server) {
   // Stateless Streamable HTTP: every POST gets its own MCP server and
   // transport (no session IDs, nothing kept between requests), so any
   // instance can answer any request and there is no session state to leak.
+  // Per-client rate limit (MCP_RATE_LIMIT requests/minute, default 120, 0 = off)
+  const limiter = new RateLimiter(Number(process.env.MCP_RATE_LIMIT ?? 120));
+  app.post("/mcp", (req, res, next) => {
+    const retryAfter = limiter.take(rateLimitKey(req.headers['authorization'], req.ip));
+    if (retryAfter === 0) return next();
+    logger.warn('Rate limit exceeded', { path: req.path, retryAfter });
+    res.status(429).set('Retry-After', String(retryAfter)).json({
+      jsonrpc: '2.0',
+      error: { code: -32000, message: `Rate limit exceeded; retry after ${retryAfter}s` },
+      id: null,
+    });
+  });
+
   app.post("/mcp", async (req, res) => {
     const server = createServer();
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });

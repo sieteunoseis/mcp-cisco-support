@@ -172,9 +172,14 @@ export function createMCPServer(): Server {
   const apiRegistry = createApiRegistry(server);
 
   // MCP Apps: only clients that advertise the UI extension get UI links and structuredContent
-  const clientSupportsUi = (): boolean => {
-    const ext = (server.getClientCapabilities() as any)?.extensions?.[UI_EXTENSION_ID];
-    return Array.isArray(ext?.mimeTypes) && ext.mimeTypes.includes(UI_MIME_TYPE);
+  // 'yes' / 'no' when the client declared its capabilities (initialize on
+  // this server instance); 'unknown' on stateless HTTP requests that arrive
+  // without an initialize on the same instance.
+  const uiSupport = (): 'yes' | 'no' | 'unknown' => {
+    const caps = server.getClientCapabilities() as any;
+    if (!caps) return 'unknown';
+    const ext = caps.extensions?.[UI_EXTENSION_ID];
+    return Array.isArray(ext?.mimeTypes) && ext.mimeTypes.includes(UI_MIME_TYPE) ? 'yes' : 'no';
   };
 
   // Ping handler
@@ -186,7 +191,9 @@ export function createMCPServer(): Server {
   // List tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = apiRegistry.getAvailableTools();
-    if (!clientSupportsUi()) return { tools };
+    // Advertise the view unless the client said it has no UI support; hosts
+    // without MCP Apps ignore _meta.ui
+    if (uiSupport() === 'no') return { tools };
     return {
       tools: tools.map((tool) =>
         UI_TOOLS.includes(tool.name)
@@ -234,16 +241,17 @@ export function createMCPServer(): Server {
       // When the client renders the MCP Apps view, the user already sees the
       // rows as a table. Tell the model, so it adds analysis instead of
       // rebuilding the same table in its reply.
-      const showsView = clientSupportsUi() && UI_TOOLS.includes(name);
+      const ui = UI_TOOLS.includes(name) ? uiSupport() : 'no';
       const content: TextContent = {
         type: "text",
-        text: (showsView ? `${UI_RESULT_NOTE}\n\n` : "") + encodeResult(result),
+        // Only claim the user sees a table when the client said it renders views
+        text: (ui === 'yes' ? `${UI_RESULT_NOTE}\n\n` : "") + encodeResult(result),
       };
 
       return {
         content: [content],
-        // The results view renders structuredContent; plain clients only get the text
-        ...(showsView ? { structuredContent: result } : {}),
+        // The view renders structuredContent; skipped for clients that declared no UI support
+        ...(ui !== 'no' ? { structuredContent: result } : {}),
         isError: false,
       };
     } catch (error) {

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-11-19
+
+### Fixed
+- MCP Apps view over stateless HTTP: requests that arrive without an `initialize` on the same server (every stateless request) now still get `_meta.ui` on the result tools and `structuredContent`, so HTTP hosts such as MCPJam render the view again. The "user already sees the table" note is only added when the client declared UI support.
+
+### Added
+- HTTP rate limiting: `MCP_RATE_LIMIT` requests per minute per client (default 120, `0` disables), keyed by a hash of the bearer token, or by IP when auth is off. Over the limit: 429 with `Retry-After`.
+
 ## [3.0.1] - 2026-11-19
 
 ### Fixed

@@ -63,6 +63,36 @@ describe('stateless Streamable HTTP', () => {
   });
 });
 
+describe('MCP Apps on stateless HTTP', () => {
+  test('tools/list without initialize still advertises the results view', async () => {
+    const res = await call('POST', '/mcp', { body: rpc('tools/list'), headers: auth });
+    const tools = sseJson(res.body).result.tools;
+    const bug = tools.find((t: any) => t.name === 'bug_search');
+    expect(bug._meta.ui.resourceUri).toBe('ui://mcp-cisco-support/results.html');
+  });
+});
+
+describe('rate limiting', () => {
+  test('429 with Retry-After once a client exceeds MCP_RATE_LIMIT', async () => {
+    process.env.MCP_RATE_LIMIT = '2';
+    const app = createHttpServer(createMCPServer);
+    delete process.env.MCP_RATE_LIMIT;
+    const limited = await new Promise<http.Server>(resolve => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+    const savedPort = port;
+    port = (limited.address() as AddressInfo).port;
+    try {
+      const codes = [];
+      for (let i = 0; i < 3; i++) codes.push((await call('POST', '/mcp', { body: rpc('ping', i), headers: auth })).status);
+      expect(codes).toEqual([200, 200, 429]);
+      const res = await call('POST', '/mcp', { body: rpc('ping'), headers: auth });
+      expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
+    } finally {
+      port = savedPort;
+      await new Promise(resolve => limited.close(resolve));
+    }
+  });
+});
+
 describe('auth and request checks', () => {
   test('requires the bearer token in the Authorization header', async () => {
     expect((await call('POST', '/mcp', { body: rpc('tools/list') })).status).toBe(401);

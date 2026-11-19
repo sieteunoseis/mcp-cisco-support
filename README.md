@@ -141,6 +141,7 @@ The image starts in HTTP mode on `0.0.0.0:3000`. Tags: `latest`, `vX.Y.Z`. More:
 | `MCP_BEARER_TOKEN` | random, printed once | Bearer token for HTTP mode |
 | `PORT` / `HOST` | `3000` / `127.0.0.1` | HTTP listen address (`0.0.0.0` in Docker) |
 | `MCP_ALLOWED_ORIGINS` | localhost only | Extra browser origins allowed to call `/mcp` (comma-separated) |
+| `MCP_RATE_LIMIT` | `120` | HTTP requests per minute per client (bearer token, or IP without auth); `0` disables |
 | `DISABLE_GCF_FORMAT` | `false` | `true` returns JSON instead of compact GCF text |
 | `DANGEROUSLY_OMIT_AUTH` | `false` | Disable HTTP auth (local testing only) |
 
