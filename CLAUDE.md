@@ -1,6 +1,6 @@
 # Cisco Support MCP Server: developer guide
 
-TypeScript MCP server for the Cisco Support APIs (Bug, PSIRT, EoX, Product, Serial/coverage, Software Suggestion, Case, RMA). stdio by default; `--http` serves Streamable HTTP at `/mcp` with bearer-token auth.
+TypeScript MCP server for the Cisco Support APIs (Bug, PSIRT, EoX, Product, Serial/coverage, Software Suggestion, Case, RMA). stdio by default; `--http` serves stateless Streamable HTTP at `/mcp` with bearer-token auth.
 
 ## Layout
 
@@ -8,7 +8,7 @@ TypeScript MCP server for the Cisco Support APIs (Bug, PSIRT, EoX, Product, Seri
 src/
   index.ts            entry point: stdio or --http
   mcp-server.ts       createMCPServer(): tools, prompts, cisco:// resources
-  http-server.ts      Streamable HTTP transport, bearer auth, origin checks, one MCP server per session
+  http-server.ts      stateless Streamable HTTP (new MCP server per POST), bearer auth, origin checks
   tools/index.ts      the 12 v3 tools: schemas + handlers (TOOL_SPECS, RENAMED_TOOLS)
   tools/shape.ts      concise/detailed shaping and pagination normalization
   apis/*.ts           one client per Cisco API (base URL, auth, request()); index.ts = registry
@@ -56,7 +56,7 @@ Do not trust `api_docs/` or the developer.cisco.com docs alone. Verify endpoint 
 npm ci
 npx tsc --noEmit          # type check
 npm test                  # unit tests (mocked fetch, recorded fixtures)
-npm run build             # dist/
+npm run build             # dist/index.js (tsconfig.build.json, src only)
 npm run dev               # tsx watch, stdio
 npm run dev:http          # tsx watch, HTTP on 127.0.0.1:3000
 ```
@@ -72,6 +72,8 @@ When adding or changing an endpoint, record a real response into `tests/fixtures
 
 ## HTTP mode
 
+- Stateless: every `POST /mcp` gets a fresh MCP server and transport, no `Mcp-Session-Id`, nothing kept between requests (any instance can serve any request). `GET`/`DELETE /mcp` return 405. Progress notifications go out on the response stream of the call.
+- `/.well-known/*` returns 404 (no OAuth) so clients don't mistake the bearer-token 401 for broken OAuth.
 - Bearer token only in the `Authorization` header (`MCP_BEARER_TOKEN`, or a generated token printed once at startup).
 - Binds `HOST` (default `127.0.0.1`; the Docker image sets `0.0.0.0`).
 - Browser origins other than localhost need `MCP_ALLOWED_ORIGINS`.

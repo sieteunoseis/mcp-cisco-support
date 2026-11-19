@@ -12,6 +12,7 @@ import { RmaApi } from './rma-api.js';
 type ToolArgs = Record<string, any>;
 import { ApiResponse } from './base-api.js';
 import { TOOL_SPECS, RENAMED_TOOLS, ApiName, ApiClient, ToolContext } from '../tools/index.js';
+import { validateArgs } from '../tools/validate.js';
 
 // Supported API types (values for SUPPORT_API)
 export type SupportedAPI = ApiName;
@@ -58,6 +59,8 @@ export class ApiRegistry {
       }
       throw new Error(`Unknown tool: ${name}`);
     }
+    validateArgs(spec.tool.inputSchema as any, (args ?? {}) as Record<string, unknown>);
+
     // Bind the caller's cancellation signal to every upstream request
     const signal = meta?.signal;
     const apis = Object.fromEntries(
@@ -86,6 +89,8 @@ export class ApiRegistry {
   }
 }
 
+let warnedSupportApi = false;
+
 // Get enabled APIs from the SUPPORT_API environment variable
 export function getEnabledAPIs(): SupportedAPI[] {
   const requested = (process.env.SUPPORT_API || 'bug')
@@ -93,6 +98,19 @@ export function getEnabledAPIs(): SupportedAPI[] {
     .split(',')
     .map(api => api.trim())
     .filter(Boolean);
+
+  // Warn (stderr, safe in stdio mode) about values that do nothing in 3.x
+  const REMOVED = ['sampling', 'smart_bonding', 'enhanced_analysis'];
+  const unknown = requested.filter(v => v !== 'all' && !SUPPORTED_APIS.includes(v as SupportedAPI));
+  if (unknown.length && !warnedSupportApi) {
+    warnedSupportApi = true;
+    const removed = unknown.filter(v => REMOVED.includes(v));
+    const other = unknown.filter(v => !REMOVED.includes(v));
+    console.error(`SUPPORT_API: ignoring ${[
+      removed.length ? `${removed.join(', ')} (removed in 3.0.0)` : '',
+      other.length ? `${other.join(', ')} (unknown)` : '',
+    ].filter(Boolean).join('; ')}. Valid values: ${SUPPORTED_APIS.join(', ')}, all`);
+  }
 
   if (requested.includes('all')) {
     return [...SUPPORTED_APIS];

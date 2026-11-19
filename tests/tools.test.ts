@@ -140,6 +140,18 @@ describe('bug tools', () => {
     expect(calls[2]).toContain('/bugs/product_name/Cisco%20Unified%20Communications%20Manager%20(CallManager)/affected_releases/12.5(1)');
   });
 
+  test('arguments are checked against the tool schema before calling Cisco', async () => {
+    await expect(executeTool('bug_search', { keyword: 'x', severity: ['high'] }))
+      .rejects.toThrow('severity[0] must be one of: 1, 2, 3, 4, 5, 6');
+    await expect(executeTool('bug_search', { keyword: 'x', page: 'two' })).rejects.toThrow('page must be an integer');
+    await expect(executeTool('bug_search', { keyword: 'x', product: 'C9300' })).rejects.toThrow('unknown argument "product"');
+    await expect(executeTool('psirt_search', { latest: 500 })).rejects.toThrow('latest must be <= 100');
+    await expect(executeTool('bug_get', {})).rejects.toThrow('bug_ids is required');
+    expect(calls).toHaveLength(0);
+    // A single severity string is accepted where an array is expected
+    await expect(executeTool('bug_search', { keyword: 'x', severity: '2' })).resolves.toBeDefined();
+  });
+
   test('bug_search validates its inputs', async () => {
     await expect(executeTool('bug_search', {})).rejects.toThrow('Provide exactly one of');
     await expect(executeTool('bug_search', { keyword: 'a', product_id: 'b' })).rejects.toThrow('Provide exactly one of');

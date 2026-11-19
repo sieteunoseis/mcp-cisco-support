@@ -1,6 +1,5 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import express from "express";
 import cors from 'cors';
@@ -128,13 +127,13 @@ export function createHttpServer(createServer: () => Server) {
   // CORS: only reflect allowed origins (no wildcard)
   app.use(cors({
     origin: (origin, cb) => cb(null, !origin || isOriginAllowed(origin, allowedOrigins)),
-    exposedHeaders: ['Mcp-Session-Id']
   }));
 
   // Access log without query strings (they can carry secrets)
   morgan.token('path-only', (req: express.Request) => req.path);
   app.use(morgan(':remote-addr - :method :path-only :status :res[content-length] - :response-time ms'));
-  app.use(express.json({ limit: '10mb' }));
+  // Tool arguments are small; the 10 MB limit was for the removed Smart Bonding uploads
+  app.use(express.json({ limit: '1mb' }));
 
   // Reject browser requests from unexpected origins (DNS rebinding protection)
   app.use((req, res, next) => {
@@ -161,132 +160,44 @@ export function createHttpServer(createServer: () => Server) {
     logger.info('Bearer token authentication middleware enabled');
   }
 
-  // Streamable HTTP sessions (each with its own MCP server)
-  const streamableTransports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
-
-  // MCP JSON-RPC endpoint - handles direct MCP calls using StreamableHTTP
+  // Stateless Streamable HTTP: every POST gets its own MCP server and
+  // transport (no session IDs, nothing kept between requests), so any
+  // instance can answer any request and there is no session state to leak.
   app.post("/mcp", async (req, res) => {
+    const server = createServer();
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+    res.on('close', () => {
+      transport.close().catch(() => { /* already closed */ });
+      server.close().catch(() => { /* already closed */ });
+    });
     try {
-      logger.info('Direct MCP call received', { method: req.body?.method });
-
-      // Check for existing session ID
-      const sessionId = req.headers['mcp-session-id'] as string;
-      let transport: StreamableHTTPServerTransport;
-      
-      if (sessionId && streamableTransports[sessionId]) {
-        // Reuse existing transport
-        transport = streamableTransports[sessionId];
-        logger.info('Reusing existing transport', { sessionId });
-      } else if (!sessionId && isInitializeRequest(req.body)) {
-        // New initialization request
-        transport = new StreamableHTTPServerTransport({
-          sessionIdGenerator: () => randomUUID(),
-          onsessioninitialized: (sessionId: string) => {
-            logger.info('Session initialized', { sessionId });
-            streamableTransports[sessionId] = transport;
-          }
-        });
-        
-        // Each session gets its own MCP server instance
-        const sessionServer = createServer();
-
-        // Set up cleanup handler
-        transport.onclose = () => {
-          const sid = transport.sessionId;
-          if (sid && streamableTransports[sid]) {
-            logger.info('Transport closed, cleaning up', { sessionId: sid });
-            delete streamableTransports[sid];
-          }
-          sessionServer.close().catch(() => { /* already closed */ });
-        };
-
-        await sessionServer.connect(transport);
-        await transport.handleRequest(req, res, req.body);
-        return; // Already handled
-      } else {
-        // Invalid request - no session ID or not initialization request
-        logger.error('Invalid MCP request', { sessionId, isInit: isInitializeRequest(req.body) });
-        res.status(400).json({
-          jsonrpc: '2.0',
-          error: {
-            code: -32000,
-            message: 'Bad Request: No valid session ID provided',
-          },
-          id: null,
-        });
-        return;
-      }
-      
-      // Handle the request with existing transport
+      await server.connect(transport);
       await transport.handleRequest(req, res, req.body);
-      
     } catch (error) {
-      logger.error('Failed to handle MCP call', { error });
+      logger.error('Failed to handle MCP request', { error: error instanceof Error ? error.message : error });
       if (!res.headersSent) {
-        res.status(500).json({
-          jsonrpc: '2.0',
-          error: {
-            code: -32603,
-            message: 'Internal server error',
-          },
-          id: null,
-        });
+        res.status(500).json({ jsonrpc: '2.0', error: { code: -32603, message: 'Internal server error' }, id: null });
       }
     }
   });
 
-  // MCP GET endpoint - handles SSE streams for StreamableHTTP
-  app.get("/mcp", async (req, res) => {
-    try {
-      const sessionId = req.headers['mcp-session-id'] as string;
-      
-      if (!sessionId || !streamableTransports[sessionId]) {
-        logger.error('Invalid session ID for GET request', { sessionId });
-        res.status(400).send('Invalid or missing session ID');
-        return;
-      }
-      
-      logger.info('SSE stream request', { sessionId });
-      const transport = streamableTransports[sessionId];
-      await transport.handleRequest(req, res);
-      
-    } catch (error) {
-      logger.error('Failed to handle SSE stream', { error });
-      if (!res.headersSent) {
-        res.status(500).send('Error establishing SSE stream');
-      }
-    }
-  });
-
-  // MCP DELETE endpoint - handles session termination
-  app.delete("/mcp", async (req, res) => {
-    try {
-      const sessionId = req.headers['mcp-session-id'] as string;
-      
-      if (!sessionId || !streamableTransports[sessionId]) {
-        logger.error('Invalid session ID for DELETE request', { sessionId });
-        res.status(400).send('Invalid or missing session ID');
-        return;
-      }
-      
-      logger.info('Session termination request', { sessionId });
-      const transport = streamableTransports[sessionId];
-      await transport.handleRequest(req, res);
-      
-    } catch (error) {
-      logger.error('Failed to handle session termination', { error });
-      if (!res.headersSent) {
-        res.status(500).send('Error processing session termination');
-      }
-    }
-  });
+  // No sessions, so no server-initiated GET stream and nothing to DELETE
+  const methodNotAllowed = (_req: express.Request, res: express.Response) => {
+    res.status(405).set('Allow', 'POST').json({
+      jsonrpc: '2.0',
+      error: { code: -32000, message: 'Method not allowed: this server is stateless; use POST /mcp' },
+      id: null,
+    });
+  };
+  app.get("/mcp", methodNotAllowed);
+  app.delete("/mcp", methodNotAllowed);
 
   // Health check endpoint
   app.get('/health', (_req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      activeSessions: Object.keys(streamableTransports).length,
+      mode: 'stateless',
       server: 'mcp-cisco-support'
     });
   });
@@ -294,7 +205,7 @@ export function createHttpServer(createServer: () => Server) {
   // Server info endpoint (publicly accessible to show auth info)
   app.get('/', (_req, res) => {
     const baseEndpoints: Record<string, string> = {
-      mcp: '/mcp (POST/GET/DELETE) - MCP Streamable HTTP endpoint',
+      mcp: '/mcp (POST) - MCP Streamable HTTP endpoint (stateless)',
       health: '/health (GET) - Health check (no auth required)'
     };
 
@@ -309,7 +220,7 @@ export function createHttpServer(createServer: () => Server) {
           : 'Authentication disabled via DANGEROUSLY_OMIT_AUTH=true'
       },
       endpoints: baseEndpoints,
-      activeSessions: Object.keys(streamableTransports).length,
+      mode: 'stateless',
       timestamp: new Date().toISOString()
     };
 
@@ -325,16 +236,18 @@ export function createHttpServer(createServer: () => Server) {
   });
 
   // Error handling middleware
-  app.use((error: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    logger.error('Unhandled HTTP server error', { 
+  app.use((error: Error & { status?: number; type?: string }, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    // Body-parser errors (too large, malformed JSON) are client errors: keep their status
+    const status = error.status && error.status >= 400 && error.status < 500 ? error.status : 500;
+    logger[status === 500 ? 'error' : 'warn']('HTTP request error', {
       error: error.message,
+      type: error.type,
       path: req.path,
-      method: req.method
+      method: req.method,
     });
-    
-    res.status(500).json({
-      error: 'Internal server error',
-      timestamp: new Date().toISOString()
+    res.status(status).json({
+      error: status === 413 ? 'Request body too large' : status === 400 ? 'Invalid request body' : 'Internal server error',
+      timestamp: new Date().toISOString(),
     });
   });
 
@@ -343,23 +256,10 @@ export function createHttpServer(createServer: () => Server) {
     res.status(404).json({
       error: 'Endpoint not found',
       path: req.path,
-      availableEndpoints: ['/mcp (POST/GET/DELETE)', '/health', '/'],
+      availableEndpoints: ['/mcp (POST)', '/health', '/'],
       timestamp: new Date().toISOString()
     });
   });
-
-  // Graceful shutdown: close every open session
-  function gracefulShutdown() {
-    const sessions = Object.values(streamableTransports);
-    logger.info('Shutting down HTTP server, closing sessions', { activeSessions: sessions.length });
-    for (const transport of sessions) {
-      transport.close().catch(() => { /* already closed */ });
-    }
-  }
-
-  // Handle process termination
-  process.on('SIGTERM', gracefulShutdown);
-  process.on('SIGINT', gracefulShutdown);
 
   return app;
 }

@@ -10,7 +10,7 @@ ARG REVISION
 WORKDIR /usr/src/app
 
 # Copy package files and tsconfig
-COPY package*.json tsconfig.json ./
+COPY package*.json tsconfig.json tsconfig.build.json ./
 
 # Install all dependencies (including dev dependencies for build)
 RUN npm ci && npm cache clean --force

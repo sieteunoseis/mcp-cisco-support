@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resources are thin views over the v3 tools: `cisco://bugs/{bug_id}`, `cisco://products/{product_id}`, `cisco://security/advisories/{advisory_id}`, `cisco://security/cve/{cve_id}`, plus `cisco://security/advisories/recent` and `/critical`.
 - Prompts cut from 11 to 6 (`cisco-upgrade-planning`, `cisco-known-issues`, `cisco-incident-investigation`, `cisco-security-advisory`, `cisco-lifecycle-planning`, `cisco-case-investigation`), rewritten around the v3 tools and given titles. `cisco-high-severity-search` and `cisco-maintenance-prep` merged into `cisco-known-issues`; `cisco-eox-research` into `cisco-lifecycle-planning`; `cisco-smart-search` and `cisco-interactive-search` removed.
 - Non-GCF output (`DISABLE_GCF_FORMAT=true`, or the old `DISABLE_TOON_FORMAT`) is plain JSON.
+- **HTTP mode is stateless:** each `POST /mcp` gets its own MCP server; no `Mcp-Session-Id`, no session state to leak, safe behind a load balancer. `GET`/`DELETE /mcp` return 405. Request bodies are limited to 1 MB (413 when larger, 400 for malformed JSON).
+- Express 5, helmet 8, morgan 1.12; `npm audit --omit=dev` reports 0 vulnerabilities.
+- Build compiles `src/` only (`tsconfig.build.json`): entry point is `dist/index.js` for npm, `bin` and Docker alike; the npm package is 98 files / 75 KB (was 163 files / 889 KB).
+- CI actions pinned to commit SHAs; arm64 images build with QEMU.
 
 ### Added
 - `psirt_search` with `os_type` + `version`: advisories affecting a release, with first fixed releases.
@@ -32,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Smart Bonding API (untested, write operations).
 - Legacy HTTP+SSE transport (`/sse`, `/messages`); use Streamable HTTP at `/mcp`.
+- Unused `uuid` dependency, the GCF-vs-TOON benchmark script and `scripts/test-specific-tool.js`.
 - Sampling "AI" tools (two sent placeholder data instead of Cisco data), `smart_search_strategy`, `progressive_bug_search`, `comprehensive_analysis`, `product_name_resolver`, the web-search helper, and the `enhanced_analysis`/`sampling`/`smart_bonding` modes.
 - `search_rmas_by_serial` (the Return API has no serial endpoint) and `get_coverage_summary_by_instance`.
 - Product autocomplete resource (scraped bst.cloudapps.cisco.com with a browser cookie, `CISCO_WEB_COOKIE`) and the "recent bugs" resources (keyword searches for "cisco"/"bug").

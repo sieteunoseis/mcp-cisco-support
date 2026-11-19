@@ -15,8 +15,6 @@ import {
   ErrorCode,
 } from "@modelcontextprotocol/sdk/types.js";
 import dotenv from "dotenv";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 // Import modular API system
 import {
@@ -35,28 +33,7 @@ import { getFilteredPrompts } from "./prompts/cisco-prompts.js";
 // Load environment variables
 dotenv.config();
 
-// Get version from package.json (handle different working directories)
-function findPackageJson(): string {
-  const possiblePaths = [
-    join(__dirname, "../../package.json"), // When compiled to dist/src/
-    join(__dirname, "../package.json"), // When running from src/
-    join(process.cwd(), "package.json"), // When running from project root
-  ];
-
-  for (const path of possiblePaths) {
-    try {
-      return readFileSync(path, "utf8");
-    } catch (error) {
-      // Continue to next path
-    }
-  }
-
-  // Fallback version
-  return JSON.stringify({ version: "1.5.0" });
-}
-
-const packageJson = JSON.parse(findPackageJson());
-const VERSION = packageJson.version;
+import { VERSION } from "./utils/version.js";
 
 // Initialize API registry (will be created fresh each time for dynamic config)
 let apiRegistry: ApiRegistry;

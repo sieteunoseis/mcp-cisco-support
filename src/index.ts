@@ -1,36 +1,10 @@
 #!/usr/bin/env node
 
-console.error('[MCP DEBUG] Starting imports...');
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createMCPServer, setLogging, logger } from './mcp-server.js';
 import { createHttpServer } from './http-server.js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { VERSION } from './utils/version.js';
 import { randomUUID } from 'node:crypto';
-console.error('[MCP DEBUG] Imports complete');
-
-// Get version from package.json (handle different working directories)
-function findPackageJson() {
-  const possiblePaths = [
-    join(__dirname, '../../package.json'), // When compiled to dist/src/
-    join(__dirname, '../package.json'),    // When running from src/
-    join(process.cwd(), 'package.json'),   // When running from project root
-  ];
-  
-  for (const path of possiblePaths) {
-    try {
-      return readFileSync(path, 'utf8');
-    } catch (error) {
-      // Continue to next path
-    }
-  }
-  
-  // Fallback version
-  return JSON.stringify({ version: '1.7.0' });
-}
-
-const packageJson = JSON.parse(findPackageJson());
-const VERSION = packageJson.version;
 
 // CLI token generation functions
 function generateToken(): string {
@@ -86,7 +60,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  npx mcp-cisco-support [options]');
   console.log('');
   console.log('Options:');
-  console.log('  --http, --sse        Start HTTP server mode (default: stdio)');
+  console.log('  --http               Start Streamable HTTP server mode (default: stdio)');
   console.log('  --generate-token     Generate a new Bearer token');
   console.log('  --token-help         Show token management commands');
   console.log('  --help, -h           Show this help message');
@@ -95,10 +69,11 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('Environment Variables:');
   console.log('  CISCO_CLIENT_ID           Cisco API client ID (required)');
   console.log('  CISCO_CLIENT_SECRET       Cisco API client secret (required)');
-  console.log('  SUPPORT_API               Enabled APIs: bug,case,eox or all (default: bug)');
-  console.log('  MCP_BEARER_TOKEN          Custom Bearer token (for bearer auth)');
+  console.log('  SUPPORT_API               bug, psirt, eox, product, serial, software, case, rma or all (default: bug)');
+  console.log('  MCP_BEARER_TOKEN          Bearer token for HTTP mode (random if unset)');
+  console.log('  PORT / HOST               HTTP listen port and address (default: 3000 / 127.0.0.1)');
+  console.log('  MCP_ALLOWED_ORIGINS       Extra browser origins allowed to call /mcp (comma-separated)');
   console.log('  DANGEROUSLY_OMIT_AUTH     Set to "true" to disable HTTP auth');
-  console.log('  PORT                      HTTP server port (default: 3000)');
   console.log('');
   console.log('Examples:');
   console.log('  npx mcp-cisco-support                    # Start in stdio mode');
@@ -121,7 +96,7 @@ if (args.includes('--version') || args.includes('-v')) {
 }
 
 // Determine mode from command line arguments
-const isHttpMode = args.includes('--http') || args.includes('--sse');
+const isHttpMode = args.includes('--http') || args.includes('--sse'); // --sse kept as an alias
 const isStdioMode = !isHttpMode;
 
 // Configure logging based on mode
@@ -132,59 +107,30 @@ setLogging(!isStdioMode);
 
 // Main function
 async function main() {
-  try {
-    console.error('[MCP DEBUG] Main function started');
-    const args = process.argv.slice(2);
-    console.error('[MCP DEBUG] Args:', args);
-    const isHTTP = args.includes('--http') || args.includes('--sse');
-    console.error('[MCP DEBUG] Mode:', isHTTP ? 'HTTP' : 'STDIO');
-
-  if (isHTTP) {
-    // Run as SSE HTTP server
+  if (isHttpMode) {
     const PORT = process.env.PORT || 3000;
     const HOST = process.env.HOST || '127.0.0.1';
-    const sseServer = createHttpServer(createMCPServer);
-    
-    // Graceful shutdown handling
-    const cleanup = () => {
-      logger.info('Shutting down gracefully');
-      process.exit(0);
-    };
-
-    process.on('SIGTERM', cleanup);
-    process.on('SIGINT', cleanup);
-    
-    sseServer.listen(Number(PORT), HOST, () => {
-      logger.info(`Cisco Support MCP SSE Server started on ${HOST}:${PORT}`, {
+    const httpServer = createHttpServer(createMCPServer);
+    const listener = httpServer.listen(Number(PORT), HOST, () => {
+      logger.info(`Cisco Support MCP server (Streamable HTTP) started on ${HOST}:${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
         version: VERSION,
-        mode: 'sse-http'
       });
     });
+    const shutdown = () => {
+      logger.info('Shutting down');
+      listener.close(() => process.exit(0));
+      setTimeout(() => process.exit(0), 5000).unref();
+    };
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
   } else {
-    // Run as MCP server over stdio (default)
-    console.error('[MCP DEBUG] Starting stdio mode');
-    logger.info('Starting Cisco Support MCP Server in stdio mode');
-
-    console.error('[MCP DEBUG] Creating StdioServerTransport');
-    const transport = new StdioServerTransport();
-    console.error('[MCP DEBUG] Connecting to transport');
-    await createMCPServer().connect(transport);
-
-    console.error('[MCP DEBUG] Connected successfully');
+    await createMCPServer().connect(new StdioServerTransport());
     logger.info('Cisco Support MCP Server connected via stdio');
-  }
-  } catch (error) {
-    console.error('[MCP DEBUG] Error in main:', error);
-    throw error;
   }
 }
 
-// Run main function
-console.error('[MCP DEBUG] About to call main()');
 main().catch((error) => {
-  console.error('[MCP DEBUG] main() threw error:', error);
   console.error('Failed to start server:', error);
   process.exit(1);
 });
-console.error('[MCP DEBUG] main() called (async)');

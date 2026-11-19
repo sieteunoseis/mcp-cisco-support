@@ -487,11 +487,11 @@ docker run -p 3000:3000 \
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/mcp` | POST/GET/DELETE | MCP Streamable HTTP (requires `Authorization: Bearer <token>`) |
+| `/mcp` | POST | MCP Streamable HTTP, stateless (requires `Authorization: Bearer <token>`) |
 | `/health` | GET | Health check (no auth) |
 | `/` | GET | Server information (no auth) |
 
-The legacy HTTP+SSE transport (`/sse`, `/messages`) was removed in v3.0.0; use Streamable HTTP at `/mcp`.
+HTTP mode is stateless: no sessions, every request is independent, so it can run behind a load balancer. The legacy HTTP+SSE transport (`/sse`, `/messages`) was removed in v3.0.0.
 
 ## 📚 Documentation
 
@@ -510,7 +510,7 @@ For detailed information, see our comprehensive [GitHub Wiki](https://github.com
 
 ### cURL Examples
 
-Streamable HTTP needs an `initialize` request first; the response carries an `Mcp-Session-Id` header to send on later requests.
+The server is stateless, so any request can be sent on its own (no session ID).
 
 ```bash
 TOKEN=your_bearer_token
@@ -519,18 +519,12 @@ H=(-H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -H "Acc
 # Health (no auth)
 curl http://localhost:3000/health
 
-# Initialize and capture the session ID
-SID=$(curl -s -D - -o /dev/null "${H[@]}" -X POST http://localhost:3000/mcp \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"curl","version":"1"}}}' \
-  | grep -i '^mcp-session-id' | awk '{print $2}' | tr -d '\r')
-curl -s "${H[@]}" -H "mcp-session-id: $SID" -X POST http://localhost:3000/mcp -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
-
 # List tools
-curl -s "${H[@]}" -H "mcp-session-id: $SID" -X POST http://localhost:3000/mcp -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+curl -s "${H[@]}" -X POST http://localhost:3000/mcp -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
 # Call a tool
-curl -s "${H[@]}" -H "mcp-session-id: $SID" -X POST http://localhost:3000/mcp \
-  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"bug_search","arguments":{"keyword":"crash","severity":["1","2"],"status":"O"}}}'
+curl -s "${H[@]}" -X POST http://localhost:3000/mcp \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"bug_search","arguments":{"keyword":"crash","severity":["1","2"],"status":"O"}}}'
 ```
 
 ## Development and Testing

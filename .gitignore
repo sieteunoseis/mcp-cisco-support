@@ -76,11 +76,13 @@ pids
 
 # Serverless directories
 .serverless
-EOF < /dev/null
-/net-commander
 
 .env*
 .flaskenv*
 !.env.project
 !.env.vault
 
+
+# Local review notes
+TODO.md
+review/
