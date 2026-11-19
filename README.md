@@ -150,6 +150,10 @@ The image starts in HTTP mode on `0.0.0.0:3000`. Tags: `latest`, `vX.Y.Z`. More:
 
 Security notes: [Security Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Security-Guide). Problems: [Troubleshooting](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Troubleshooting-Guide).
 
+## Agent skill
+
+[`skills/cisco-support-mcp`](skills/cisco-support-mcp/SKILL.md) teaches an agent to use these tools well: which tool answers which question, Cisco input formats, and how to handle the server's status results. Copy it into your skills folder, e.g. `~/.claude/skills/cisco-support-mcp/`.
+
 ## Development
 
 ```bash

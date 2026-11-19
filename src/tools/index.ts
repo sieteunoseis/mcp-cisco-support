@@ -209,7 +209,10 @@ async function psirtGet(args: Args, ctx: ToolContext) {
 }
 
 async function psirtSearch(args: Args, ctx: ToolContext) {
-  const mode = exactlyOne(args, ['os_type', 'product', 'severity', 'year', 'latest', 'first_published_from']);
+  // severity is its own mode, or a filter on os_type results ("critical advisories affecting 17.9.4")
+  const severityFilter = args.os_type && args.severity ? String(args.severity).toLowerCase() : undefined;
+  const modeArgs = severityFilter ? { ...args, severity: undefined } : args;
+  const mode = exactlyOne(modeArgs, ['os_type', 'product', 'severity', 'year', 'latest', 'first_published_from']);
   const pageNum = pageOf(args);
   const pageSize = Math.min(100, Math.max(1, parseInt(args.page_size ?? 10, 10) || 10));
   const paged = { pageIndex: pageNum, pageSize };
@@ -245,6 +248,10 @@ async function psirtSearch(args: Args, ctx: ToolContext) {
   }
   let advisories: any[] = body.advisories || [];
   let paging = pagingFrom(body, pageNum, pageSize);
+
+  if (severityFilter) {
+    advisories = advisories.filter(a => String(a.sir || '').toLowerCase() === severityFilter);
+  }
 
   // OSType and latest return everything at once: page locally
   if (mode === 'os_type' || mode === 'latest') {
@@ -632,7 +639,7 @@ export const TOOL_SPECS: ToolSpec[] = [
     name: 'psirt_search',
     title: 'Search Cisco security advisories',
     description: 'Find Cisco security advisories. Use os_type + version to answer "is this software version vulnerable?" ' +
-      '(returns advisories affecting that release with first fixed releases). Other modes: product, severity, year, latest, or a first-published date range.',
+      '(advisories affecting that release, with first fixed releases; add severity to keep only e.g. critical). Other modes: product, severity, year, latest, or a first-published date range.',
     inputSchema: { type: 'object', properties: {
       os_type: { type: 'string', enum: PSIRT_OS_TYPES, description: 'Operating system, used with version' },
       version: { type: 'string', description: 'Release for os_type, e.g. "17.9.4" or "17.15.4b"' },

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-11-19
+
+### Added
+- `skills/cisco-support-mcp`: an agent skill for using this server (question → tool, Cisco input formats, what each status result means).
+
+### Changed
+- `psirt_search` accepts `severity` together with `os_type` + `version` as a filter ("critical advisories affecting 17.9.4"); before, the two counted as conflicting modes.
+
 ## [3.2.0] - 2026-11-19
 
 ### Added

@@ -174,6 +174,14 @@ describe('psirt tools', () => {
     expect(r.paging.next_page).toBe(2);
   });
 
+  test('psirt_search os_type + severity filters the release advisories', async () => {
+    const all: any = await executeTool('psirt_search', { os_type: 'iosxe', version: '17.15.4b', page_size: 100 });
+    const critical: any = await executeTool('psirt_search', { os_type: 'iosxe', version: '17.15.4b', severity: 'critical', page_size: 100 });
+    expect(critical.advisories.every((a: any) => a.sir === 'Critical')).toBe(true);
+    expect(critical.count).toBeLessThan(all.count);
+    expect(critical.paging.total_records).toBe(critical.count);
+  });
+
   test('psirt_search severity uses Cisco paging', async () => {
     const r: any = await executeTool('psirt_search', { severity: 'critical', page_size: 5 });
     expect(calls[0]).toContain('pageIndex=1&pageSize=5');
