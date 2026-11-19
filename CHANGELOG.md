@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Node 20+ required; Docker image uses Node 22.
 - MCP SDK 1.20.2 -> 1.32.2: negotiates protocol 2025-11-25 (2025-06-18 clients still work); server icon uses the standard `icons` field.
 - Resources are thin views over the v3 tools: `cisco://bugs/{bug_id}`, `cisco://products/{product_id}`, `cisco://security/advisories/{advisory_id}`, `cisco://security/cve/{cve_id}`, plus `cisco://security/advisories/recent` and `/critical`.
-- Prompts rewritten around the v3 tools (one `bug_search` call for several severities, `assess_upgrade`, `psirt_search` by OS version) and given titles.
+- Prompts cut from 11 to 6 (`cisco-upgrade-planning`, `cisco-known-issues`, `cisco-incident-investigation`, `cisco-security-advisory`, `cisco-lifecycle-planning`, `cisco-case-investigation`), rewritten around the v3 tools and given titles. `cisco-high-severity-search` and `cisco-maintenance-prep` merged into `cisco-known-issues`; `cisco-eox-research` into `cisco-lifecycle-planning`; `cisco-smart-search` and `cisco-interactive-search` removed.
 - Non-GCF output (`DISABLE_GCF_FORMAT=true`, or the old `DISABLE_TOON_FORMAT`) is plain JSON.
 
 ### Added

@@ -76,18 +76,18 @@ const isIntegrationMode = !mockFetch;
       expect(prompts.length).toBeGreaterThan(0);
     });
 
-    test('should include cisco-high-severity-search prompt', () => {
+    test('should include cisco-known-issues prompt', () => {
       const prompts = getAvailablePrompts();
-      const highSevPrompt = prompts.find(p => p.name === 'cisco-high-severity-search');
+      const highSevPrompt = prompts.find(p => p.name === 'cisco-known-issues');
       
       expect(highSevPrompt).toBeDefined();
-      expect(highSevPrompt!.description).toContain('severity 3 or higher');
+      expect(highSevPrompt!.description).toContain('worst first');
     });
 
-    test('should generate cisco-high-severity-search prompt content', () => {
-      const messages = generatePrompt('cisco-high-severity-search', {
-        product_keyword: 'CallManager',
-        version: '12.5',
+    test('should generate cisco-known-issues prompt content', () => {
+      const messages = generatePrompt('cisco-known-issues', {
+        product: 'CallManager',
+        software_version: '12.5',
         max_severity: '3'
       });
       
@@ -95,7 +95,7 @@ const isIntegrationMode = !mockFetch;
       expect(messages[0].role).toBe('user');
       expect(messages[0].content.type).toBe('text');
       const text = (messages[0].content as { text: string }).text;
-      expect(text).toContain('CallManager version 12.5');
+      expect(text).toContain('CallManager on 12.5');
       // One bug_search call covers all severities in v3
       expect(text).toContain('`bug_search`');
       expect(text).toContain('severity ["1","2","3"]');
@@ -121,16 +121,12 @@ const isIntegrationMode = !mockFetch;
       try {
       const toolNames = new Set(require('../src/mcp-server').getAvailableTools().map((t: any) => t.name));
       const samples: Record<string, Record<string, string>> = {
-        'cisco-high-severity-search': { product_keyword: 'C9300-48P', version: '17.9.4' },
         'cisco-incident-investigation': { symptom: 'crash', serial_number: 'FOC123' },
         'cisco-upgrade-planning': { current_version: '17.9.4', target_version: '17.12.4', product: 'C9300-48P' },
-        'cisco-maintenance-prep': { maintenance_type: 'upgrade', product: 'C9300-48P' },
         'cisco-security-advisory': { software_version: '17.9.4' },
         'cisco-known-issues': { software_version: '17.9.4', product: 'C9300-48P' },
         'cisco-case-investigation': { case_id: '700000001' },
         'cisco-lifecycle-planning': { serial_numbers: 'FOC123' },
-        'cisco-eox-research': { product_focus: 'hardware', search_values: 'VG224' },
-        'cisco-smart-search': { search_query: 'crash on 17.9.4' },
       };
       for (const [name, args] of Object.entries(samples)) {
         const text = (generatePrompt(name, args)[0].content as { text: string }).text;

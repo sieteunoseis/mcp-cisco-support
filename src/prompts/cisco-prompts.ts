@@ -15,33 +15,6 @@ import { SupportedAPI } from '../apis/index.js';
  */
 export const ciscoPrompts: Prompt[] = [
   {
-    name: 'cisco-high-severity-search',
-    title: 'Cisco High Severity Search',
-    description: 'Search for high-severity bugs (severity 3 or higher) for specific products - handles API limitation requiring separate searches. Provide either product_keyword OR serial_number (not both).',
-    arguments: [
-      {
-        name: 'product_keyword',
-        description: 'Product name or keyword to search for (e.g., "Cisco Unified Communications Manager", "CallManager"). Either this OR serial_number is required.',
-        required: false
-      },
-      {
-        name: 'serial_number',
-        description: 'Serial number to look up product information (e.g., "SAL09232Q0Z"). Either this OR product_keyword is required. Will automatically determine product from serial.',
-        required: false
-      },
-      {
-        name: 'version',
-        description: 'Product version if applicable (e.g., "12.5", "17.5.1")',
-        required: false
-      },
-      {
-        name: 'max_severity',
-        description: 'Highest severity to include (1=highest, 6=lowest). Will search from 1 down to this number.',
-        required: false
-      }
-    ]
-  },
-  {
     name: 'cisco-incident-investigation',
     title: 'Cisco Incident Investigation',
     description: 'Investigate Cisco bugs related to specific incident symptoms and errors. Provide either product OR serial_number.',
@@ -106,38 +79,6 @@ export const ciscoPrompts: Prompt[] = [
     ]
   },
   {
-    name: 'cisco-maintenance-prep',
-    title: 'Cisco Maintenance Prep',
-    description: 'Prepare for maintenance windows by identifying potential issues and bugs. Provide either product OR serial_number.',
-    arguments: [
-      {
-        name: 'maintenance_type',
-        description: 'Type of maintenance (software upgrade, hardware replacement, configuration change)',
-        required: true
-      },
-      {
-        name: 'product',
-        description: 'Cisco product undergoing maintenance. Either this OR serial_number is required.',
-        required: false
-      },
-      {
-        name: 'serial_number',
-        description: 'Serial number of device undergoing maintenance (e.g., "SAL09232Q0Z"). Either this OR product is required. Will automatically look up product details.',
-        required: false
-      },
-      {
-        name: 'software_version',
-        description: 'Current or target software version',
-        required: false
-      },
-      {
-        name: 'timeline',
-        description: 'Maintenance window timeline (e.g., "next week", "emergency")',
-        required: false
-      }
-    ]
-  },
-  {
     name: 'cisco-security-advisory',
     title: 'Cisco Security Advisory',
     description: 'Research security-related bugs and vulnerabilities for Cisco products. Provide either product OR serial_number.',
@@ -167,7 +108,7 @@ export const ciscoPrompts: Prompt[] = [
   {
     name: 'cisco-known-issues',
     title: 'Cisco Known Issues',
-    description: 'Check for known issues in specific Cisco software releases or products. Provide either product OR serial_number.',
+    description: 'Known open bugs (worst first) and security advisories for a Cisco product or release, e.g. before a change or maintenance window. Provide product OR serial_number.',
     arguments: [
       {
         name: 'product',
@@ -181,8 +122,13 @@ export const ciscoPrompts: Prompt[] = [
       },
       {
         name: 'software_version',
-        description: 'Specific software version or range',
-        required: true
+        description: 'Software release to check (e.g. "17.9.4"). Without it, searches by product keyword.',
+        required: false
+      },
+      {
+        name: 'max_severity',
+        description: 'Include severities 1..max_severity (default 3)',
+        required: false
       },
       {
         name: 'issue_type',
@@ -221,7 +167,7 @@ export const ciscoPrompts: Prompt[] = [
   {
     name: 'cisco-lifecycle-planning',
     title: 'Cisco Lifecycle Planning',
-    description: 'Research end-of-life information for Cisco products to plan replacements and maintenance',
+    description: 'End-of-life dates, migration products and contract coverage for products, serial numbers, software releases or an announcement date range',
     arguments: [
       {
         name: 'product_ids',
@@ -234,52 +180,18 @@ export const ciscoPrompts: Prompt[] = [
         required: false
       },
       {
+        name: 'software_releases',
+        description: 'Software releases to check, as "version,OS" pairs separated by ";" (e.g. "15.4(3)M,IOS")',
+        required: false
+      },
+      {
         name: 'date_range_start',
-        description: 'Start date for lifecycle search (YYYY-MM-DD)',
+        description: 'Start date for EoX announcements (YYYY-MM-DD)',
         required: false
       },
       {
         name: 'date_range_end',
         description: 'End date for lifecycle search (YYYY-MM-DD)',
-        required: false
-      }
-    ]
-  },
-  {
-    name: 'cisco-eox-research',
-    title: 'Cisco EoX Research',
-    description: 'Research end-of-life and end-of-sale information for specific Cisco products',
-    arguments: [
-      {
-        name: 'product_focus',
-        description: 'Focus area: product_ids, serial_numbers, software_releases, or date_range',
-        required: true
-      },
-      {
-        name: 'search_values',
-        description: 'Values to search for (product IDs, serial numbers, or software releases)',
-        required: true
-      }
-    ]
-  },
-  {
-    name: 'cisco-smart-search',
-    title: 'Cisco Smart Search',
-    description: 'Intelligent search strategy with automatic refinement and comprehensive analysis. Uses multiple search techniques and provides web search guidance.',
-    arguments: [
-      {
-        name: 'search_query',
-        description: 'What you want to search for (e.g., "ISR4431 17.09.06 high severity bugs", "memory leak CallManager")',
-        required: true
-      },
-      {
-        name: 'search_context',
-        description: 'Context for the search to optimize strategy',
-        required: false
-      },
-      {
-        name: 'include_web_guidance',
-        description: 'Include web search recommendations for additional research (true/false)',
         required: false
       }
     ]
@@ -292,16 +204,12 @@ export const ciscoPrompts: Prompt[] = [
  * Prompts with serial_number support require 'serial' API for product lookups
  */
 export const promptApiMapping: Record<string, SupportedAPI[]> = {
-  'cisco-high-severity-search': ['bug', 'serial'],
-  'cisco-incident-investigation': ['bug', 'serial'],
-  'cisco-upgrade-planning': ['bug', 'serial'],
-  'cisco-maintenance-prep': ['bug', 'serial'],
-  'cisco-security-advisory': ['bug', 'serial'],
-  'cisco-known-issues': ['bug', 'serial'],
-  'cisco-case-investigation': ['case'],
+  'cisco-upgrade-planning': ['bug'],
+  'cisco-known-issues': ['bug'],
+  'cisco-incident-investigation': ['bug'],
+  'cisco-security-advisory': ['psirt'],
   'cisco-lifecycle-planning': ['eox', 'serial'],
-  'cisco-eox-research': ['eox'],
-  'cisco-smart-search': ['bug'],
+  'cisco-case-investigation': ['case'],
 };
 
 /**

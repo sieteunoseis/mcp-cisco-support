@@ -98,21 +98,6 @@ export function generatePrompt(
         : "";
 
   switch (name) {
-    case "cisco-high-severity-search": {
-      const max = Math.min(6, Math.max(1, parseInt(args.max_severity, 10) || 3));
-      const severities = Array.from({ length: max }, (_, i) => `"${i + 1}"`).join(",");
-      const target = args.serial_number
-        ? "the product returned by device_lookup"
-        : `"${args.product_keyword ?? ""}"`;
-      const version = args.version ? ` version ${args.version}` : "";
-      return user(`Find open high-severity Cisco bugs (severity 1-${max}) for ${args.product_keyword || args.serial_number}${version}.
-
-${identify(args.serial_number, args.product_keyword)}2. Call \`bug_search\` once with severity [${severities}], status "O" and ${args.version ? `product_id ${target} with releases "${args.version}"` : `keyword ${target}`}. One call covers all severities; check \`total_by_severity\` and \`paging.next_page\`.
-3. If nothing matches, follow the \`hint\` in the result (base product ID without the license suffix, or the full product series name).
-
-Summarize the bugs by severity: ID, headline, and fixed releases.`);
-    }
-
     case "cisco-incident-investigation":
       return user(`Help investigate a Cisco incident.
 
@@ -133,16 +118,6 @@ ${identify(args.serial_number, args.product)}2. Call \`assess_upgrade\` with pro
 
 Give a go/no-go recommendation with the main risks and pre-checks.`);
 
-    case "cisco-maintenance-prep":
-      return user(`Prepare for a Cisco maintenance window.
-
-${line("Maintenance type", args.maintenance_type)}${line("Product", args.product)}${line("Serial number", args.serial_number)}${line("Software version", args.software_version)}${line("Timeline", args.timeline)}
-${identify(args.serial_number, args.product)}2. Call \`bug_search\` with product_id and releases "${args.software_version ?? "<version>"}", severity ["1","2","3"], status "O" for known issues on the running release.
-3. If the maintenance is an upgrade, call \`assess_upgrade\` for the target release.
-4. Call \`psirt_search\` with os_type and version for open security advisories.
-
-Produce a checklist: known risks, workarounds, rollback considerations.`);
-
     case "cisco-security-advisory":
       return user(`Review Cisco security advisories.
 
@@ -153,14 +128,19 @@ ${identify(args.serial_number, args.product)}2. ${args.software_version ? `Call 
 
 Summarize by Security Impact Rating (sir), with the fix release for each.`);
 
-    case "cisco-known-issues":
-      return user(`List known issues for Cisco software release ${args.software_version}.
+    case "cisco-known-issues": {
+      const max = Math.min(6, Math.max(1, parseInt(args.max_severity, 10) || 3));
+      const severities = Array.from({ length: max }, (_, n) => `"${n + 1}"`).join(",");
+      const subject = args.product || args.serial_number || "the product";
+      return user(`List known open issues for ${subject}${args.software_version ? ` on ${args.software_version}` : ""} (severity 1-${max}).
 
 ${line("Product", args.product)}${line("Serial number", args.serial_number)}${line("Issue type", args.issue_type)}
-${identify(args.serial_number, args.product)}2. Call \`bug_search\` with product_id (or product_series) and releases "${args.software_version}", severity ["1","2","3"], status "O"${args.issue_type ? `; add a keyword search for "${args.issue_type}"` : ""}.
-3. Call \`psirt_search\` with os_type and version "${args.software_version}".
+${identify(args.serial_number, args.product)}2. Call \`bug_search\` once with severity [${severities}], status "O" and ${args.software_version ? `product_id (or product_series) with releases "${args.software_version}"` : `keyword "${args.product ?? ""}"`}${args.issue_type ? `; add a second keyword search for "${args.issue_type}"` : ""}. One call covers all severities; check \`total_by_severity\` and \`paging.next_page\`.
+3. ${args.software_version ? `Call \`psirt_search\` with os_type and version "${args.software_version}" for security advisories affecting the release.` : "If a release is known, call `psirt_search` with os_type and version."}
+4. If nothing matches, follow the \`hint\` in the result (base product ID without the license suffix, or the full product series name).
 
-Summarize the major issues and which later releases fix them.`);
+Summarize the issues by severity with workarounds and the releases that fix them.`);
+    }
 
     case "cisco-case-investigation":
       return user(`Investigate Cisco TAC cases.
@@ -174,29 +154,11 @@ Summarize status, history and next steps.`);
     case "cisco-lifecycle-planning":
       return user(`Plan Cisco hardware lifecycle and refresh.
 
-${line("Product IDs", args.product_ids)}${line("Serial numbers", args.serial_numbers)}${line("Date range", args.date_range_start && `${args.date_range_start} to ${args.date_range_end ?? ""}`)}
-1. ${args.serial_numbers ? `Call \`device_lookup\` with serial_numbers "${args.serial_numbers}" for coverage, warranty and end-of-life per device.` : args.product_ids ? `Call \`eox_get\` with product_ids "${args.product_ids}".` : `Call \`eox_get\` with start_date "${args.date_range_start ?? ""}" and end_date "${args.date_range_end ?? ""}".`}
+${line("Product IDs", args.product_ids)}${line("Serial numbers", args.serial_numbers)}${line("Software releases", args.software_releases)}${line("Date range", args.date_range_start && `${args.date_range_start} to ${args.date_range_end ?? ""}`)}
+1. ${args.serial_numbers ? `Call \`device_lookup\` with serial_numbers "${args.serial_numbers}" for coverage, warranty and end-of-life per device.` : args.product_ids ? `Call \`eox_get\` with product_ids "${args.product_ids}".` : args.software_releases ? `Call \`eox_get\` with software_releases "${args.software_releases}".` : `Call \`eox_get\` with start_date "${args.date_range_start ?? ""}" and end_date "${args.date_range_end ?? ""}".`}
 2. For products with an EoX announcement, note the migration product ID and call \`product_get\` on it.
 
 Produce a timeline of end-of-sale, end-of-security-support and last-date-of-support, and flag devices without contract coverage.`);
-
-    case "cisco-eox-research":
-      return user(`Research Cisco end-of-life information (${args.product_focus}).
-
-1. Call \`eox_get\` with the matching input for "${args.search_values}": product_ids, serial_numbers, software_releases ("version,OS" pairs separated by ";"), or start_date/end_date.
-2. Page with paging.next_page if there are more records.
-
-Summarize the key dates and migration paths.`);
-
-    case "cisco-smart-search":
-      return user(`Search Cisco support data for: "${args.search_query}"
-${line("Context", args.search_context)}
-1. **Identify the product**: use \`product_get\` (or \`device_lookup\` for serial numbers) to confirm the product ID and series.
-2. **Search bugs**: use \`bug_search\` with product_id or product_series plus releases; pass severity ["1","2","3"] for high-priority searches.
-3. **Check security**: use \`psirt_search\` with os_type and version to list advisories affecting the release.
-4. **Plan upgrades**: use \`assess_upgrade\` to compare the current release with a target (or Cisco's suggested release).
-${args.include_web_guidance === "false" ? "" : "5. **Further research**: suggest specific Cisco.com searches for anything the APIs don't cover.\n"}
-If a search returns nothing, follow the hint in the result (broader keyword, base product ID without the license suffix, or the full series name).`);
 
     default:
       throw new McpError(ErrorCode.InvalidParams, `Unknown prompt: ${name}`);
