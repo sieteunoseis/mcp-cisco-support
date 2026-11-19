@@ -84,6 +84,6 @@ When adding or changing an endpoint, record a real response into `tests/fixtures
 
 1. Bump `version` in `package.json` (the server reads its version from there) and add a CHANGELOG entry.
 2. CI (`.github/workflows/ci.yml`) must pass. The Docker image (`:latest`, `:v<version>`) is built only after CI passes on `main`.
-3. npm publish runs on a GitHub Release whose tag equals `v<package.json version>`.
+3. npm publish runs on a GitHub Release whose tag equals `v<package.json version>` (or manually: Actions → "Publish to NPM", dry_run false). It uses npm trusted publishing (OIDC, no token) and the trusted publisher only allows **staged** publishes: approve the staged version on npmjs.com with 2FA, or `npm stage list mcp-cisco-support` then `npm stage approve <id>`.
 
 Wiki: https://github.com/sieteunoseis/mcp-cisco-support/wiki
