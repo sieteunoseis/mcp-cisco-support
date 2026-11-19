@@ -508,8 +508,14 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
   }
   const eox = eoxBody?.EOXRecord?.[0] ? shapeEox(eoxBody.EOXRecord[0], 'concise') : undefined;
 
-  const brief = (b: any) => compact({ bug_id: b.bug_id, severity: b.severity, headline: b.headline,
-    url: `https://bst.cloudapps.cisco.com/bugsearch/bug/${b.bug_id}` });
+  const brief = (b: any) => {
+    const fixed = releaseList(b.known_fixed_releases);
+    return compact({
+      bug_id: b.bug_id, severity: b.severity, status: b.status, headline: b.headline,
+      fixed_releases: fixed.length > 8 ? [...fixed.slice(0, 8), `…+${fixed.length - 8} more`] : fixed,
+      url: `https://bst.cloudapps.cisco.com/bugsearch/bug/${b.bug_id}`,
+    });
+  };
   const limit = args.response_format === 'detailed' ? 50 : 10;
   return compact({
     product_id: pid,

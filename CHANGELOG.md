@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-11-19
+
+### Fixed
+- `assess_upgrade` bug rows include `status` and `fixed_releases`, so the MCP Apps view's Status and Fixed in columns are filled.
+
+### Changed
+- README and wiki rewritten for 3.0; new MCP Apps screenshots (Claude Desktop) replace the 2.x ones.
+
 ## [3.0.0] - 2026-11-18
 
 ### Changed

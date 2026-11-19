@@ -93,6 +93,13 @@ Most prompts accept a serial number instead of a product; the model then starts 
 
 Clients that support [MCP Apps](https://github.com/modelcontextprotocol/ext-apps) render `bug_get`, `bug_search`, `psirt_get`, `psirt_search`, `device_lookup` and `assess_upgrade` results as interactive tables (filters, Cisco links, next page). Other clients get the same text output. See [MCP Apps](https://github.com/sieteunoseis/mcp-cisco-support/wiki/MCP-Apps).
 
+<p>
+  <img src="screenshots/mcp-apps-assess-upgrade.png" alt="assess_upgrade in Claude Desktop: summary cards, bugs still open, bugs affecting the target, advisories fixed by upgrading" width="49%">
+  <img src="screenshots/mcp-apps-bug-search.png" alt="bug_search in Claude Desktop: severity filter chips, text filter, bug table with Cisco links and Load page 2" width="49%">
+</p>
+
+*`assess_upgrade` (C9300-48P, 17.15.4b → 17.18.4) and `bug_search` rendered in Claude Desktop.*
+
 ## HTTP mode
 
 ```bash

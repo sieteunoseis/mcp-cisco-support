@@ -1,6 +1,6 @@
 {
   "name": "mcp-cisco-support",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "MCP server for the Cisco Support APIs: bugs, security advisories, end-of-life, coverage, software, cases and RMAs",
   "main": "dist/index.js",
   "bin": {

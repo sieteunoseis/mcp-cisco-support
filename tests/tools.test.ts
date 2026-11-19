@@ -259,6 +259,11 @@ describe('assess_upgrade', () => {
     expect(r.notes[0]).toMatch(/suggested release 17.18.4/);
     expect(r.security).toBeDefined();
     expect(r.summary).toHaveProperty('open_bugs_current');
+    // Bug rows carry status and fixed releases for the results view
+    for (const b of [...(r.bugs_still_open || []), ...(r.bugs_affecting_target || [])]) {
+      expect(b.status).toBeDefined();
+      expect(b.url).toContain(b.bug_id);
+    }
   });
 
   test('requires product_id and current_version', async () => {
