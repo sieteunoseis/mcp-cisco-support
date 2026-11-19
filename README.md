@@ -8,6 +8,7 @@
 [![Docker](https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-blue.svg?logo=docker)](https://ghcr.io/sieteunoseis/mcp-cisco-support)
 [![CI](https://img.shields.io/github/actions/workflow/status/sieteunoseis/mcp-cisco-support/ci.yml?label=CI)](https://github.com/sieteunoseis/mcp-cisco-support/actions)
 [![Skills](https://img.shields.io/badge/skills.sh-cisco--support--mcp-blue)](https://skills.sh/sieteunoseis/mcp-cisco-support)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/automatebldrs)
 
 MCP server for the [Cisco Support APIs](https://developer.cisco.com/docs/support-apis/): bugs, security advisories (PSIRT), end-of-life (EoX), serial-number coverage, product info, software suggestions, TAC cases and RMAs.
 
