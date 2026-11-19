@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `assess_upgrade` bug rows include `status` and `fixed_releases`, so the MCP Apps view's Status and Fixed in columns are filled.
+- When a client shows the MCP Apps view, the text result now tells the model the user already sees the table, so replies add analysis instead of repeating the rows.
 
 ### Changed
 - README and wiki rewritten for 3.0; new MCP Apps screenshots (Claude Desktop) replace the 2.x ones.

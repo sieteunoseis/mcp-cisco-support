@@ -14,6 +14,12 @@ export const UI_EXTENSION_ID = 'io.modelcontextprotocol/ui';
 export const UI_MIME_TYPE = 'text/html;profile=mcp-app';
 export const RESULTS_APP_URI = 'ui://mcp-cisco-support/results.html';
 
+/** Prepended to the text result when the view is shown (the model can't see the view) */
+export const UI_RESULT_NOTE =
+  '[Shown to the user as an interactive table with filters and Cisco links. ' +
+  "Don't repeat the rows or rebuild the table in your reply; give the key findings, " +
+  'risks and recommendations, and anything the table does not show.]';
+
 /** Tools whose results the view can render */
 export const UI_TOOLS = ['bug_get', 'bug_search', 'psirt_get', 'psirt_search', 'device_lookup', 'assess_upgrade'];
 

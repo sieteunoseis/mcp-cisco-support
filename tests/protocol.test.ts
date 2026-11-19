@@ -134,6 +134,7 @@ describe('MCP Apps (io.modelcontextprotocol/ui)', () => {
     expect(tools.some(t => (t._meta as any)?.ui)).toBe(false);
     const r: any = await client.callTool({ name: 'bug_get', arguments: { bug_ids: 'CSCwh87343' } });
     expect(r.structuredContent).toBeUndefined();
+    expect(r.content[0].text).not.toContain('Shown to the user');
   });
 
   test('UI clients get resourceUri on result tools and structuredContent', async () => {
@@ -145,6 +146,8 @@ describe('MCP Apps (io.modelcontextprotocol/ui)', () => {
     const r: any = await client.callTool({ name: 'bug_get', arguments: { bug_ids: 'CSCwh87343' } });
     expect(r.structuredContent.bugs[0].bug_id).toBe('CSCwh87343');
     expect(r.content[0].text).toContain('CSCwh87343'); // text fallback stays
+    // The model can't see the view, so the text tells it not to rebuild the table
+    expect(r.content[0].text).toMatch(/^\[Shown to the user as an interactive table/);
   });
 
   test('the view resource is a self-contained MCP App document', async () => {

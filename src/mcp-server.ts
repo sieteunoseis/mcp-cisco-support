@@ -22,7 +22,7 @@ import {
   ApiRegistry,
 } from "./apis/index.js";
 import { encodeResult } from "./utils/gcf.js";
-import { UI_EXTENSION_ID, UI_MIME_TYPE, RESULTS_APP_URI, RESULTS_APP_HTML, UI_TOOLS } from "./ui/results-app.js";
+import { UI_EXTENSION_ID, UI_MIME_TYPE, RESULTS_APP_URI, RESULTS_APP_HTML, UI_TOOLS, UI_RESULT_NOTE } from "./ui/results-app.js";
 import { setLogging, logger } from "./utils/logger.js";
 import { SERVER_ICON } from "./utils/icon.js";
 import { registerProgressContext } from "./utils/progress.js";
@@ -231,15 +231,19 @@ export function createMCPServer(): Server {
                 : 0,
       });
 
+      // When the client renders the MCP Apps view, the user already sees the
+      // rows as a table. Tell the model, so it adds analysis instead of
+      // rebuilding the same table in its reply.
+      const showsView = clientSupportsUi() && UI_TOOLS.includes(name);
       const content: TextContent = {
         type: "text",
-        text: encodeResult(result),
+        text: (showsView ? `${UI_RESULT_NOTE}\n\n` : "") + encodeResult(result),
       };
 
       return {
         content: [content],
         // The results view renders structuredContent; plain clients only get the text
-        ...(clientSupportsUi() && UI_TOOLS.includes(name) ? { structuredContent: result } : {}),
+        ...(showsView ? { structuredContent: result } : {}),
         isError: false,
       };
     } catch (error) {
