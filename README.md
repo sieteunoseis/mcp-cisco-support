@@ -7,6 +7,7 @@
 [![Cisco Code Exchange](https://img.shields.io/badge/Cisco-Code_Exchange-00bceb.svg)](https://developer.cisco.com/codeexchange/github/repo/sieteunoseis/mcp-cisco-support)
 [![Docker](https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-blue.svg?logo=docker)](https://ghcr.io/sieteunoseis/mcp-cisco-support)
 [![CI](https://img.shields.io/github/actions/workflow/status/sieteunoseis/mcp-cisco-support/ci.yml?label=CI)](https://github.com/sieteunoseis/mcp-cisco-support/actions)
+[![Skills](https://img.shields.io/badge/skills.sh-cisco--support--mcp-blue)](https://skills.sh/sieteunoseis/mcp-cisco-support)
 
 MCP server for the [Cisco Support APIs](https://developer.cisco.com/docs/support-apis/): bugs, security advisories (PSIRT), end-of-life (EoX), serial-number coverage, product info, software suggestions, TAC cases and RMAs.
 
@@ -150,9 +151,23 @@ The image starts in HTTP mode on `0.0.0.0:3000`. Tags: `latest`, `vX.Y.Z`. More:
 
 Security notes: [Security Guide](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Security-Guide). Problems: [Troubleshooting](https://github.com/sieteunoseis/mcp-cisco-support/wiki/Troubleshooting-Guide).
 
-## Agent skill
+## AI Agent Skill (optional)
 
-[`skills/cisco-support-mcp`](skills/cisco-support-mcp/SKILL.md) teaches an agent to use these tools well: which tool answers which question, Cisco input formats, and how to handle the server's status results. Copy it into your skills folder, e.g. `~/.claude/skills/cisco-support-mcp/`.
+The [`cisco-support-mcp`](skills/cisco-support-mcp/SKILL.md) skill teaches an agent to use these tools well: which tool answers which question, Cisco's input formats, and what to do with the server's status results (exact-release questions, 403s, the MCP Apps view).
+
+```bash
+npx skills add sieteunoseis/mcp-cisco-support
+```
+
+Or copy it by hand (Claude Code):
+
+```bash
+mkdir -p ~/.claude/skills/cisco-support-mcp
+curl -fsSL https://raw.githubusercontent.com/sieteunoseis/mcp-cisco-support/main/skills/cisco-support-mcp/SKILL.md \
+  -o ~/.claude/skills/cisco-support-mcp/SKILL.md
+```
+
+The server works without it; the skill just helps the agent pick tools and arguments.
 
 ## Development
 
