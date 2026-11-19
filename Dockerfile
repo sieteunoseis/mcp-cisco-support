@@ -1,5 +1,8 @@
-# Multi-stage build for optimization
-FROM node:22-alpine AS builder
+# Multi-stage build. The builder and deps stages run on the build host's
+# platform ($BUILDPLATFORM): the output (compiled JS, pure-JS node_modules with
+# no native add-ons) is the same on every architecture, so the arm64 image
+# needs no npm/node run under QEMU emulation (which crashed with SIGILL).
+FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 
 # Build arguments
 ARG BUILDTIME
@@ -21,6 +24,12 @@ COPY src/ ./src/
 # Build TypeScript
 RUN npm run build
 
+# Production dependencies only (pure JS, no install scripts)
+FROM --platform=$BUILDPLATFORM node:22-alpine AS deps
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
 # Production stage
 FROM node:22-alpine AS production
 
@@ -34,8 +43,8 @@ LABEL org.opencontainers.image.created=${BUILDTIME}
 LABEL org.opencontainers.image.version=${VERSION}
 LABEL org.opencontainers.image.revision=${REVISION}
 LABEL org.opencontainers.image.title="Cisco Support MCP Server"
-LABEL org.opencontainers.image.description="MCP server for Cisco Support APIs including Bug Search and future tools"
-LABEL org.opencontainers.image.vendor="Cisco Support MCP Server"
+LABEL org.opencontainers.image.description="MCP server for the Cisco Support APIs: bugs, security advisories, end-of-life, coverage, software, cases and RMAs"
+LABEL org.opencontainers.image.vendor="sieteunoseis"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Create non-root user
@@ -45,11 +54,9 @@ RUN addgroup -g 1001 -S nodejs && \
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy package files
+# Copy package files and production dependencies (built natively in deps)
 COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+COPY --from=deps /usr/src/app/node_modules ./node_modules
 
 # Copy built application from builder stage
 COPY --from=builder /usr/src/app/dist ./dist
