@@ -67,18 +67,13 @@ function routeFixtures(overrides: [RegExp, () => Response][] = []) {
 }
 
 beforeEach(() => {
-  process.env.SUPPORT_API = 'all';
   calls.length = 0;
   mockFetch!.mockReset();
   routeFixtures();
 });
 
-afterAll(() => {
-  process.env.SUPPORT_API = 'bug';
-});
-
 describe('tool listing', () => {
-  test('SUPPORT_API=all exposes the 12 v3 tools with annotations', () => {
+  test('all 12 v3 tools are listed, with annotations', () => {
     const tools = getAvailableTools();
     expect(tools.map(t => t.name).sort()).toEqual([
       'assess_upgrade', 'bug_get', 'bug_search', 'case_get', 'case_search', 'device_lookup',
@@ -90,9 +85,13 @@ describe('tool listing', () => {
     }
   });
 
-  test('tools are filtered by SUPPORT_API', () => {
+  test('SUPPORT_API no longer filters tools', () => {
     process.env.SUPPORT_API = 'case,rma';
-    expect(getAvailableTools().map(t => t.name).sort()).toEqual(['case_get', 'case_search', 'rma_get']);
+    try {
+      expect(getAvailableTools()).toHaveLength(12);
+    } finally {
+      delete process.env.SUPPORT_API;
+    }
   });
 
   test('tools/list stays small', () => {
@@ -283,6 +282,12 @@ describe('resilience', () => {
     await expect(createApiRegistry().executeTool('bug_get', { bug_ids: 'CSCwh87343' }, { signal: controller.signal }))
       .rejects.toThrow();
     expect(hits).toBe(1);
+  });
+
+  test('a 403 that is not rate limiting explains the missing API entitlement', async () => {
+    routeFixtures([[/\/cases\//, () => respond(403, '<h1>Developer Inactive</h1>')]]);
+    await expect(executeTool('case_get', { case_ids: '700000001' }))
+      .rejects.toThrow(/Case API: access denied \(403: Developer Inactive\).*not entitled to the Case API/);
   });
 
   test('retries when Cisco rate-limits with 403 Over Qps', async () => {

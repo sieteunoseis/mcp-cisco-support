@@ -14,10 +14,9 @@ describe('Simple Tests', () => {
     expect(tools.length).toBeGreaterThan(0);
   });
 
-  test('should have bug API tools', () => {
+  test('should always expose all 12 tools', () => {
     const names = getAvailableTools().map(tool => tool.name).sort();
-    // SUPPORT_API=bug exposes the bug tools plus the upgrade assessment
-    expect(names).toEqual(['assess_upgrade', 'bug_get', 'bug_search']);
+    expect(names).toEqual(['assess_upgrade', 'bug_get', 'bug_search', 'case_get', 'case_search', 'device_lookup', 'eox_get', 'product_get', 'psirt_get', 'psirt_search', 'rma_get', 'software_get']);
   });
 
   test('should have tool descriptions', () => {

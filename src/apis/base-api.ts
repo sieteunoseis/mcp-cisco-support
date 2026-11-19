@@ -126,6 +126,13 @@ export abstract class BaseApi {
           params: params,
           errorText: errorText.substring(0, 500)
         });
+        // 403 that is not rate limiting = the API key isn't entitled to this API
+        if (response.status === 403 && !/Over Qps|Over Rate/i.test(errorText)) {
+          const reason = errorText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+          throw new Error(`${this.apiName} API: access denied (403${reason ? `: ${reason}` : ''}). ` +
+            `The Cisco API credentials (CISCO_CLIENT_ID) are probably not entitled to the ${this.apiName} API; ` +
+            `request access for it on the Cisco API Console (https://apiconsole.cisco.com).`);
+        }
         throw new Error(`${this.apiName} API call failed: ${response.status} ${response.statusText} - URL: ${url} - ${errorText.substring(0, 500)}`);
       }
 

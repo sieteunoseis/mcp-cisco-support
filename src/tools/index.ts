@@ -24,7 +24,6 @@ export interface ApiClient {
 
 export interface ToolContext {
   apis: Record<ApiName, ApiClient>;
-  enabled: Set<ApiName>;
   progressToken?: string;
 }
 
@@ -32,7 +31,7 @@ type Args = Record<string, any>;
 
 interface ToolSpec {
   tool: Tool;
-  /** The tool is listed when any of these APIs is enabled */
+  /** Cisco APIs the tool calls (for logging and docs) */
   requires: ApiName[];
   handler: (args: Args, ctx: ToolContext) => Promise<any>;
 }
@@ -287,12 +286,12 @@ async function deviceLookup(args: Args, ctx: ToolContext) {
   const key = (s: unknown) => String(s ?? '').toUpperCase();
 
   const tasks: Promise<void>[] = [];
-  if (want.has('coverage') && ctx.enabled.has('serial')) {
+  if (want.has('coverage')) {
     tasks.push(ctx.apis.serial.request(`/coverage/summary/serial_numbers/${encList(serials)}`).then(body => {
       for (const c of body.serial_numbers || []) devices.get(key(c.sr_no))!.coverage = shapeCoverage(c, format);
     }).catch(e => { errors.coverage = e.message; }));
   }
-  if (want.has('product') && ctx.enabled.has('product')) {
+  if (want.has('product')) {
     tasks.push(ctx.apis.product.request(`/serial_numbers/${encList(serials)}`).then(body => {
       for (const p of body.product_list || []) {
         const d = devices.get(key(p.sr_no));
@@ -300,7 +299,7 @@ async function deviceLookup(args: Args, ctx: ToolContext) {
       }
     }).catch(e => { errors.product = e.message; }));
   }
-  if (want.has('eox') && ctx.enabled.has('eox')) {
+  if (want.has('eox')) {
     tasks.push(ctx.apis.eox.request(`/EOXBySerialNumber/1/${encList(serials)}`).then(body => {
       for (const r of body.EOXRecord || []) {
         for (const s of String(r.EOXInputValue || '').split(',')) {
@@ -459,20 +458,18 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
   };
   const advisoriesFor = (release: string) =>
     psirtRequest(ctx, `/OSType/${enc(args.os_type)}`, { version: release }).then(b => (b.advisories || []) as any[]);
-  const withPsirt = ctx.enabled.has('psirt') && !!args.os_type;
-  if (ctx.enabled.has('psirt') && !args.os_type) {
+  const withPsirt = !!args.os_type;
+  if (!args.os_type) {
     notes.push('Pass os_type (e.g. iosxe, ios, nxos, asa) to include security advisories for both releases');
   }
 
   // Round 1 (parallel): everything about the current release, the suggested release and EoX
   let target = args.target_version ? normalizeVersion(String(args.target_version).trim()) : undefined;
   const [suggestedBody, current_, currentAdv, eoxBody] = await Promise.all([
-    ctx.enabled.has('software')
-      ? attempt('Software suggestion lookup', () => ctx.apis.software.request(`/suggestions/software/productIds/${enc(pid)}`))
-      : Promise.resolve(undefined),
+    attempt('Software suggestion lookup', () => ctx.apis.software.request(`/suggestions/software/productIds/${enc(pid)}`)),
     attempt('Bug search on current release', () => openBugs(current)),
     withPsirt ? attempt('PSIRT lookup (current)', () => advisoriesFor(current)) : Promise.resolve(undefined),
-    ctx.enabled.has('eox') ? attempt('EoX lookup', () => ctx.apis.eox.request(`/EOXByProductID/1/${enc(pid)}`)) : Promise.resolve(undefined),
+    attempt('EoX lookup', () => ctx.apis.eox.request(`/EOXByProductID/1/${enc(pid)}`)),
   ]);
   sendProgress(ctx.progressToken, 1, steps);
 
@@ -483,7 +480,7 @@ async function assessUpgrade(args: Args, ctx: ToolContext) {
     target = suggested.release;
     notes.push(`target_version not given; using Cisco's suggested release ${target}`);
   }
-  if (!target) throw new Error('target_version is required (no suggested release available; enable the software API or pass target_version)');
+  if (!target) throw new Error('target_version is required (Cisco returned no suggested release; pass target_version)');
 
   // Round 2 (parallel): the target release
   const [target_, targetAdv] = await Promise.all([
@@ -630,7 +627,7 @@ export const TOOL_SPECS: ToolSpec[] = [
     description: 'For each serial number: contract coverage and warranty, product details, and end-of-life dates, in one call. Up to 20 serials.',
     inputSchema: { type: 'object', properties: {
       serial_numbers: { type: 'string', description: 'Comma-separated serial numbers (max 20), e.g. "FJC29161RHS,FTX1917AJJU"' },
-      include: { type: 'array', items: { type: 'string', enum: ['coverage', 'product', 'eox'] }, description: 'Sections to include (default: all available)' },
+      include: { type: 'array', items: { type: 'string', enum: ['coverage', 'product', 'eox'] }, description: 'Sections to include (default: all)' },
       response_format: responseFormat,
     }, required: ['serial_numbers'] },
   }, deviceLookup),

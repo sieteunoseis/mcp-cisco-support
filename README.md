@@ -30,7 +30,7 @@ A production-ready TypeScript MCP (Model Context Protocol) server for Cisco Supp
 
 v3.0.0 replaced the 58 per-endpoint tools with 12 resource-oriented tools. Every tool is read-only, returns a concise result by default (`response_format: "detailed"` for more), and list tools return normalized `paging` (`total_records`, `next_page`). Endpoints and response fields were verified against the live Cisco APIs.
 
-| Tool | API (`SUPPORT_API`) | What it does |
+| Tool | Cisco API | What it does |
 |------|---------------------|--------------|
 | `bug_get` | `bug` | Bug details by ID (up to 5) |
 | `bug_search` | `bug` | Bugs by keyword, product ID, product series or product name; releases affected or fixed; several severities in one call |
@@ -45,12 +45,9 @@ v3.0.0 replaced the 58 per-endpoint tools with 12 resource-oriented tools. Every
 | `case_search` | `case` | TAC cases by contract or user ID |
 | `rma_get` | `rma` | An RMA by number, or RMAs for a user ID |
 
-**Configuration examples:**
-- `SUPPORT_API=bug` (default): `bug_get`, `bug_search`, `assess_upgrade`
-- `SUPPORT_API=bug,psirt,software,eox`: adds security and lifecycle data to `assess_upgrade`
-- `SUPPORT_API=all`: all 12 tools
+All 12 tools are always listed. A tool whose Cisco API your credentials aren't entitled to returns a clear "access denied (403)" error naming the API; request access on the [Cisco API Console](https://apiconsole.cisco.com).
 
-**Upgrading from 2.x:** calling an old tool name returns an error naming its replacement (e.g. `search_bugs_by_keyword` → `bug_search`). The `enhanced_analysis`, `sampling` and `smart_bonding` options were removed.
+**Upgrading from 2.x:** calling an old tool name returns an error naming its replacement (e.g. `search_bugs_by_keyword` → `bug_search`). `SUPPORT_API` is no longer used (a warning is printed if it is set); the `enhanced_analysis`, `sampling` and `smart_bonding` options are gone.
 
 ## Quick Start
 
@@ -89,7 +86,6 @@ npx mcp-cisco-support --help
    ```bash
    export CISCO_CLIENT_ID=your_client_id_here
    export CISCO_CLIENT_SECRET=your_client_secret_here
-   export SUPPORT_API=bug,case,eox,psirt,product,software  # All implemented APIs (recommended)
    ```
 
 3. **Start the server:**
@@ -138,8 +134,7 @@ npm start
          "args": ["-y", "mcp-cisco-support"],
          "env": {
            "CISCO_CLIENT_ID": "your_client_id_here",
-           "CISCO_CLIENT_SECRET": "your_client_secret_here",
-           "SUPPORT_API": "bug,product"
+           "CISCO_CLIENT_SECRET": "your_client_secret_here"
          }
        }
      }
@@ -150,11 +145,6 @@ npm start
 
    **Optional Environment Variables:**
 
-   Configure which APIs to enable with `SUPPORT_API`:
-   - `"bug"` - Bug API only (default)
-   - `"bug,psirt,software,eox"` - Bug tools plus security and lifecycle data for `assess_upgrade`
-   - `"all"` - All available APIs
-   - `"bug,case,eox"` - Multiple specific APIs
 
 3. **Replace Your Credentials**:
    - Replace `your_client_id_here` with your actual Cisco Client ID
@@ -286,8 +276,7 @@ Then use this config:
       "command": "mcp-cisco-support",
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
-        "CISCO_CLIENT_SECRET": "your_client_secret_here",
-        "SUPPORT_API": "bug"
+        "CISCO_CLIENT_SECRET": "your_client_secret_here"
       }
     }
   }
@@ -313,8 +302,7 @@ Then use this config:
       "args": ["/path/to/mcp-cisco-support/dist/index.js"],
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
-        "CISCO_CLIENT_SECRET": "your_client_secret_here",
-        "SUPPORT_API": "bug"
+        "CISCO_CLIENT_SECRET": "your_client_secret_here"
       }
     }
   }
@@ -385,7 +373,6 @@ docker pull ghcr.io/sieteunoseis/mcp-cisco-support:latest
 docker run -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_id \
   -e CISCO_CLIENT_SECRET=your_secret \
-  -e SUPPORT_API=bug \
   ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 
 # Or build locally
@@ -423,13 +410,6 @@ CISCO_CLIENT_SECRET=your_client_secret_here
 PORT=3000
 NODE_ENV=development
 
-# 🚀 API Support Configuration
-# Enable specific Cisco Support APIs you have access to
-# Options: bug, case, eox (plus planned: product, serial, rma, software, asd)
-SUPPORT_API=bug,case,eox              # Multiple APIs
-# SUPPORT_API=all                     # All available APIs  
-# SUPPORT_API=bug                     # Single API (default)
-
 # 🔐 HTTP Authentication Configuration (HTTP mode only)
 # Custom Bearer token for HTTP authentication (optional - generates random if not set)
 MCP_BEARER_TOKEN=your_custom_secure_token_here
@@ -453,8 +433,7 @@ The built-in OAuth 2.1 authorization server was removed in v2.0.0. Use bearer-to
       "args": ["-y", "mcp-cisco-support"],
       "env": {
         "CISCO_CLIENT_ID": "your_client_id_here",
-        "CISCO_CLIENT_SECRET": "your_client_secret_here",
-        "SUPPORT_API": "bug,case,eox"
+        "CISCO_CLIENT_SECRET": "your_client_secret_here"
       }
     }
   }
@@ -468,7 +447,6 @@ The built-in OAuth 2.1 authorization server was removed in v2.0.0. Use bearer-to
 docker run -p 3000:3000 \
   -e CISCO_CLIENT_ID=your_client_id \
   -e CISCO_CLIENT_SECRET=your_client_secret \
-  -e SUPPORT_API=bug,case,eox \
   -e MCP_BEARER_TOKEN=your_secure_token \
   ghcr.io/sieteunoseis/mcp-cisco-support:latest --http
 ```

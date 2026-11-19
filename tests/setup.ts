@@ -5,9 +5,6 @@ if (!process.env.CISCO_CLIENT_ID || process.env.CISCO_CLIENT_ID === 'test_client
 if (!process.env.CISCO_CLIENT_SECRET || process.env.CISCO_CLIENT_SECRET === 'test_client_secret') {
   process.env.CISCO_CLIENT_SECRET = 'test_client_secret';
 }
-if (!process.env.SUPPORT_API) {
-  process.env.SUPPORT_API = 'bug';
-}
 
 // Check if we have real credentials for integration tests
 const hasRealCredentials = process.env.RUN_INTEGRATION === '1' &&

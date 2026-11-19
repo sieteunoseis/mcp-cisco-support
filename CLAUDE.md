@@ -24,18 +24,18 @@ The 2.x per-endpoint tool definitions still live in `src/apis/*-api.ts` (`getToo
 
 ## Tools (v3)
 
-| Tool | Requires (`SUPPORT_API`) |
+| Tool | Cisco API |
 |------|--------------------------|
 | bug_get, bug_search, assess_upgrade | bug |
 | psirt_get, psirt_search | psirt |
 | eox_get | eox |
-| device_lookup | serial, product or eox |
+| device_lookup | serial, product, eox |
 | product_get | product |
 | software_get | software |
 | case_get, case_search | case |
 | rma_get | rma |
 
-All tools are read-only (`readOnlyHint`, `openWorldHint`), return concise output unless `response_format: "detailed"`, and list tools return `paging: { page, total_records, last_page, next_page }`. Calling a 2.x tool name returns an error naming its replacement.
+All 12 tools are always listed (no `SUPPORT_API` filter since 3.0.0); a non-rate-limit 403 is reported as a missing API entitlement. All tools are read-only (`readOnlyHint`, `openWorldHint`), return concise output unless `response_format: "detailed"`, and list tools return `paging: { page, total_records, last_page, next_page }`. Calling a 2.x tool name returns an error naming its replacement.
 
 ## Cisco API behaviour (verified live 2026-11-18)
 

@@ -7,7 +7,6 @@
  */
 
 import { Prompt } from '@modelcontextprotocol/sdk/types.js';
-import { SupportedAPI } from '../apis/index.js';
 
 /**
  * Cisco Support MCP Prompts
@@ -203,29 +202,3 @@ export const ciscoPrompts: Prompt[] = [
  * Defines which APIs each prompt uses for filtering based on enabled APIs
  * Prompts with serial_number support require 'serial' API for product lookups
  */
-export const promptApiMapping: Record<string, SupportedAPI[]> = {
-  'cisco-upgrade-planning': ['bug'],
-  'cisco-known-issues': ['bug'],
-  'cisco-incident-investigation': ['bug'],
-  'cisco-security-advisory': ['psirt'],
-  'cisco-lifecycle-planning': ['eox', 'serial'],
-  'cisco-case-investigation': ['case'],
-};
-
-/**
- * Get available prompts filtered by enabled APIs
- * @param enabledApis - Array of enabled API names
- * @returns Filtered array of prompts
- */
-export function getFilteredPrompts(enabledApis: SupportedAPI[]): Prompt[] {
-  return ciscoPrompts.filter(prompt => {
-    const requiredApis = promptApiMapping[prompt.name];
-    if (!requiredApis) {
-      // If no API mapping defined, include the prompt by default
-      return true;
-    }
-
-    // Include prompt if at least one of its required APIs is enabled
-    return requiredApis.some(api => enabledApis.includes(api));
-  });
-}

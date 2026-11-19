@@ -69,7 +69,6 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('Environment Variables:');
   console.log('  CISCO_CLIENT_ID           Cisco API client ID (required)');
   console.log('  CISCO_CLIENT_SECRET       Cisco API client secret (required)');
-  console.log('  SUPPORT_API               bug, psirt, eox, product, serial, software, case, rma or all (default: bug)');
   console.log('  MCP_BEARER_TOKEN          Bearer token for HTTP mode (random if unset)');
   console.log('  PORT / HOST               HTTP listen port and address (default: 3000 / 127.0.0.1)');
   console.log('  MCP_ALLOWED_ORIGINS       Extra browser origins allowed to call /mcp (comma-separated)');

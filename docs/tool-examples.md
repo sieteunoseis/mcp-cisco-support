@@ -2,7 +2,7 @@
 
 Every tool is read-only. Results are concise unless `response_format` is `"detailed"`. List results include `paging` (`total_records`, `next_page`), and empty results include a `hint`.
 
-## Bugs (`SUPPORT_API=bug`)
+## Bugs
 
 ```jsonc
 // Bug details (up to 5 IDs); unknown IDs are listed in not_found
@@ -22,7 +22,7 @@ bug_search { "product_name": "Cisco Unified Communications Manager (CallManager)
 assess_upgrade { "product_id": "C9300-48P", "current_version": "17.15.4b", "os_type": "iosxe" }
 ```
 
-## Security advisories (`psirt`)
+## Security advisories
 
 ```jsonc
 psirt_get { "cve": "CVE-2023-20198" }
@@ -43,7 +43,7 @@ eox_get { "product_ids": "VG224,C9300-48P" }
 eox_get { "software_releases": "15.4(3)M,IOS" }
 eox_get { "start_date": "2026-01-01", "end_date": "2026-01-31", "page_size": 20 }
 
-// Coverage + product + EoX per serial (needs serial, product and/or eox enabled)
+// Coverage + product + EoX per serial
 device_lookup { "serial_numbers": "FJC29161RHS,FTX1917AJJU" }
 
 product_get { "product_ids": "C9300-48P,ISR4431/K9", "include_mdf": true }
@@ -53,7 +53,7 @@ software_get { "product_ids": "C9300-48P", "view": "releases" }   // latest rele
 software_get { "product_ids": "ISR4431/K9", "view": "compatible", "current_release": "17.9.4" }
 ```
 
-## Cases and RMAs (`case`, `rma`)
+## Cases and RMAs
 
 ```jsonc
 case_get { "case_ids": "700000001", "response_format": "detailed" }   // adds notes, owner, contact

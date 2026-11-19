@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING: 58 tools replaced by 12.** `bug_get`, `bug_search`, `assess_upgrade`, `psirt_get`, `psirt_search`, `eox_get`, `device_lookup`, `product_get`, `software_get`, `case_get`, `case_search`, `rma_get`. Calling a 2.x name returns an error naming its replacement. tools/list is about 13 KB (down from 51 KB).
 - Concise output by default (`response_format: "detailed"` for more), normalized `paging` on every list tool, hints on empty results.
 - `bug_search` takes several severities in one call and reports the API's real totals.
-- `SUPPORT_API` values are now `bug, psirt, eox, product, serial, software, case, rma, all`. `enhanced_analysis` maps to `bug`; an unknown value falls back to `bug` instead of enabling nothing.
+- **`SUPPORT_API` removed:** all 12 tools, prompts and resources are always available; a warning is printed if the variable is still set. A Cisco 403 that isn't rate limiting is reported as "access denied … not entitled to the X API" with a pointer to the Cisco API Console.
 - Node 20+ required; Docker image uses Node 22.
 - MCP SDK 1.20.2 -> 1.32.2: negotiates protocol 2025-11-25 (2025-06-18 clients still work); server icon uses the standard `icons` field.
 - Resources are thin views over the v3 tools: `cisco://bugs/{bug_id}`, `cisco://products/{product_id}`, `cisco://security/advisories/{advisory_id}`, `cisco://security/cve/{cve_id}`, plus `cisco://security/advisories/recent` and `/critical`.

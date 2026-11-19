@@ -34,7 +34,6 @@ const sseJson = (body: string) => JSON.parse(body.split('\n').find(l => l.starts
 
 beforeAll(async () => {
   process.env.MCP_BEARER_TOKEN = TOKEN;
-  process.env.SUPPORT_API = 'bug';
   const app = createHttpServer(createMCPServer);
   await new Promise<void>(resolve => { server = app.listen(0, '127.0.0.1', () => resolve()); });
   port = (server.address() as AddressInfo).port;

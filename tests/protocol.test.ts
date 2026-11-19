@@ -27,8 +27,7 @@ async function readJson(client: Client, uri: string): Promise<any> {
   return JSON.parse((contents[0] as { text: string }).text);
 }
 
-async function connect(supportApi: string, options: { ui?: boolean } = {}) {
-  process.env.SUPPORT_API = supportApi;
+async function connect(_label: string, options: { ui?: boolean } = {}) {
   const server = createMCPServer();
   const client = new Client({ name: 'test', version: '1.0.0' }, options.ui ? {
     capabilities: { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: ['text/html;profile=mcp-app'] } } } as any,
@@ -52,10 +51,6 @@ beforeEach(() => {
     const f = fixture(route[1]);
     return json(f.status, f.body);
   });
-});
-
-afterAll(() => {
-  process.env.SUPPORT_API = 'bug';
 });
 
 describe('MCP protocol', () => {
@@ -94,14 +89,7 @@ describe('MCP protocol', () => {
 });
 
 describe('resources', () => {
-  test('lists only resources for enabled APIs', async () => {
-    const { client } = await connect('bug');
-    expect((await client.listResources()).resources).toHaveLength(0);
-    expect((await client.listResourceTemplates()).resourceTemplates.map(t => t.uriTemplate))
-      .toEqual(['cisco://bugs/{bug_id}']);
-  });
-
-  test('all resources when everything is enabled; scraping and recent-bug resources are gone', async () => {
+  test('resources and templates; scraping and recent-bug resources are gone', async () => {
     const { client } = await connect('all');
     const uris = (await client.listResources()).resources.map(r => r.uri);
     expect(uris.sort()).toEqual(['cisco://security/advisories/critical', 'cisco://security/advisories/recent']);

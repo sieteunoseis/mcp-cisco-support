@@ -20,39 +20,25 @@ import dotenv from "dotenv";
 import {
   createApiRegistry,
   ApiRegistry,
-  SupportedAPI,
-  getEnabledAPIs,
 } from "./apis/index.js";
 import { encodeResult } from "./utils/gcf.js";
 import { UI_EXTENSION_ID, UI_MIME_TYPE, RESULTS_APP_URI, RESULTS_APP_HTML, UI_TOOLS } from "./ui/results-app.js";
 import { setLogging, logger } from "./utils/logger.js";
 import { SERVER_ICON } from "./utils/icon.js";
 import { registerProgressContext } from "./utils/progress.js";
-import { getFilteredPrompts } from "./prompts/cisco-prompts.js";
+import { ciscoPrompts } from "./prompts/cisco-prompts.js";
 
 // Load environment variables
 dotenv.config();
 
 import { VERSION } from "./utils/version.js";
 
-// Initialize API registry (will be created fresh each time for dynamic config)
-let apiRegistry: ApiRegistry;
-let ENABLED_APIS: SupportedAPI[];
+// Module-level registry for the exported test helpers below
+const apiRegistry: ApiRegistry = createApiRegistry();
 
-// Initialize or refresh the API registry
-function initializeApiRegistry() {
-  ENABLED_APIS = getEnabledAPIs();
-  apiRegistry = createApiRegistry();
-}
-
-// Initialize at module load
-initializeApiRegistry();
-
-// Prompts are now imported from ./prompts/cisco-prompts.js
-
-// Get available prompts (filtered by enabled APIs)
+// All prompts are always available
 export function getAvailablePrompts(): Prompt[] {
-  return getFilteredPrompts(ENABLED_APIS);
+  return ciscoPrompts;
 }
 
 // Generate prompt content based on prompt name and arguments.
@@ -182,8 +168,7 @@ export function createMCPServer(): Server {
     },
   );
 
-  // Per-server API registry (sampling requests go back through this server)
-  ENABLED_APIS = getEnabledAPIs(); // Refresh enabled APIs list
+  // Per-server API registry
   const apiRegistry = createApiRegistry(server);
 
   // MCP Apps: only clients that advertise the UI extension get UI links and structuredContent
@@ -274,15 +259,6 @@ export function createMCPServer(): Server {
             .getAvailableTools()
             .map((t) => t.name)
             .join(", ");
-
-        errorMessage += `\n\nℹ️ Enabled APIs: ${ENABLED_APIS.join(", ")}`;
-      }
-
-      if (errorMessage.includes("Tool implementation not found")) {
-        errorMessage +=
-          "\n\nℹ️ This tool may require an API that is not yet implemented or enabled.";
-        errorMessage += `\nCurrently enabled APIs: ${ENABLED_APIS.join(", ")}`;
-        errorMessage += `\nTo enable more APIs, set SUPPORT_API environment variable (e.g., SUPPORT_API=bug,case)`;
       }
 
       const errorContent: TextContent = {
@@ -337,7 +313,6 @@ export function createMCPServer(): Server {
   // Static resources
   const staticResources = [
     {
-      api: "psirt" as SupportedAPI,
       uri: "cisco://security/advisories/recent",
       name: "Recent Security Advisories",
       description: "The 20 most recent Cisco PSIRT security advisories",
@@ -345,7 +320,6 @@ export function createMCPServer(): Server {
       args: { latest: 20, page_size: 20 },
     },
     {
-      api: "psirt" as SupportedAPI,
       uri: "cisco://security/advisories/critical",
       name: "Critical Security Advisories",
       description: "Most recent critical-severity Cisco security advisories",
@@ -357,7 +331,6 @@ export function createMCPServer(): Server {
   // Templated resources: cisco://<prefix>{id}
   const templateResources = [
     {
-      api: "bug" as SupportedAPI,
       uriTemplate: "cisco://bugs/{bug_id}",
       prefix: "cisco://bugs/",
       name: "Cisco Bug",
@@ -366,7 +339,6 @@ export function createMCPServer(): Server {
       argsFor: (id: string) => ({ bug_ids: id }),
     },
     {
-      api: "product" as SupportedAPI,
       uriTemplate: "cisco://products/{product_id}",
       prefix: "cisco://products/",
       name: "Cisco Product",
@@ -375,7 +347,6 @@ export function createMCPServer(): Server {
       argsFor: (id: string) => ({ product_ids: id }),
     },
     {
-      api: "psirt" as SupportedAPI,
       uriTemplate: "cisco://security/advisories/{advisory_id}",
       prefix: "cisco://security/advisories/",
       name: "Cisco Security Advisory",
@@ -384,7 +355,6 @@ export function createMCPServer(): Server {
       argsFor: (id: string) => ({ advisory_id: id }),
     },
     {
-      api: "psirt" as SupportedAPI,
       uriTemplate: "cisco://security/cve/{cve_id}",
       prefix: "cisco://security/cve/",
       name: "Cisco Security Advisory by CVE",
@@ -394,17 +364,14 @@ export function createMCPServer(): Server {
     },
   ];
 
-  const enabled = (api: SupportedAPI) => ENABLED_APIS.includes(api);
 
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({
     resources: staticResources
-      .filter(r => enabled(r.api))
       .map(({ uri, name, description }) => ({ uri, name, description, mimeType: "application/json" })),
   }));
 
   server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({
     resourceTemplates: templateResources
-      .filter(t => enabled(t.api))
       .map(({ uriTemplate, name, description }) => ({ uriTemplate, name, description, mimeType: "application/json" })),
   }));
 
@@ -421,14 +388,14 @@ export function createMCPServer(): Server {
     let tool: string | undefined;
     let args: Record<string, any> = {};
 
-    const fixed = staticResources.find(r => r.uri === uri && enabled(r.api));
+    const fixed = staticResources.find(r => r.uri === uri);
     if (fixed) {
       tool = fixed.tool;
       args = fixed.args;
     } else {
       // Longest prefix first so cisco://security/advisories/{id} doesn't swallow the static URIs
       const template = templateResources
-        .filter(t => enabled(t.api) && uri.startsWith(t.prefix))
+        .filter(t => uri.startsWith(t.prefix))
         .sort((a, b) => b.prefix.length - a.prefix.length)[0];
       const id = template ? decodeURIComponent(uri.slice(template.prefix.length)) : "";
       if (template && id && !id.includes("/")) {
@@ -451,18 +418,14 @@ export function createMCPServer(): Server {
 
 // Export the main server instance and utilities
 export const mcpServer = createMCPServer();
-export { setLogging, logger, apiRegistry, ENABLED_APIS };
+export { setLogging, logger, apiRegistry };
 
 // Export functions for backward compatibility with tests
 export function getAvailableTools() {
-  // Reinitialize registry to pick up any environment changes
-  initializeApiRegistry();
   return apiRegistry.getAvailableTools();
 }
 
 export async function executeTool(name: string, args: Record<string, any>) {
-  // Reinitialize registry to pick up any environment changes
-  initializeApiRegistry();
   const { result } = await apiRegistry.executeTool(name, args);
   return result;
 }

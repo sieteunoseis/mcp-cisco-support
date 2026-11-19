@@ -59,12 +59,9 @@ const isIntegrationMode = !mockFetch;
       });
     });
 
-    test('should include only Bug API tools', () => {
-      const tools = getAvailableTools();
-      const names = tools.map(t => t.name);
-
-      // Bug API only: bug tools plus assess_upgrade, nothing from other APIs
-      expect([...names].sort()).toEqual(['assess_upgrade', 'bug_get', 'bug_search']);
+    test('should expose all 12 tools', () => {
+      const names = getAvailableTools().map(t => t.name);
+      expect([...names].sort()).toEqual(['assess_upgrade', 'bug_get', 'bug_search', 'case_get', 'case_search', 'device_lookup', 'eox_get', 'product_get', 'psirt_get', 'psirt_search', 'rma_get', 'software_get']);
     });
   });
 
@@ -117,8 +114,7 @@ const isIntegrationMode = !mockFetch;
     });
 
     test('every prompt names only tools that exist', () => {
-      process.env.SUPPORT_API = 'all';
-      try {
+      {
       const toolNames = new Set(require('../src/mcp-server').getAvailableTools().map((t: any) => t.name));
       const samples: Record<string, Record<string, string>> = {
         'cisco-incident-investigation': { symptom: 'crash', serial_number: 'FOC123' },
@@ -135,8 +131,6 @@ const isIntegrationMode = !mockFetch;
         expect(mentioned.length).toBeGreaterThan(0);
         for (const tool of mentioned) expect(toolNames).toContain(tool);
       }
-      } finally {
-        process.env.SUPPORT_API = 'bug';
       }
     });
 
@@ -168,27 +162,6 @@ const isIntegrationMode = !mockFetch;
       // This tests the underlying function that the handler uses
       const prompts = getAvailablePrompts();
       expect(prompts.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('API Configuration', () => {
-    test('should respect SUPPORT_API environment variable', () => {
-      // Test that only bug API tools are available when SUPPORT_API=bug
-      const tools = getAvailableTools();
-      const apiTypes = new Set();
-      
-      tools.forEach(tool => {
-        if (tool.name.includes('bug')) apiTypes.add('bug');
-        if (tool.name.includes('case')) apiTypes.add('case');
-        if (tool.name.includes('eox')) apiTypes.add('eox');
-      });
-      
-      // Should have bug tools
-      expect(apiTypes.has('bug')).toBe(true);
-      
-      // Should only have bug tools (no case tools implemented yet)
-      const caseTools = tools.filter(t => t.name.includes('case'));
-      expect(caseTools.length).toBe(0); // No case tools yet
     });
   });
 
