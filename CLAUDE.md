@@ -8,6 +8,7 @@ TypeScript MCP server (SDK v2, protocol 2026-07-28 plus 2025-era clients) for th
 src/
   index.ts            entry point: stdio or --http
   mcp-server.ts       createMCPServer(): tools, prompts, cisco:// resources
+  skills.ts           MCP Skills extension: skills/list, skills/get, skill:// reads of skills/ (low-level Server, so not the SDK's skills.attach())
   http-server.ts      Express: bearer auth, origin checks, rate limit, then the SDK's createMcpHandler (stateless)
   tools/index.ts      the 12 v3 tools: schemas + handlers (TOOL_SPECS, RENAMED_TOOLS)
   tools/shape.ts      concise/detailed shaping and pagination normalization

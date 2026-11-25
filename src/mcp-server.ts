@@ -31,6 +31,7 @@ import { ciscoPrompts } from "./prompts/cisco-prompts.js";
 dotenv.config();
 
 import { VERSION } from "./utils/version.js";
+import { registerSkills, isSkillUri, readSkillFile } from "./skills.js";
 
 // Module-level registry for the exported test helpers below
 const apiRegistry: ApiRegistry = createApiRegistry();
@@ -194,6 +195,9 @@ export function createMCPServer(): Server {
     const ext = caps.extensions?.[UI_EXTENSION_ID];
     return Array.isArray(ext?.mimeTypes) && ext.mimeTypes.includes(UI_MIME_TYPE) ? 'yes' : 'no';
   };
+
+  // MCP Skills extension: skills/list, skills/get (skill:// reads below)
+  registerSkills(server);
 
   // Ping handler
   server.setRequestHandler("ping", async () => {
@@ -532,6 +536,8 @@ export function createMCPServer(): Server {
   server.setRequestHandler("resources/read", async (request) => {
     const { uri } = request.params;
     logger.info("Read resource request", { uri });
+
+    if (isSkillUri(uri)) return readSkillFile(uri);
 
     if (uri === RESULTS_APP_URI) {
       return {

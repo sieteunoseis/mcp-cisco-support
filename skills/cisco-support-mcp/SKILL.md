@@ -4,7 +4,7 @@ description: Use when answering Cisco support questions through the cisco-suppor
 license: MIT
 metadata:
   author: sieteunoseis
-  version: "3.2.1"
+  version: "3.3.0"
 ---
 
 # Cisco Support MCP server

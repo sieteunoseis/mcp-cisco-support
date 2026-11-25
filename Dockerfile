@@ -61,6 +61,9 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 # Copy built application from builder stage
 COPY --from=builder /usr/src/app/dist ./dist
 
+# Agent skills served over MCP (skills/list, skill://)
+COPY skills/ ./skills/
+
 # Copy .env.example for reference
 COPY --chown=nodeuser:nodejs .env.example ./
 

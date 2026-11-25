@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-25
+
+### Added
+- MCP Skills extension (`io.modelcontextprotocol/skills`, SEP-2640): the bundled `cisco-support-mcp` skill is served via `skills/list`, `skills/get` and `resources/read` at `skill://cisco-support-mcp/SKILL.md`, so skill-aware clients load it without a separate install. `skills/` now ships in the npm package and Docker image.
+
 ## [3.2.1] - 2026-11-19
 
 ### Added

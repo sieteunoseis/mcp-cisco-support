@@ -156,6 +156,8 @@ Security notes: [Security Guide](https://github.com/sieteunoseis/mcp-cisco-suppo
 
 The [`cisco-support-mcp`](skills/cisco-support-mcp/SKILL.md) skill teaches an agent to use these tools well: which tool answers which question, Cisco's input formats, and what to do with the server's status results (exact-release questions, 403s, the MCP Apps view).
 
+Since 3.3.0 the server also publishes it over MCP through the [Skills extension](https://modelcontextprotocol.io/extensions/skills/overview) (`io.modelcontextprotocol/skills`: `skills/list`, `skills/get`, `skill://cisco-support-mcp/SKILL.md`). Clients that support MCP skills, such as Claude and Claude Code v2.1.331+ (public beta), load it from the server with no install. Other clients can install it themselves:
+
 ```bash
 npx skills add sieteunoseis/mcp-cisco-support
 ```
